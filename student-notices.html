@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notices | EduCoffee</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg:#FDFBF7;--coffee:#3E2723;--caramel:#C68642;--caramel-light:rgba(198,134,66,.10);--text:#2D241E;--muted:#7D6E64;--card:#FFFFFF;--border:rgba(62,39,35,.07);--shadow:0 2px 20px rgba(62,39,35,.06);--shadow-lg:0 12px 40px rgba(62,39,35,.10);--ease:cubic-bezier(.16,1,.3,1)}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+        /* SIDEBAR */
+        .sidebar{position:fixed;top:0;left:0;height:100%;width:240px;background:var(--coffee);display:flex;flex-direction:column;z-index:200;transition:transform .4s var(--ease)}
+        .sidebar-logo{padding:28px 24px 20px;font-family:'DM Serif Display',serif;font-size:1.5rem;color:#fff;border-bottom:1px solid rgba(255,255,255,.08);letter-spacing:-.3px}
+        .sidebar-logo span{color:var(--caramel);font-style:italic}
+        .sidebar-nav{flex:1;padding:16px 0;overflow-y:auto}
+        .nav-link{display:flex;align-items:center;gap:12px;padding:12px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:.88rem;font-weight:500;border-left:3px solid transparent;transition:all .25s}
+        .nav-link:hover{color:#fff;background:rgba(255,255,255,.06)}
+        .nav-link.active{color:#fff;border-left-color:var(--caramel);background:rgba(198,134,66,.12)}
+        .nav-link svg{width:18px;height:18px;flex-shrink:0}
+        .nav-section{padding:20px 24px 6px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.3)}
+        .sidebar-footer{padding:20px 24px;border-top:1px solid rgba(255,255,255,.08)}
+        .user-chip{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.07);border-radius:12px;cursor:pointer}
+        .user-avatar{width:34px;height:34px;border-radius:10px;background:var(--caramel);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0}
+        .user-info{flex:1;min-width:0}
+        .user-name{font-size:.82rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .user-role{font-size:.68rem;color:rgba(255,255,255,.5)}
+
+        /* MOBILE HEADER */
+        .mobile-header{display:none;position:sticky;top:0;z-index:150;background:var(--card);border-bottom:1px solid var(--border);padding:14px 18px;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
+        .mobile-logo{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--coffee);text-decoration:none}
+        .mobile-logo span{color:var(--caramel);font-style:italic}
+        .hamburger{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--coffee)}
+        .hamburger svg{width:22px;height:22px}
+        .mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:190;backdrop-filter:blur(3px);opacity:0;transition:opacity .3s}
+        .mobile-overlay.open{display:block;opacity:1}
+        .sidebar.mobile-open{transform:translateX(0)!important}
+
+        /* MAIN */
+        .main{margin-left:240px;padding:32px 28px 40px;min-height:100vh}
+
+        /* PAGE HEADER */
+        .page-header{margin-bottom:28px}
+        .page-header h1{font-family:'DM Serif Display',serif;font-size:1.9rem;color:var(--coffee);margin-bottom:4px}
+        .page-header p{font-size:.88rem;color:var(--muted)}
+
+        /* FILTER BAR */
+        .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;align-items:center}
+        .filter-chip{padding:8px 16px;border-radius:50px;border:1.5px solid var(--border);background:var(--card);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap}
+        .filter-chip.active{background:var(--coffee);color:#fff;border-color:var(--coffee)}
+        .filter-chip:hover:not(.active){border-color:var(--caramel);color:var(--caramel)}
+        .search-wrap{margin-left:auto;position:relative}
+        .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
+        .search-input{padding:9px 14px 9px 36px;border-radius:50px;border:1.5px solid var(--border);background:var(--card);font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--text);outline:none;transition:all .25s;width:200px}
+        .search-input:focus{border-color:var(--caramel);box-shadow:0 0 0 3px rgba(198,134,66,.1);width:240px}
+
+        /* TOPBAR */
+        .topbar-notices{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+        .count-label{font-size:.82rem;color:var(--muted)}
+
+        /* BATCH FILTER PILLS */
+        .batch-pill{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:50px;border:1.5px solid var(--border);background:var(--card);font-size:.78rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s}
+        .batch-pill.active{background:var(--coffee);color:#fff;border-color:var(--coffee)}
+        .batch-pill:hover:not(.active){border-color:var(--caramel);color:var(--caramel)}
+        .tp-dot{width:7px;height:7px;border-radius:50%;background:var(--caramel);flex-shrink:0}
+
+        /* NOTICE CARDS */
+        .notices-container{display:flex;flex-direction:column;gap:12px}
+        .notice-card{background:var(--card);border-radius:20px;border:1px solid var(--border);border-left:4px solid var(--caramel);box-shadow:var(--shadow);padding:20px 22px;cursor:pointer;transition:all .3s var(--ease);position:relative}
+        .notice-card:hover{transform:translateX(6px);box-shadow:var(--shadow-lg);border-color:var(--caramel)}
+        .nc-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:10px}
+        .nc-avatar{width:42px;height:42px;border-radius:12px;background:var(--coffee);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:1.1rem;color:#fff;flex-shrink:0}
+        .nc-meta{flex:1;min-width:0}
+        .nc-batch{font-size:.78rem;font-weight:700;color:var(--caramel);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+        .nc-title{font-size:.95rem;font-weight:600;color:var(--text);line-height:1.35}
+        .nc-badge-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+        .nc-time{font-size:.72rem;color:var(--muted)}
+        .nc-body{font-size:.85rem;color:var(--muted);line-height:1.5;margin-top:8px;display:none}
+        .nc-body.expanded{display:block;animation:fadeIn .3s ease}
+        .nc-expand{font-size:.78rem;font-weight:600;color:var(--caramel);margin-top:8px;display:inline-block;cursor:pointer}
+
+        /* EMPTY */
+        .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+        .empty-state svg{width:52px;height:52px;opacity:.25;margin-bottom:14px}
+        .empty-state h3{font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--coffee);margin-bottom:6px;opacity:.6}
+        .empty-state p{font-size:.85rem}
+
+        /* BOTTOM NAV */
+        .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:10px 0 14px;z-index:200}
+        .bnav-inner{display:flex;justify-content:space-around}
+        .bnav-item{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:var(--muted);font-size:.65rem;font-weight:600;padding:4px 12px;border-radius:10px;transition:color .2s}
+        .bnav-item.active{color:var(--coffee)}
+        .bnav-item svg{width:22px;height:22px}
+
+        @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%);width:260px}
+            .main{margin-left:0;padding:16px 16px 90px}
+            .mobile-header{display:flex}
+            .bottom-nav{display:block}
+            .search-wrap{margin-left:0;width:100%}
+            .search-input,.search-input:focus{width:100%}
+            .filter-bar{gap:7px}
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Edu<span>Coffee.</span></div>
+    <nav class="sidebar-nav">
+        <div class="nav-section">Main</div>
+        <a href="student-dashboard.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Dashboard
+        </a>
+        <a href="student-notices.html" class="nav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Notices
+        </a>
+        <a href="student-results.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Results
+        </a>
+        <div class="nav-section" style="margin-top:10px">Account</div>
+        <a href="student-profile.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            Profile
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="user-chip" onclick="location.href='student-profile.html'">
+            <div class="user-avatar" id="sidebarAvatar">S</div>
+            <div class="user-info">
+                <div class="user-name" id="sidebarName">Student</div>
+                <div class="user-role">Student</div>
+            </div>
+        </div>
+    </div>
+</aside>
+<div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
+
+<!-- MOBILE HEADER -->
+<header class="mobile-header">
+    <a href="student-dashboard.html" class="mobile-logo">Edu<span>Coffee.</span></a>
+    <button class="hamburger" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+    <div class="page-header">
+        <h1>Notice Board</h1>
+        <p>All notices from your enrolled batches</p>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar" id="filterBar">
+        <button class="filter-chip active" onclick="filterByType('all', this)">All</button>
+        <button class="filter-chip" onclick="filterByType('unread', this)">Unread</button>
+        <div id="batchFilters" style="display:contents"></div>
+        <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="search-input" placeholder="Search notices…" id="searchInput" oninput="filterSearch()">
+        </div>
+    </div>
+
+    <div class="topbar-notices">
+        <div class="count-label" id="countLabel">Loading…</div>
+    </div>
+
+    <div class="notices-container" id="noticesContainer">
+        <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <h3>Loading notices…</h3>
+        </div>
+    </div>
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+    <div class="bnav-inner">
+        <a href="student-dashboard.html" class="bnav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Home
+        </a>
+        <a href="student-notices.html" class="bnav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Notices
+        </a>
+        <a href="student-results.html" class="bnav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Results
+        </a>
+        <a href="student-profile.html" class="bnav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            Profile
+        </a>
+    </div>
+</nav>
+
+<script>
+const API = 'http://127.0.0.1:8000/api';
+const studentId = localStorage.getItem('current_userid');
+
+if (!studentId) { window.location.href = 'auth.html'; }
+
+const studentName = localStorage.getItem('current_user_name') || 'Student';
+document.getElementById('sidebarName').textContent = studentName;
+document.getElementById('sidebarAvatar').textContent = studentName[0].toUpperCase();
+
+// ── STATE ──
+let allNotices = [];       // raw from API: [{id, text, teacher_id, created_at, batch_codes}]
+let expandedIds = new Set();
+let currentTypeFilter = 'all';
+let currentBatchFilter = 'all';
+let searchQuery = '';
+let studentBatchCodes = [];
+
+async function apiFetch(path) {
+    try {
+        const res = await fetch(API + path);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch { return null; }
+}
+
+async function init() {
+    // Get student's batch codes
+    const student = await apiFetch(`/user/${studentId}`);
+    if (!student) return;
+    studentBatchCodes = student.batch_codes || [];
+
+    // Fetch notices for this student
+    allNotices = await apiFetch(`/notices/${studentId}`) || [];
+
+    // Build batch filter pills from student's enrolled batches
+    buildBatchFilters();
+
+    // Check URL param for batch pre-filter
+    const batchParam = new URLSearchParams(window.location.search).get('batch');
+    if (batchParam && studentBatchCodes.includes(batchParam)) {
+        currentBatchFilter = batchParam;
+        const pill = document.querySelector(`.batch-pill[data-code="${batchParam}"]`);
+        if (pill) {
+            document.querySelectorAll('.batch-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+        }
+    }
+
+    renderNotices();
+}
+
+function buildBatchFilters() {
+    const container = document.getElementById('batchFilters');
+    studentBatchCodes.forEach(code => {
+        const pill = document.createElement('button');
+        pill.className = 'batch-pill';
+        pill.dataset.code = code;
+        pill.innerHTML = `<div class="tp-dot"></div>${code}`;
+        pill.onclick = () => filterByBatch(code, pill);
+        container.appendChild(pill);
+    });
+}
+
+// ── FILTERS ──
+function filterByType(type, btn) {
+    currentTypeFilter = type;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    renderNotices();
+}
+
+function filterByBatch(code, pill) {
+    if (currentBatchFilter === code) {
+        currentBatchFilter = 'all';
+        document.querySelectorAll('.batch-pill').forEach(p => p.classList.remove('active'));
+    } else {
+        currentBatchFilter = code;
+        document.querySelectorAll('.batch-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+    }
+    renderNotices();
+}
+
+function filterSearch() {
+    searchQuery = document.getElementById('searchInput').value.toLowerCase();
+    renderNotices();
+}
+
+// ── EXPAND / COLLAPSE ──
+function toggleExpand(id) {
+    if (expandedIds.has(id)) {
+        expandedIds.delete(id);
+    } else {
+        expandedIds.add(id);
+    }
+    renderNotices();
+}
+
+// ── RENDER ──
+function renderNotices() {
+    let filtered = [...allNotices];
+
+    if (currentBatchFilter !== 'all') {
+        filtered = filtered.filter(n => (n.batch_codes || []).includes(currentBatchFilter));
+    }
+    if (currentTypeFilter === 'unread') {
+        // Backend has no read/unread state; treat recently created (today) as "unread" indicator
+        // Show all — unread filter shows notices from last 24h
+        const oneDayAgo = Date.now() - 86400000;
+        filtered = filtered.filter(n => n.created_at && new Date(n.created_at).getTime() > oneDayAgo);
+    }
+    if (searchQuery) {
+        filtered = filtered.filter(n => n.text.toLowerCase().includes(searchQuery));
+    }
+
+    document.getElementById('countLabel').textContent = `${filtered.length} notice${filtered.length !== 1 ? 's' : ''}`;
+
+    const container = document.getElementById('noticesContainer');
+    if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <h3>No notices found</h3>
+            <p>Try a different filter or check back later.</p>
+        </div>`;
+        return;
+    }
+
+    container.innerHTML = filtered.map(n => {
+        const isExpanded = expandedIds.has(n.id);
+        const batches = (n.batch_codes || []).join(', ');
+        const date = n.created_at ? new Date(n.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
+        return `
+        <div class="notice-card" id="card-${n.id}">
+            <div class="nc-top">
+                <div class="nc-avatar">${batches[0] || '?'}</div>
+                <div class="nc-meta">
+                    <div class="nc-batch">Batch: ${batches}</div>
+                    <div class="nc-title">${n.text}</div>
+                </div>
+            </div>
+            <div class="nc-badge-row">
+                <span class="nc-time">${date}</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('mobile-open');
+    document.getElementById('mobileOverlay').classList.toggle('open');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    document.getElementById('mobileOverlay').classList.remove('open');
+}
+
+init();
+</script>
+</body>
+</html>

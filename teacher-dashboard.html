@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard | EduCoffee</title>
+    <meta name="robots" content="noindex">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --bg:#FDFBF7;--coffee:#3E2723;--caramel:#C68642;
+            --cl:rgba(198,134,66,.10);--text:#2D241E;--muted:#7D6E64;
+            --card:#fff;--border:rgba(62,39,35,.07);
+            --sh:0 2px 20px rgba(62,39,35,.06);
+            --shl:0 12px 40px rgba(62,39,35,.10);
+            --ease:cubic-bezier(.16,1,.3,1)
+        }
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+        /* ── SIDEBAR ── */
+        .sidebar{position:fixed;top:0;left:0;height:100%;width:240px;background:var(--coffee);display:flex;flex-direction:column;z-index:200;transition:transform .4s var(--ease)}
+        .sl{padding:26px 24px 18px;font-family:'DM Serif Display',serif;font-size:1.5rem;color:#fff;border-bottom:1px solid rgba(255,255,255,.08);text-decoration:none;display:block;letter-spacing:-.3px}
+        .sl span{color:var(--caramel);font-style:italic}
+        .snav{flex:1;padding:14px 0;overflow-y:auto}
+        .nl{display:flex;align-items:center;gap:12px;padding:12px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:.87rem;font-weight:500;border-left:3px solid transparent;transition:all .25s}
+        .nl:hover{color:#fff;background:rgba(255,255,255,.06)}
+        .nl.active{color:#fff;border-left-color:var(--caramel);background:rgba(198,134,66,.12)}
+        .nl svg{width:17px;height:17px;flex-shrink:0}
+        .nsec{padding:18px 24px 5px;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.3)}
+        .sfooter{padding:18px 22px;border-top:1px solid rgba(255,255,255,.08)}
+        .uc{display:flex;align-items:center;gap:10px;padding:10px 13px;background:rgba(255,255,255,.07);border-radius:12px;cursor:pointer}
+        .uav{width:34px;height:34px;border-radius:10px;background:var(--caramel);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:.9rem;color:#fff;flex-shrink:0}
+        .un{font-size:.82rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .ur{font-size:.67rem;color:rgba(255,255,255,.5)}
+        .lob{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);padding:4px;border-radius:6px;display:flex;transition:color .2s;margin-left:auto}
+        .lob:hover{color:#fff}
+
+        /* ── MOBILE ── */
+        .mhdr{display:none;position:sticky;top:0;z-index:150;background:var(--card);border-bottom:1px solid var(--border);padding:13px 18px;align-items:center;justify-content:space-between;box-shadow:var(--sh)}
+        .mlogo{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--coffee);text-decoration:none}
+        .mlogo span{color:var(--caramel);font-style:italic}
+        .ham{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--coffee)}
+        .ham svg{width:22px;height:22px}
+        .mov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:190;backdrop-filter:blur(3px)}
+        .mov.open{display:block}
+        .sidebar.mopen{transform:translateX(0)!important}
+
+        /* ── MAIN ── */
+        .main{margin-left:240px;padding:30px 26px 40px;min-height:100vh}
+
+        /* ── TOPBAR ── */
+        .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;flex-wrap:wrap;gap:12px}
+        .tl h1{font-family:'DM Serif Display',serif;font-size:1.85rem;color:var(--coffee);line-height:1;margin-bottom:4px}
+        .tl p{font-size:.87rem;color:var(--muted)}
+        .tactions{display:flex;gap:10px;flex-wrap:wrap}
+        .btn-primary{display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:50px;background:var(--coffee);color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:600;transition:all .3s var(--ease);text-decoration:none}
+        .btn-primary:hover{background:var(--caramel);transform:translateY(-1px);box-shadow:0 4px 15px rgba(198,134,66,.3)}
+        .btn-primary svg{width:16px;height:16px}
+        .btn-outline{display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:50px;background:transparent;color:var(--coffee);border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:600;transition:all .3s;text-decoration:none}
+        .btn-outline:hover{border-color:var(--caramel);color:var(--caramel)}
+        .btn-outline svg{width:16px;height:16px}
+
+        /* ── STATS ── */
+        .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+        .sc{background:var(--card);border-radius:18px;padding:18px;border:1px solid var(--border);box-shadow:var(--sh);display:flex;align-items:center;gap:14px;transition:all .3s var(--ease)}
+        .sc:hover{transform:translateY(-3px);box-shadow:var(--shl);border-color:rgba(198,134,66,.3)}
+        .sic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .sic svg{width:20px;height:20px}
+        .si1{background:var(--cl);color:var(--caramel)}
+        .si2{background:rgba(62,39,35,.08);color:var(--coffee)}
+        .si3{background:rgba(46,125,50,.1);color:#2E7D32}
+        .si4{background:rgba(21,101,192,.1);color:#1565C0}
+        .snum{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--coffee);line-height:1}
+        .slbl{font-size:.72rem;color:var(--muted);font-weight:500;margin-top:2px}
+
+        /* ── TWO COL ── */
+        .twocol{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;margin-bottom:24px}
+
+        /* ── CARD ── */
+        .card{background:var(--card);border-radius:20px;border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden}
+        .ch{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .ctitle{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--coffee)}
+        .see-all{font-size:.78rem;font-weight:600;color:var(--caramel);text-decoration:none;padding:5px 10px;border-radius:8px;transition:background .2s}
+        .see-all:hover{background:var(--cl)}
+        .cbody{padding:18px 20px}
+
+        /* ── EMPTY STATE ── */
+        .empty{text-align:center;padding:28px 0;color:var(--muted)}
+        .empty-icon{font-size:2.2rem;margin-bottom:10px}
+        .empty p{font-size:.85rem;line-height:1.7}
+        .empty a{color:var(--caramel);font-weight:600;text-decoration:none}
+
+        /* ── BATCH ROWS
+             Batch model fields: code (PK, 6 chars), name, year, schedule, teacher_id
+        ── */
+        .batch-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);transition:padding .2s}
+        .batch-row:last-child{border-bottom:none}
+        .batch-row:hover{padding-left:5px}
+        .bav{width:40px;height:40px;border-radius:10px;background:var(--coffee);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:1rem;color:#fff;flex-shrink:0}
+        .binfo{flex:1;min-width:0}
+        .bname{font-size:.88rem;font-weight:600;color:var(--text)}
+        .bmeta{font-size:.72rem;color:var(--muted);margin-top:2px}
+        .bcode{font-family:monospace;font-size:.75rem;font-weight:700;color:var(--caramel);background:var(--cl);padding:3px 8px;border-radius:6px;flex-shrink:0;letter-spacing:.5px}
+
+        /* ── NOTICE PREVIEW
+             Notice model fields: text, batch_codes[], created_at
+        ── */
+        .np-item{padding:11px 14px;background:var(--bg);border-radius:12px;border-left:3px solid var(--caramel);margin-bottom:8px;transition:transform .2s}
+        .np-item:last-child{margin-bottom:0}
+        .np-item:hover{transform:translateX(4px)}
+        .np-text{font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+        .np-meta{font-size:.7rem;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+        .np-tag{background:rgba(62,39,35,.06);padding:1px 6px;border-radius:4px;font-weight:600}
+
+        /* ── QUICK ACTIONS ── */
+        .qa-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+        .qa-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px 10px;border-radius:14px;border:1.5px solid var(--border);background:var(--bg);transition:all .25s;text-decoration:none;color:var(--text)}
+        .qa-btn:hover{border-color:var(--caramel);background:var(--cl);transform:translateY(-2px)}
+        .qa-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+        .qa-icon svg{width:18px;height:18px}
+        .qa-label{font-size:.75rem;font-weight:600;text-align:center}
+
+        /* ── PLAN STRIP ── */
+        .plan-strip{display:flex;align-items:center;justify-content:space-between;padding:14px 20px}
+        .plan-name{font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--coffee)}
+        .plan-detail{font-size:.73rem;color:var(--muted);margin-top:2px}
+        .btn-upgrade{padding:8px 16px;border-radius:50px;background:var(--coffee);color:#fff;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:700;text-decoration:none;transition:background .25s;white-space:nowrap}
+        .btn-upgrade:hover{background:var(--caramel)}
+
+        /* ── FAB (mobile only) ── */
+        .fab{position:fixed;bottom:80px;right:20px;width:54px;height:54px;background:var(--coffee);border-radius:50%;display:none;align-items:center;justify-content:center;box-shadow:0 8px 25px rgba(62,39,35,.3);z-index:150;transition:background .3s;text-decoration:none;color:#fff}
+        .fab:hover{background:var(--caramel)}
+        .fab svg{width:24px;height:24px}
+
+        /* ── BOTTOM NAV ── */
+        .bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:10px 0 14px;z-index:200}
+        .bni{display:flex;justify-content:space-around}
+        .bna{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:var(--muted);font-size:.63rem;font-weight:600;padding:4px 10px}
+        .bna.active{color:var(--coffee)}
+        .bna svg{width:21px;height:21px}
+
+        @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        .ani{animation:fadeIn .5s var(--ease) both}
+        .d1{animation-delay:.06s}.d2{animation-delay:.12s}.d3{animation-delay:.18s}
+
+        @media(max-width:1100px){.stats{grid-template-columns:repeat(2,1fr)}.twocol{grid-template-columns:1fr}}
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%);width:260px}
+            .main{margin-left:0;padding:14px 14px 90px}
+            .mhdr{display:flex}.bnav{display:block}.fab{display:flex}
+            .stats{grid-template-columns:repeat(2,1fr);gap:10px}
+            .topbar{flex-direction:column;align-items:flex-start}
+        }
+        @media(max-width:480px){.stats{grid-template-columns:1fr 1fr}.sc{padding:13px}}
+    </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar" id="sidebar">
+    <a href="teacher-dashboard.html" class="sl">Edu<span>Coffee.</span></a>
+    <nav class="snav">
+        <div class="nsec">Dashboard</div>
+        <a href="teacher-dashboard.html" class="nl active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Overview
+        </a>
+        <div class="nsec">Manage</div>
+        <a href="teacher-batches.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            Batches
+        </a>
+        <a href="teacher-students.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Students
+        </a>
+        <a href="teacher-notices.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Notices
+        </a>
+        <a href="teacher-results.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Results
+        </a>
+        <div class="nsec">Account</div>
+        <a href="teacher-profile.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            Profile & Settings
+        </a>
+    </nav>
+    <div class="sfooter">
+        <div class="uc" onclick="location.href='teacher-profile.html'">
+            <div class="uav">T</div>
+            <div style="flex:1;min-width:0">
+                <div class="un" id="teacherName">Teacher</div>
+                <div class="ur" id="teacherEmail">Teacher Account</div>
+            </div>
+            <button class="lob" onclick="event.stopPropagation();doLogout()" title="Logout">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
+        </div>
+    </div>
+</aside>
+<div class="mov" id="mov" onclick="closeSB()"></div>
+
+<!-- ── MOBILE HEADER ── -->
+<header class="mhdr">
+    <a href="teacher-dashboard.html" class="mlogo">Edu<span>Coffee.</span></a>
+    <button class="ham" onclick="toggleSB()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+</header>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar ani">
+        <div class="tl">
+            <h1>Teacher Dashboard</h1>
+            <p>Manage your batches, results, and notices in one place.</p>
+        </div>
+        <div class="tactions">
+            <a href="teacher-batches.html" class="btn-outline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                View Batches
+            </a>
+            <a href="teacher-batches.html" class="btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New Batch
+            </a>
+        </div>
+    </div>
+
+    <!--
+        STATS CARDS
+        These numbers come from API calls made by the page that loads this dashboard:
+          GET /api/batches/{teacher_id}      → count → #sTotalBatches
+          GET /api/my_students/{teacher_id}  → count → #sTotalStudents
+          GET /api/results                   → count → #sTotalResults
+          GET /api/my_notices/{teacher_id}   → count → #sTotalNotices
+    -->
+    <div class="stats ani d1">
+        <div class="sc">
+            <div class="sic si1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            </div>
+            <div>
+                <div class="snum" id="sTotalBatches">—</div>
+                <div class="slbl">Active Batches</div>
+            </div>
+        </div>
+        <div class="sc">
+            <div class="sic si2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+            <div>
+                <div class="snum" id="sTotalStudents">—</div>
+                <div class="slbl">Total Students</div>
+            </div>
+        </div>
+        <div class="sc">
+            <div class="sic si3">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div>
+                <div class="snum" id="sTotalResults">—</div>
+                <div class="slbl">Results Published</div>
+            </div>
+        </div>
+        <div class="sc">
+            <div class="sic si4">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <div>
+                <div class="snum" id="sTotalNotices">—</div>
+                <div class="slbl">Notices Sent</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TWO COL -->
+    <div class="twocol ani d2">
+
+        <!--
+            MY BATCHES PREVIEW
+            API: GET /api/batches/{teacher_id}
+            Batch model: code (PK, 6 chars), name, year, schedule, teacher_id
+            Rendered into #batchPreview by the API layer
+        -->
+        <div class="card">
+            <div class="ch">
+                <div class="ctitle">My Batches</div>
+                <a href="teacher-batches.html" class="see-all">View all →</a>
+            </div>
+            <div class="cbody" id="batchPreview">
+                <div class="empty">
+                    <div class="empty-icon">☕</div>
+                    <p>No batches yet.<br>
+                        <a href="teacher-batches.html">Create your first batch</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:18px">
+
+            <!-- QUICK ACTIONS -->
+            <div class="card">
+                <div class="ch"><div class="ctitle">Quick Actions</div></div>
+                <div class="cbody">
+                    <div class="qa-grid">
+                        <a href="teacher-batches.html" class="qa-btn">
+                            <div class="qa-icon" style="background:rgba(62,39,35,.08)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="var(--coffee)" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+                            </div>
+                            <span class="qa-label">New Batch</span>
+                        </a>
+                        <a href="teacher-results.html" class="qa-btn">
+                            <div class="qa-icon" style="background:rgba(46,125,50,.1)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            </div>
+                            <span class="qa-label">Upload Result</span>
+                        </a>
+                        <a href="teacher-notices.html" class="qa-btn">
+                            <div class="qa-icon" style="background:rgba(198,134,66,.12)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="var(--caramel)" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                            </div>
+                            <span class="qa-label">Post Notice</span>
+                        </a>
+                        <a href="teacher-students.html" class="qa-btn">
+                            <div class="qa-icon" style="background:rgba(21,101,192,.1)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                            </div>
+                            <span class="qa-label">Students</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CURRENT PLAN STRIP -->
+            <div class="card">
+                <div class="plan-strip">
+                    <div>
+                        <div style="font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px">Current Plan</div>
+                        <div class="plan-name" id="planName">Starter</div>
+                        <div class="plan-detail" id="planDetail">Free · Up to 10 students</div>
+                    </div>
+                    <a href="teacher-profile.html" class="btn-upgrade">Upgrade ⬆</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!--
+        RECENT NOTICES
+        API: GET /api/my_notices/{teacher_id}
+        Notice model: text, teacher_id, batch_codes[], created_at
+        Rendered into #noticePreview by the API layer
+    -->
+    <div class="card ani d3">
+        <div class="ch">
+            <div class="ctitle">Recent Notices</div>
+            <a href="teacher-notices.html" class="see-all">View all →</a>
+        </div>
+        <div class="cbody" id="noticePreview">
+            <div class="empty">
+                <div class="empty-icon" style="font-size:1.8rem">🔔</div>
+                <p>No notices sent yet.<br>
+                    <a href="teacher-notices.html">Post your first notice</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- FAB (mobile) -->
+<a href="teacher-batches.html" class="fab" title="New Batch">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</a>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+    <div class="bni">
+        <a href="teacher-dashboard.html" class="bna active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Home
+        </a>
+        <a href="teacher-batches.html" class="bna">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            Batches
+        </a>
+        <a href="teacher-notices.html" class="bna">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Notices
+        </a>
+        <a href="teacher-results.html" class="bna">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Results
+        </a>
+        <a href="teacher-profile.html" class="bna">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            Profile
+        </a>
+    </div>
+</nav>
+
+<script>
+    (function INIT(){
+        if (!localStorage.getItem('current_userid')) {
+            window.location.href = 'index.html'
+        }
+    })()
+/* Sidebar toggle + logout only — no data logic here */
+function toggleSB() {
+    document.getElementById('sidebar').classList.toggle('mopen');
+    document.getElementById('mov').classList.toggle('open');
+}
+function closeSB() {
+    document.getElementById('sidebar').classList.remove('mopen');
+    document.getElementById('mov').classList.remove('open');
+}
+function doLogout() {
+    if (confirm('Log out?')) {
+        alert('removed current_userid')
+        localStorage.removeItem('current_userid');
+        window.location.href = 'index.html';
+    }
+}
+</script>
+</body>
+</html>
