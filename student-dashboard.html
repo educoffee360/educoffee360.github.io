@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | EduCoffee</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FDFBF7;
+            --coffee: #3E2723;
+            --caramel: #C68642;
+            --caramel-light: rgba(198,134,66,0.10);
+            --caramel-mid: rgba(198,134,66,0.22);
+            --text: #2D241E;
+            --muted: #7D6E64;
+            --card: #FFFFFF;
+            --border: rgba(62,39,35,0.07);
+            --shadow: 0 2px 20px rgba(62,39,35,0.06);
+            --shadow-lg: 0 12px 40px rgba(62,39,35,0.10);
+            --ease: cubic-bezier(0.16,1,0.3,1);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.55;min-height:100vh}
+
+        /* ── SIDEBAR (desktop) ── */
+        .sidebar{
+            position:fixed;top:0;left:0;height:100%;width:240px;
+            background:var(--coffee);
+            display:flex;flex-direction:column;
+            z-index:200;
+            transition:transform .4s var(--ease);
+        }
+        .sidebar-logo{
+            padding:28px 24px 20px;
+            font-family:'DM Serif Display',serif;
+            font-size:1.5rem;color:#fff;
+            border-bottom:1px solid rgba(255,255,255,0.08);
+            letter-spacing:-.3px;
+        }
+        .sidebar-logo span{color:var(--caramel);font-style:italic}
+        .sidebar-nav{flex:1;padding:16px 0;overflow-y:auto}
+        .nav-link{
+            display:flex;align-items:center;gap:12px;
+            padding:12px 24px;
+            color:rgba(255,255,255,0.6);
+            text-decoration:none;font-size:.88rem;font-weight:500;
+            border-left:3px solid transparent;
+            transition:all .25s;
+        }
+        .nav-link:hover{color:#fff;background:rgba(255,255,255,0.06)}
+        .nav-link.active{color:#fff;border-left-color:var(--caramel);background:rgba(198,134,66,0.12)}
+        .nav-link svg{width:18px;height:18px;flex-shrink:0}
+        .nav-section{
+            padding:20px 24px 6px;
+            font-size:.68rem;font-weight:700;
+            text-transform:uppercase;letter-spacing:1.2px;
+            color:rgba(255,255,255,0.3);
+        }
+        .sidebar-footer{
+            padding:20px 24px;
+            border-top:1px solid rgba(255,255,255,0.08);
+        }
+        .user-chip{
+            display:flex;align-items:center;gap:10px;
+            padding:10px 14px;background:rgba(255,255,255,0.07);
+            border-radius:12px;cursor:pointer;
+        }
+        .user-avatar{
+            width:34px;height:34px;border-radius:10px;
+            background:var(--caramel);
+            display:flex;align-items:center;justify-content:center;
+            font-size:.85rem;font-weight:700;color:#fff;
+            flex-shrink:0;
+        }
+        .user-info{flex:1;min-width:0}
+        .user-name{font-size:.82rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .user-role{font-size:.68rem;color:rgba(255,255,255,0.5)}
+        .logout-btn{
+            background:none;border:none;cursor:pointer;
+            color:rgba(255,255,255,0.5);padding:4px;
+            border-radius:6px;transition:color .2s;display:flex;
+        }
+        .logout-btn:hover{color:#fff}
+
+        /* ── MOBILE HEADER ── */
+        .mobile-header{
+            display:none;position:sticky;top:0;z-index:150;
+            background:var(--card);border-bottom:1px solid var(--border);
+            padding:14px 18px;
+            align-items:center;justify-content:space-between;
+            box-shadow:var(--shadow);
+        }
+        .mobile-logo{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--coffee);text-decoration:none}
+        .mobile-logo span{color:var(--caramel);font-style:italic}
+        .hamburger{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--coffee)}
+        .hamburger svg{width:22px;height:22px}
+
+        /* ── MOBILE NAV OVERLAY ── */
+        .mobile-overlay{
+            display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:190;
+            backdrop-filter:blur(3px);opacity:0;transition:opacity .3s;
+        }
+        .mobile-overlay.open{display:block;opacity:1}
+        .sidebar.mobile-open{transform:translateX(0)!important}
+
+        /* ── MAIN ── */
+        .main{margin-left:240px;padding:32px 28px 40px;min-height:100vh}
+
+        /* ── TOP BAR ── */
+        .topbar{
+            display:flex;align-items:center;justify-content:space-between;
+            margin-bottom:28px;
+        }
+        .page-title-wrap h1{
+            font-family:'DM Serif Display',serif;font-size:1.9rem;
+            color:var(--coffee);line-height:1;margin-bottom:4px;
+        }
+        .page-title-wrap p{font-size:.88rem;color:var(--muted)}
+        .topbar-actions{display:flex;align-items:center;gap:10px}
+        .btn-join{
+            display:flex;align-items:center;gap:7px;
+            padding:10px 18px;border-radius:50px;
+            background:var(--coffee);color:#fff;
+            border:none;cursor:pointer;font-family:'DM Sans',sans-serif;
+            font-size:.84rem;font-weight:600;
+            transition:all .3s var(--ease);
+        }
+        .btn-join:hover{background:var(--caramel);transform:translateY(-1px);box-shadow:0 4px 15px rgba(198,134,66,.3)}
+        .btn-join svg{width:16px;height:16px}
+
+        /* ── STATS STRIP ── */
+        .stats-strip{
+            display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+            margin-bottom:28px;
+        }
+        .stat-card{
+            background:var(--card);border-radius:18px;
+            padding:18px 20px;border:1px solid var(--border);
+            box-shadow:var(--shadow);
+            display:flex;align-items:center;gap:14px;
+            transition:all .3s var(--ease);
+        }
+        .stat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--caramel)}
+        .stat-icon{
+            width:44px;height:44px;border-radius:12px;
+            display:flex;align-items:center;justify-content:center;flex-shrink:0;
+        }
+        .stat-icon svg{width:20px;height:20px}
+        .si-caramel{background:var(--caramel-light);color:var(--caramel)}
+        .si-coffee{background:rgba(62,39,35,0.08);color:var(--coffee)}
+        .si-green{background:rgba(46,125,50,0.1);color:#2E7D32}
+        .si-blue{background:rgba(21,101,192,0.1);color:#1565C0}
+        .stat-num{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--coffee);line-height:1}
+        .stat-lbl{font-size:.72rem;color:var(--muted);font-weight:500;margin-top:2px}
+
+        /* ── SECTION HEADING ── */
+        .sec-head{
+            display:flex;align-items:center;justify-content:space-between;
+            margin-bottom:16px;
+        }
+        .sec-title{
+            font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--coffee);
+        }
+        .see-all{
+            font-size:.8rem;font-weight:600;color:var(--caramel);
+            text-decoration:none;padding:6px 12px;border-radius:8px;
+            transition:background .2s;
+        }
+        .see-all:hover{background:var(--caramel-light)}
+
+        /* ── TEACHER CARDS ── */
+        .teachers-grid{
+            display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+            gap:18px;margin-bottom:32px;
+        }
+        .teacher-card{
+            background:var(--card);border-radius:22px;
+            border:1px solid var(--border);box-shadow:var(--shadow);
+            overflow:hidden;cursor:pointer;
+            transition:all .35s var(--ease);
+            text-decoration:none;color:inherit;display:block;
+        }
+        .teacher-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:var(--caramel)}
+        .tc-top{
+            padding:20px 20px 16px;
+            background:linear-gradient(135deg,var(--coffee) 0%,#5D4037 100%);
+            position:relative;overflow:hidden;
+        }
+        .tc-top::before{
+            content:'';position:absolute;right:-20px;top:-20px;
+            width:100px;height:100px;border-radius:50%;
+            background:rgba(255,255,255,0.05);
+        }
+        .tc-top::after{
+            content:'';position:absolute;right:20px;bottom:-30px;
+            width:60px;height:60px;border-radius:50%;
+            background:rgba(255,255,255,0.04);
+        }
+        .tc-avatar{
+            width:50px;height:50px;border-radius:14px;
+            background:var(--caramel);
+            display:flex;align-items:center;justify-content:center;
+            font-family:'DM Serif Display',serif;font-size:1.25rem;color:#fff;
+            margin-bottom:12px;position:relative;z-index:1;
+        }
+        .tc-name{font-family:'DM Serif Display',serif;font-size:1.1rem;color:#fff;position:relative;z-index:1}
+        .tc-center{font-size:.75rem;color:rgba(255,255,255,.6);margin-top:2px;position:relative;z-index:1}
+        .tc-body{padding:16px 20px}
+        .tc-batch{
+            display:inline-flex;align-items:center;gap:6px;
+            padding:4px 10px;background:var(--caramel-light);
+            color:var(--caramel);border-radius:8px;
+            font-size:.72rem;font-weight:700;letter-spacing:.5px;
+            margin-bottom:12px;text-transform:uppercase;
+        }
+        .tc-meta{display:flex;gap:16px;margin-bottom:14px}
+        .tc-meta-item{font-size:.78rem;color:var(--muted)}
+        .tc-meta-item strong{display:block;color:var(--text);font-size:.82rem}
+        .tc-actions{display:flex;gap:8px}
+        .tc-btn{
+            flex:1;padding:9px;border-radius:10px;
+            border:none;cursor:pointer;font-family:'DM Sans',sans-serif;
+            font-size:.78rem;font-weight:600;
+            transition:all .25s;display:flex;align-items:center;justify-content:center;gap:5px;
+        }
+        .tc-btn svg{width:14px;height:14px}
+        .tc-btn-primary{background:var(--coffee);color:#fff}
+        .tc-btn-primary:hover{background:var(--caramel)}
+        .tc-btn-outline{background:var(--bg);color:var(--coffee);border:1px solid var(--border)}
+        .tc-btn-outline:hover{border-color:var(--caramel);color:var(--caramel)}
+        .unread-dot{width:8px;height:8px;border-radius:50%;background:#E53935;flex-shrink:0}
+
+        /* ADD TEACHER CARD */
+        .add-teacher-card{
+            background:var(--card);border-radius:22px;
+            border:2px dashed var(--border);
+            min-height:200px;
+            display:flex;flex-direction:column;
+            align-items:center;justify-content:center;
+            gap:10px;cursor:pointer;
+            transition:all .3s;color:var(--muted);
+        }
+        .add-teacher-card:hover{border-color:var(--caramel);color:var(--caramel)}
+        .add-teacher-card svg{width:32px;height:32px;opacity:.5}
+        .add-teacher-card span{font-size:.85rem;font-weight:600}
+
+        /* ── RECENT NOTICES ── */
+        .notices-list{display:flex;flex-direction:column;gap:10px;margin-bottom:32px}
+        .notice-item{
+            background:var(--card);border-radius:16px;
+            padding:14px 18px;border:1px solid var(--border);
+            border-left:4px solid var(--caramel);
+            box-shadow:var(--shadow);
+            display:flex;align-items:flex-start;gap:14px;
+            transition:all .25s;cursor:pointer;
+        }
+        .notice-item:hover{transform:translateX(4px);border-color:var(--caramel)}
+        .notice-dot{width:8px;height:8px;border-radius:50%;background:var(--caramel);flex-shrink:0;margin-top:6px}
+        .notice-body{flex:1;min-width:0}
+        .notice-from{font-size:.72rem;font-weight:700;color:var(--caramel);margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+        .notice-text{font-size:.88rem;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .notice-time{font-size:.72rem;color:var(--muted);margin-top:4px}
+        .notice-chevron{color:var(--muted);flex-shrink:0;margin-top:2px}
+        .notice-chevron svg{width:16px;height:16px}
+
+        /* ── RECENT RESULTS ── */
+        .results-list{display:flex;flex-direction:column;gap:10px}
+        .result-item{
+            background:var(--card);border-radius:16px;
+            padding:14px 18px;border:1px solid var(--border);
+            box-shadow:var(--shadow);
+            display:flex;align-items:center;gap:14px;
+            transition:all .25s;
+        }
+        .result-item:hover{transform:translateX(4px);border-color:rgba(198,134,66,.4)}
+        .result-grade{
+            width:46px;height:46px;border-radius:12px;
+            display:flex;align-items:center;justify-content:center;
+            font-family:'DM Serif Display',serif;font-size:1.1rem;
+            flex-shrink:0;font-weight:700;
+        }
+        .grade-a{background:#E8F5E9;color:#2E7D32}
+        .grade-b{background:#FFF8E1;color:#F57F17}
+        .grade-c{background:#FBE9E7;color:#D84315}
+        .result-info{flex:1;min-width:0}
+        .result-exam{font-size:.88rem;font-weight:600;color:var(--text)}
+        .result-sub{font-size:.76rem;color:var(--muted);margin-top:2px}
+        .result-score{text-align:right;flex-shrink:0}
+        .score-num{font-family:'DM Serif Display',serif;font-size:1.15rem;color:var(--caramel)}
+        .score-total{font-size:.72rem;color:var(--muted)}
+
+        /* ── JOIN TEACHER MODAL ── */
+        .modal-overlay{
+            position:fixed;inset:0;
+            background:rgba(45,36,30,.6);backdrop-filter:blur(6px);
+            display:none;align-items:center;justify-content:center;
+            z-index:500;padding:20px;
+        }
+        .modal-overlay.open{display:flex}
+        .modal-box{
+            background:var(--card);border-radius:28px;
+            width:100%;max-width:420px;
+            padding:36px 32px;
+            box-shadow:0 30px 80px rgba(62,39,35,.2);
+            animation:slideUp .4s var(--ease) both;
+        }
+        @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        .modal-box h2{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--coffee);margin-bottom:6px}
+        .modal-box p{font-size:.85rem;color:var(--muted);margin-bottom:24px}
+        .input-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:7px;display:block}
+        .batch-input-field{
+            width:100%;padding:14px 16px;border-radius:14px;
+            border:2px dashed var(--caramel);
+            background:rgba(198,134,66,0.04);
+            font-family:monospace;font-size:1.2rem;font-weight:700;
+            text-transform:uppercase;letter-spacing:3px;
+            color:var(--coffee);outline:none;text-align:center;
+            transition:all .25s;
+        }
+        .batch-input-field:focus{border-style:solid;box-shadow:0 0 0 4px rgba(198,134,66,0.12)}
+        .modal-actions{display:flex;gap:10px;margin-top:20px}
+        .btn-cancel{
+            flex:1;padding:13px;border-radius:12px;
+            background:var(--bg);border:1px solid var(--border);
+            font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;
+            color:var(--muted);cursor:pointer;transition:all .2s;
+        }
+        .btn-cancel:hover{border-color:var(--coffee);color:var(--coffee)}
+        .btn-confirm{
+            flex:2;padding:13px;border-radius:12px;
+            background:var(--coffee);color:#fff;border:none;
+            font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:700;
+            cursor:pointer;transition:all .25s;
+        }
+        .btn-confirm:hover{background:var(--caramel)}
+        .btn-confirm:disabled{opacity:.6;cursor:not-allowed}
+        .modal-error{color:#C62828;font-size:.78rem;margin-top:8px;display:none}
+
+        /* ── TEACHER DETAIL PANEL ── */
+        .detail-panel{
+            position:fixed;inset:0;z-index:300;
+            display:none;
+        }
+        .detail-panel.open{display:flex}
+        .detail-bg{position:absolute;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px)}
+        .detail-sheet{
+            position:absolute;right:0;top:0;bottom:0;
+            width:min(520px,100%);
+            background:var(--bg);
+            display:flex;flex-direction:column;
+            animation:slideRight .4s var(--ease) both;
+            overflow-y:auto;
+        }
+        @keyframes slideRight{from{transform:translateX(100%)}to{transform:translateX(0)}}
+        .ds-header{
+            background:var(--coffee);padding:24px 24px 20px;
+            position:sticky;top:0;z-index:10;flex-shrink:0;
+        }
+        .ds-close{
+            background:rgba(255,255,255,.1);border:none;cursor:pointer;
+            padding:8px;border-radius:10px;color:#fff;
+            display:flex;align-items:center;margin-bottom:16px;
+            font-size:.82rem;gap:6px;font-family:'DM Sans',sans-serif;font-weight:600;
+            transition:background .2s;width:fit-content;
+        }
+        .ds-close:hover{background:rgba(255,255,255,.2)}
+        .ds-close svg{width:16px;height:16px}
+        .ds-teacher-info{display:flex;align-items:center;gap:14px}
+        .ds-avatar{width:54px;height:54px;border-radius:14px;background:var(--caramel);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:1.4rem;color:#fff}
+        .ds-name{font-family:'DM Serif Display',serif;font-size:1.3rem;color:#fff}
+        .ds-sub{font-size:.78rem;color:rgba(255,255,255,.6);margin-top:2px}
+        .ds-body{padding:24px;flex:1}
+        .ds-tabs{display:flex;gap:4px;background:rgba(62,39,35,0.06);border-radius:12px;padding:4px;margin-bottom:22px}
+        .ds-tab{
+            flex:1;padding:8px 6px;border:none;background:transparent;
+            font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600;
+            color:var(--muted);border-radius:8px;cursor:pointer;transition:all .2s;
+        }
+        .ds-tab.active{background:var(--card);color:var(--coffee);box-shadow:0 2px 8px rgba(62,39,35,.08)}
+        .ds-tab-content{display:none}
+        .ds-tab-content.active{display:block;animation:fadeIn .3s ease both}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+        .ds-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+        .ds-stat{background:var(--card);border-radius:14px;padding:14px;text-align:center;border:1px solid var(--border)}
+        .ds-stat-num{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--coffee)}
+        .ds-stat-lbl{font-size:.68rem;color:var(--muted);margin-top:2px;font-weight:500}
+        .ds-notice{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--border);border-left:3px solid var(--caramel)}
+        .ds-notice-title{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:4px}
+        .ds-notice-meta{font-size:.72rem;color:var(--muted)}
+        .ds-result{background:var(--card);border-radius:14px;padding:12px 16px;margin-bottom:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .ds-result-name{font-size:.85rem;font-weight:600;color:var(--text)}
+        .ds-result-date{font-size:.72rem;color:var(--muted);margin-top:2px}
+        .ds-result-score{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--caramel)}
+        .ds-info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:.85rem}
+        .ds-info-row:last-child{border-bottom:none}
+        .ds-info-label{color:var(--muted)}
+        .ds-info-value{font-weight:600;color:var(--text)}
+
+        /* Loading spinner */
+        .spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* Mobile bottom nav */
+        .bottom-nav{
+            display:none;position:fixed;bottom:0;left:0;right:0;
+            background:var(--card);border-top:1px solid var(--border);
+            padding:10px 0 14px;z-index:200;
+        }
+        .bnav-inner{display:flex;justify-content:space-around}
+        .bnav-item{
+            display:flex;flex-direction:column;align-items:center;gap:3px;
+            text-decoration:none;color:var(--muted);font-size:.65rem;font-weight:600;
+            padding:4px 12px;border-radius:10px;transition:color .2s;
+        }
+        .bnav-item.active{color:var(--coffee)}
+        .bnav-item svg{width:22px;height:22px}
+
+        .animate-in{animation:fadeIn .5s var(--ease) both}
+        .delay-1{animation-delay:.08s}
+        .delay-2{animation-delay:.16s}
+        .delay-3{animation-delay:.24s}
+
+        /* ── RESPONSIVE ── */
+        @media(max-width:900px){.stats-strip{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%);width:260px}
+            .main{margin-left:0;padding:16px 16px 90px}
+            .mobile-header{display:flex}
+            .bottom-nav{display:block}
+            .stats-strip{grid-template-columns:repeat(2,1fr);gap:10px}
+            .topbar{flex-direction:column;align-items:flex-start;gap:12px}
+            .page-title-wrap h1{font-size:1.6rem}
+            .teachers-grid{grid-template-columns:1fr}
+        }
+        @media(max-width:480px){
+            .stats-strip{grid-template-columns:repeat(2,1fr)}
+            .stat-card{padding:14px}
+            .stat-num{font-size:1.25rem}
+        }
+
+        .empty-state{text-align:center;padding:48px 20px;color:var(--muted)}
+        .empty-state svg{width:48px;height:48px;opacity:.3;margin-bottom:12px}
+        .empty-state p{font-size:.9rem}
+    </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Edu<span>Coffee.</span></div>
+    <nav class="sidebar-nav">
+        <div class="nav-section">Main</div>
+        <a href="student-dashboard.html" class="nav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Dashboard
+        </a>
+        <a href="student-notices.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Notices
+        </a>
+        <a href="student-results.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Results
+        </a>
+        <div class="nav-section" style="margin-top:10px">Account</div>
+        <a href="student-profile.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            Profile
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="user-chip" onclick="location.href='student-profile.html'">
+            <div class="user-avatar" id="sidebarAvatar">S</div>
+            <div class="user-info">
+                <div class="user-name" id="sidebarName">Student</div>
+                <div class="user-role">Student/Parent</div>
+            </div>
+            <button class="logout-btn" onclick="event.stopPropagation();doLogout()" title="Logout">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
+
+<!-- ── MOBILE HEADER ── -->
+<header class="mobile-header">
+    <a href="student-dashboard.html" class="mobile-logo">Edu<span>Coffee.</span></a>
+    <button class="hamburger" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+</header>
+
+<!-- ── MAIN ── -->
+<main class="main">
+    <div class="topbar animate-in">
+        <div class="page-title-wrap">
+            <h1 id="welcomeName">Dashboard</h1>
+            <p id="welcomeSub">Loading your data…</p>
+        </div>
+        <div class="topbar-actions">
+            <button class="btn-join" onclick="openJoinModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Join a Batch
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Strip -->
+    <div class="stats-strip animate-in delay-1">
+        <div class="stat-card">
+            <div class="stat-icon si-coffee">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div><div class="stat-num" id="statBatches">—</div><div class="stat-lbl">Enrolled Batches</div></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon si-caramel">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <div><div class="stat-num" id="statNotices">—</div><div class="stat-lbl">Notices</div></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon si-green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div><div class="stat-num" id="statAvg">—</div><div class="stat-lbl">Avg. Score</div></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon si-blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div><div class="stat-num" id="statExams">—</div><div class="stat-lbl">Total Exams</div></div>
+        </div>
+    </div>
+
+    <!-- Batches / Teachers Section -->
+    <div class="animate-in delay-2">
+        <div class="sec-head">
+            <div class="sec-title">My Batches</div>
+        </div>
+        <div class="teachers-grid" id="teachersGrid"></div>
+    </div>
+
+    <!-- Recent Notices -->
+    <div class="animate-in delay-3">
+        <div class="sec-head">
+            <div class="sec-title">Recent Notices</div>
+            <a href="student-notices.html" class="see-all">See all →</a>
+        </div>
+        <div class="notices-list" id="noticesList"></div>
+    </div>
+
+    <!-- Recent Results -->
+    <div class="animate-in delay-3">
+        <div class="sec-head" style="margin-top:28px">
+            <div class="sec-title">Recent Results</div>
+            <a href="student-results.html" class="see-all">See all →</a>
+        </div>
+        <div class="results-list" id="resultsList"></div>
+    </div>
+</main>
+
+<!-- ── BOTTOM NAV (mobile) ── -->
+<nav class="bottom-nav">
+    <div class="bnav-inner">
+        <a href="student-dashboard.html" class="bnav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Home
+        </a>
+        <a href="student-notices.html" class="bnav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Notices
+        </a>
+        <a href="student-results.html" class="bnav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Results
+        </a>
+        <a href="student-profile.html" class="bnav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            Profile
+        </a>
+    </div>
+</nav>
+
+<!-- ── JOIN BATCH MODAL ── -->
+<div class="modal-overlay" id="joinModal">
+    <div class="modal-box">
+        <h2>Join a Batch</h2>
+        <p>Enter the 6-character batch code given by your teacher.</p>
+        <label class="input-label">Batch Code</label>
+        <input type="text" class="batch-input-field" id="joinBatchInput" placeholder="XXXXXX" maxlength="6">
+        <p class="modal-error" id="joinError">Batch not found. Please check the code.</p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeJoinModal()">Cancel</button>
+            <button class="btn-confirm" id="joinBtn" onclick="joinBatch()">Join</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── BATCH DETAIL PANEL ── -->
+<div class="detail-panel" id="detailPanel">
+    <div class="detail-bg" onclick="closeDetailPanel()"></div>
+    <div class="detail-sheet">
+        <div class="ds-header">
+            <button class="ds-close" onclick="closeDetailPanel()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Back
+            </button>
+            <div class="ds-teacher-info">
+                <div class="ds-avatar" id="dsAvatar">T</div>
+                <div>
+                    <div class="ds-name" id="dsName">Batch Name</div>
+                    <div class="ds-sub" id="dsSub">Schedule</div>
+                </div>
+            </div>
+        </div>
+        <div class="ds-body">
+            <div class="ds-stat-row">
+                <div class="ds-stat"><div class="ds-stat-num" id="dsStatExams">—</div><div class="ds-stat-lbl">Exams</div></div>
+                <div class="ds-stat"><div class="ds-stat-num" id="dsStatAvg">—</div><div class="ds-stat-lbl">Avg Score</div></div>
+                <div class="ds-stat"><div class="ds-stat-num" id="dsStatNotices">—</div><div class="ds-stat-lbl">Notices</div></div>
+            </div>
+            <div class="ds-tabs">
+                <button class="ds-tab active" onclick="switchDsTab('Notices',this)">Notices</button>
+                <button class="ds-tab" onclick="switchDsTab('Results',this)">Results</button>
+                <button class="ds-tab" onclick="switchDsTab('Info',this)">Info</button>
+            </div>
+            <div class="ds-tab-content active" id="dsNotices"></div>
+            <div class="ds-tab-content" id="dsResults"></div>
+            <div class="ds-tab-content" id="dsInfo"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const API = 'https://educoffee.onrender.com/api';
+
+// ── AUTH ──
+const studentId = localStorage.getItem('current_userid') || localStorage.getItem('userId');
+const studentName = localStorage.getItem('current_user_name') || localStorage.getItem('userName') || 'Student';
+
+// if (!studentId) { window.location.href = 'auth.html'; }
+
+// ── SIDEBAR USER ──
+async function getUser(){
+    const res = await GetUserByID(studentId)
+    if (res) student = res
+}
+document.getElementById('sidebarName').textContent = studentName;
+document.getElementById('sidebarAvatar').textContent = studentName[0].toUpperCase();
+document.getElementById('welcomeName').textContent = `Hello, ${studentName}!`;
+
+const hour = new Date().getHours();
+document.getElementById('welcomeSub').textContent =
+    (hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening') +
+    '! Here are your latest updates.';
+
+// ── STATE ──
+let batchData = [];     // [{code, name, year, schedule, teacher_id}]
+let noticesData = [];   // from API
+let scoresData = [];    // student scores from API
+let currentBatchCode = null;
+
+// ── INIT ──
+async function init() {
+    const student = await apiFetch(`/user/${studentId}`);
+    if (!student) {
+        doLogout();
+        return;
+    }
+
+    student.name = student.name
+    document.getElementById('sidebarName').textContent = student.name;
+    document.getElementById('sidebarAvatar').textContent = student.name[0].toUpperCase();
+    document.getElementById('welcomeName').textContent = `Hello, ${student.name}!`;
+
+    const batchCodes = student.batch_codes || [];
+    document.getElementById('statBatches').textContent = batchCodes.length;
+
+    // Fetch all batches info
+    const allBatches = await apiFetch('/batches') || [];
+    batchData = allBatches.filter(b => batchCodes.includes(b.code));
+
+    // Fetch notices for student
+    noticesData = await apiFetch(`/notices/${studentId}`) || [];
+
+    // Fetch results/scores for student
+    scoresData = await apiFetch(`/results/student/${studentId}`) || [];
+
+    renderStats();
+    renderBatches(batchCodes);
+    renderRecentNotices();
+    renderRecentResults();
+}
+
+async function apiFetch(path) {
+    try {
+        const res = await fetch(API + path);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch { return null; }
+}
+
+// ── STATS ──
+function renderStats() {
+    document.getElementById('statNotices').textContent = noticesData.length;
+    document.getElementById('statExams').textContent = scoresData.length;
+
+    const scored = scoresData.filter(s => !s.absent && s.marks !== null);
+    if (scored.length > 0) {
+        // We need total_marks from the result; store a lookup if available
+        document.getElementById('statAvg').textContent = '—';
+    } else {
+        document.getElementById('statAvg').textContent = '—';
+    }
+}
+
+// ── BATCHES GRID ──
+function renderBatches(batchCodes) {
+    const grid = document.getElementById('teachersGrid');
+    grid.innerHTML = '';
+
+    if (batchCodes.length === 0) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>You haven't joined any batch yet.</p></div>`;
+    }
+
+    batchCodes.forEach(code => {
+        const batch = batchData.find(b => b.code === code);
+        const card = document.createElement('div');
+        card.className = 'teacher-card';
+        card.onclick = () => openDetailPanel(code, batch);
+        card.innerHTML = `
+            <div class="tc-top">
+                <div class="tc-avatar">${code[0]}</div>
+                <div class="tc-name">${batch ? batch.name : code}</div>
+                <div class="tc-center">${batch ? batch.year : ''}</div>
+            </div>
+            <div class="tc-body">
+                <div class="tc-batch">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
+                    ${code}
+                </div>
+                <div class="tc-meta">
+                    <div class="tc-meta-item"><strong>${batch ? batch.schedule : '—'}</strong>Schedule</div>
+                </div>
+                <div class="tc-actions">
+                    <button class="tc-btn tc-btn-outline" onclick="event.stopPropagation();location.href='student-notices.html'">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        Notices
+                    </button>
+                    <button class="tc-btn tc-btn-primary" onclick="event.stopPropagation();openDetailPanel('${code}', null)">
+                        Details →
+                    </button>
+                </div>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+
+    // Add batch placeholder
+    const addCard = document.createElement('div');
+    addCard.className = 'add-teacher-card';
+    addCard.onclick = openJoinModal;
+    addCard.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>Join a New Batch</span>
+        <span style="font-size:.75rem">Enter your batch code</span>
+    `;
+    grid.appendChild(addCard);
+}
+
+// ── RECENT NOTICES ──
+function renderRecentNotices() {
+    const container = document.getElementById('noticesList');
+    if (noticesData.length === 0) {
+        container.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><p>No notices yet.</p></div>`;
+        return;
+    }
+    const shown = noticesData.slice(0, 4);
+    container.innerHTML = shown.map(n => `
+        <div class="notice-item" onclick="location.href='student-notices.html'">
+            <div class="notice-dot"></div>
+            <div class="notice-body">
+                <div class="notice-from">Batch: ${(n.batch_codes || []).join(', ')}</div>
+                <div class="notice-text">${n.text}</div>
+                <div class="notice-time">${n.created_at ? new Date(n.created_at).toLocaleDateString() : ''}</div>
+            </div>
+            <div class="notice-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+    `).join('');
+}
+
+// ── RECENT RESULTS ──
+function renderRecentResults() {
+    const container = document.getElementById('resultsList');
+    if (scoresData.length === 0) {
+        container.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>No results yet.</p></div>`;
+        return;
+    }
+    const shown = scoresData.slice(0, 4);
+    container.innerHTML = shown.map(s => {
+        if (s.absent) return `
+            <div class="result-item">
+                <div class="result-grade grade-c">A</div>
+                <div class="result-info">
+                    <div class="result-exam">Exam</div>
+                    <div class="result-sub">Absent</div>
+                </div>
+                <div class="result-score"><div class="score-num">—</div></div>
+            </div>`;
+        return `
+            <div class="result-item">
+                <div class="result-grade grade-b">—</div>
+                <div class="result-info">
+                    <div class="result-exam">Exam Result</div>
+                    <div class="result-sub">${s.remarks || ''}</div>
+                </div>
+                <div class="result-score">
+                    <div class="score-num">${s.marks ?? '—'}</div>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+// ── DETAIL PANEL ──
+async function openDetailPanel(batchCode, batch) {
+    currentBatchCode = batchCode;
+    if (!batch) batch = batchData.find(b => b.code === batchCode);
+
+    document.getElementById('dsAvatar').textContent = batchCode[0];
+    document.getElementById('dsName').textContent = batch ? batch.name : batchCode;
+    document.getElementById('dsSub').textContent = batch ? batch.schedule : '';
+
+    // Notices for this batch
+    const batchNotices = noticesData.filter(n => (n.batch_codes || []).includes(batchCode));
+    document.getElementById('dsStatNotices').textContent = batchNotices.length;
+
+    document.getElementById('dsNotices').innerHTML = batchNotices.length
+        ? batchNotices.map(n => `
+            <div class="ds-notice">
+                <div class="ds-notice-title">${n.text}</div>
+                <div class="ds-notice-meta">${n.created_at ? new Date(n.created_at).toLocaleDateString() : ''}</div>
+            </div>`).join('')
+        : '<p style="color:var(--muted);font-size:.85rem;padding:10px 0">No notices for this batch.</p>';
+
+    // Scores for this student — we show all scores (we don't have per-batch filter from API directly)
+    document.getElementById('dsStatExams').textContent = scoresData.length;
+    document.getElementById('dsStatAvg').textContent = '—';
+
+    document.getElementById('dsResults').innerHTML = scoresData.length
+        ? scoresData.map(s => `
+            <div class="ds-result">
+                <div>
+                    <div class="ds-result-name">${s.absent ? 'Absent' : 'Exam'}</div>
+                    <div class="ds-result-date">${s.remarks || ''}</div>
+                </div>
+                <div class="ds-result-score">${s.marks ?? '—'}</div>
+            </div>`).join('')
+        : '<p style="color:var(--muted);font-size:.85rem;padding:10px 0">No results yet.</p>';
+
+    document.getElementById('dsInfo').innerHTML = batch ? `
+        <div class="ds-info-row"><span class="ds-info-label">Batch Code</span><span class="ds-info-value">${batchCode}</span></div>
+        <div class="ds-info-row"><span class="ds-info-label">Name</span><span class="ds-info-value">${batch.name}</span></div>
+        <div class="ds-info-row"><span class="ds-info-label">Year</span><span class="ds-info-value">${batch.year}</span></div>
+        <div class="ds-info-row"><span class="ds-info-label">Schedule</span><span class="ds-info-value">${batch.schedule}</span></div>
+    ` : `<div class="ds-info-row"><span class="ds-info-label">Batch Code</span><span class="ds-info-value">${batchCode}</span></div>`;
+
+    // Reset tabs
+    document.querySelectorAll('.ds-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.ds-tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.ds-tab')[0].classList.add('active');
+    document.getElementById('dsNotices').classList.add('active');
+
+    document.getElementById('detailPanel').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDetailPanel() {
+    document.getElementById('detailPanel').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function switchDsTab(tab, btn) {
+    document.querySelectorAll('.ds-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.ds-tab-content').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('ds' + tab).classList.add('active');
+}
+
+// ── JOIN BATCH ──
+function openJoinModal() {
+    document.getElementById('joinBatchInput').value = '';
+    document.getElementById('joinError').style.display = 'none';
+    document.getElementById('joinModal').classList.add('open');
+    setTimeout(() => document.getElementById('joinBatchInput').focus(), 300);
+}
+function closeJoinModal() { document.getElementById('joinModal').classList.remove('open'); }
+
+document.getElementById('joinBatchInput').addEventListener('input', e => {
+    e.target.value = e.target.value.toUpperCase().replace(/\s/g, '');
+});
+
+async function joinBatch() {
+    const code = document.getElementById('joinBatchInput').value.trim();
+    const errEl = document.getElementById('joinError');
+    const btn = document.getElementById('joinBtn');
+    errEl.style.display = 'none';
+
+    if (!code) { errEl.textContent = 'Please enter a batch code.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>';
+
+    try {
+        const res = await fetch(`${API}/enroll/${code}?student_id=${studentId}`, { method: 'PUT' });
+        const data = await res.json();
+        if (!res.ok) {
+            errEl.textContent = data.detail || 'Could not join. Check the code.';
+            errEl.style.display = 'block';
+        } else {
+            closeJoinModal();
+            await init();
+        }
+    } catch {
+        errEl.textContent = 'Network error. Please try again.';
+        errEl.style.display = 'block';
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = 'Join';
+}
+
+// ── SIDEBAR ──
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('mobile-open');
+    document.getElementById('mobileOverlay').classList.toggle('open');
+    document.body.style.overflow = document.getElementById('sidebar').classList.contains('mobile-open') ? 'hidden' : '';
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    document.getElementById('mobileOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function doLogout() {
+    ['userId','userName','userRole','current_userid','current_user_name','current_user_role','loggedin'].forEach(key => localStorage.removeItem(key));
+    window.location.href = 'auth.html';
+}
+
+document.getElementById('joinModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('joinModal')) closeJoinModal();
+});
+
+init();
+</script>
+</body>
+</html>

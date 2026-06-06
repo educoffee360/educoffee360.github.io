@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Batches | EduCoffee Teacher</title>
+    <meta name="robots" content="noindex">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --bg:#FDFBF7;--coffee:#3E2723;--caramel:#C68642;
+            --cl:rgba(198,134,66,.10);--text:#2D241E;--muted:#7D6E64;
+            --card:#fff;--border:rgba(62,39,35,.07);
+            --sh:0 2px 20px rgba(62,39,35,.06);
+            --shl:0 12px 40px rgba(62,39,35,.10);
+            --ease:cubic-bezier(.16,1,.3,1)
+        }
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+        /* ── SIDEBAR ── */
+        .sidebar{position:fixed;top:0;left:0;height:100%;width:240px;background:var(--coffee);display:flex;flex-direction:column;z-index:200;transition:transform .4s var(--ease)}
+        .sl{padding:26px 24px 18px;font-family:'DM Serif Display',serif;font-size:1.5rem;color:#fff;border-bottom:1px solid rgba(255,255,255,.08);text-decoration:none;display:block}
+        .sl span{color:var(--caramel);font-style:italic}
+        .snav{flex:1;padding:14px 0;overflow-y:auto}
+        .nl{display:flex;align-items:center;gap:12px;padding:12px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:.87rem;font-weight:500;border-left:3px solid transparent;transition:all .25s}
+        .nl:hover{color:#fff;background:rgba(255,255,255,.06)}
+        .nl.active{color:#fff;border-left-color:var(--caramel);background:rgba(198,134,66,.12)}
+        .nl svg{width:17px;height:17px;flex-shrink:0}
+        .nsec{padding:18px 24px 5px;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.3)}
+        .sfooter{padding:18px 22px;border-top:1px solid rgba(255,255,255,.08)}
+        .uc{display:flex;align-items:center;gap:10px;padding:10px 13px;background:rgba(255,255,255,.07);border-radius:12px;cursor:pointer}
+        .uav{width:34px;height:34px;border-radius:10px;background:var(--caramel);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:.9rem;color:#fff;flex-shrink:0}
+        .un{font-size:.82rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .ur{font-size:.67rem;color:rgba(255,255,255,.5)}
+        .lob{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);padding:4px;border-radius:6px;display:flex;transition:color .2s;margin-left:auto}
+        .lob:hover{color:#fff}
+
+        /* ── MOBILE ── */
+        .mhdr{display:none;position:sticky;top:0;z-index:150;background:var(--card);border-bottom:1px solid var(--border);padding:13px 18px;align-items:center;justify-content:space-between;box-shadow:var(--sh)}
+        .mlogo{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--coffee);text-decoration:none}
+        .mlogo span{color:var(--caramel);font-style:italic}
+        .ham{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--coffee)}
+        .ham svg{width:22px;height:22px}
+        .mov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:190;backdrop-filter:blur(3px)}
+        .mov.open{display:block}
+        .sidebar.mopen{transform:translateX(0)!important}
+
+        /* ── MAIN ── */
+        .main{margin-left:240px;padding:30px 26px 50px;min-height:100vh}
+
+        /* ── PAGE HEADER ── */
+        .ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:26px;flex-wrap:wrap;gap:12px}
+        .ph-left h1{font-family:'DM Serif Display',serif;font-size:1.85rem;color:var(--coffee);line-height:1;margin-bottom:4px}
+        .ph-left p{font-size:.87rem;color:var(--muted)}
+        .btn-primary{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;border-radius:50px;background:var(--coffee);color:#fff;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;transition:all .3s var(--ease);white-space:nowrap}
+        .btn-primary:hover{background:var(--caramel);transform:translateY(-1px);box-shadow:0 4px 15px rgba(198,134,66,.3)}
+        .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+        .btn-primary svg{width:16px;height:16px;flex-shrink:0}
+
+        .class-group{margin-bottom:32px}
+        .cg-label{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+        .cg-title{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--coffee)}
+        .cg-count{font-size:.72rem;font-weight:700;color:var(--caramel);background:var(--cl);padding:3px 10px;border-radius:20px}
+        .cg-line{flex:1;height:1px;background:var(--border)}
+
+        /* ── BATCH CARDS ── */
+        .batch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+        .bc{background:var(--card);border-radius:20px;border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden;transition:all .35s var(--ease)}
+        .bc:hover{transform:translateY(-4px);box-shadow:var(--shl);border-color:rgba(198,134,66,.3)}
+
+        .bc-top{padding:18px 20px;background:linear-gradient(135deg,var(--coffee),#5D4037);position:relative;overflow:hidden}
+        .bc-top::before{content:'';position:absolute;right:-20px;top:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.05)}
+        .bc-avatar{width:44px;height:44px;border-radius:11px;background:var(--caramel);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:1.1rem;color:#fff;margin-bottom:10px;position:relative;z-index:1}
+        .bc-name{font-family:'DM Serif Display',serif;font-size:1.05rem;color:#fff;position:relative;z-index:1;line-height:1.25}
+        .bc-schedule{font-size:.74rem;color:rgba(255,255,255,.7);margin-top:4px;position:relative;z-index:1;display:flex;align-items:center;gap:5px}
+        .bc-schedule svg{width:12px;height:12px;flex-shrink:0}
+
+        .bc-body{padding:14px 18px}
+        .bc-code{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;background:var(--cl);color:var(--caramel);border-radius:8px;font-family:monospace;font-size:.8rem;font-weight:700;letter-spacing:1px;margin-bottom:12px;cursor:pointer;transition:all .2s;user-select:none}
+        .bc-code:hover{background:rgba(198,134,66,.2)}
+        .bc-code svg{width:12px;height:12px;flex-shrink:0}
+
+        .bc-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+        .bc-mi{font-size:.76rem;color:var(--muted);line-height:1.4}
+        .bc-mi strong{display:block;font-size:.82rem;color:var(--text);font-weight:600;margin-bottom:1px}
+
+        .bc-actions{display:flex;gap:7px}
+        .bc-btn{flex:1;padding:9px 6px;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:600;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px}
+        .bc-btn svg{width:13px;height:13px;flex-shrink:0}
+        .bc-btn-students{background:var(--coffee);color:#fff}
+        .bc-btn-students:hover{background:var(--caramel)}
+        .bc-btn-edit{background:var(--cl);color:var(--caramel);border:1px solid rgba(198,134,66,.3)}
+        .bc-btn-edit:hover{background:rgba(198,134,66,.2)}
+        .bc-btn-del{background:#FFF5F5;color:#C62828;border:1px solid #FFCDD2}
+        .bc-btn-del:hover{background:#FFEBEE}
+        .bc-btn:disabled{opacity:.5;cursor:not-allowed}
+
+        /* Add card */
+        .bc-add{background:var(--card);border-radius:20px;border:2px dashed var(--border);min-height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:all .3s;color:var(--muted)}
+        .bc-add:hover{border-color:var(--caramel);color:var(--caramel)}
+        .bc-add svg{width:30px;height:30px;opacity:.4}
+        .bc-add span{font-size:.83rem;font-weight:600}
+
+        /* ── MODAL ── */
+        .modal-overlay{position:fixed;inset:0;background:rgba(45,36,30,.6);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:500;padding:20px;overflow-y:auto}
+        .modal-overlay.open{display:flex}
+        .modal-box{background:var(--card);border-radius:26px;width:100%;max-width:500px;box-shadow:0 30px 80px rgba(62,39,35,.2);animation:slideUp .4s var(--ease) both;margin:auto}
+        @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        .mh{padding:24px 26px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+        .mh h2{font-family:'DM Serif Display',serif;font-size:1.35rem;color:var(--coffee)}
+        .mcl{background:none;border:none;cursor:pointer;color:var(--muted);padding:6px 10px;border-radius:8px;font-size:1.2rem;line-height:1;transition:all .2s}
+        .mcl:hover{background:var(--bg);color:var(--coffee)}
+        .mbody{padding:0 26px 26px}
+
+        /* ── FORM ── */
+        .fg{margin-bottom:16px}
+        .fg label{display:block;font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:7px}
+        .fg input,.fg select{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-family:'DM Sans',sans-serif;font-size:.92rem;color:var(--text);outline:none;transition:all .25s;-webkit-appearance:none;appearance:none}
+        .fg input:focus,.fg select:focus{border-color:var(--caramel);background:#fff;box-shadow:0 0 0 4px rgba(198,134,66,.08)}
+        .fg input::placeholder{color:rgba(125,110,100,.4)}
+        .fg-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .fg-info{font-size:.72rem;color:var(--muted);margin-top:5px;line-height:1.5}
+
+        .class-note{background:rgba(198,134,66,.06);border:1px solid rgba(198,134,66,.2);border-radius:10px;padding:10px 14px;font-size:.76rem;color:var(--muted);line-height:1.55;margin-bottom:16px}
+        .class-note strong{color:var(--caramel)}
+
+        /* Batch code box */
+        .code-box{background:rgba(198,134,66,.05);border:1.5px dashed var(--caramel);border-radius:14px;padding:16px;text-align:center;margin-bottom:16px}
+        .code-box label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;display:block}
+        .code-big{font-family:monospace;font-size:1.8rem;font-weight:700;letter-spacing:5px;color:var(--coffee);display:block;margin-bottom:10px}
+        .code-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+        .code-btn{padding:7px 16px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;transition:all .2s}
+        .code-btn-regen{background:var(--caramel);color:#fff}
+        .code-btn-regen:hover{opacity:.85}
+        .code-btn-custom{background:var(--cl);color:var(--caramel)}
+        .code-btn-custom:hover{background:rgba(198,134,66,.2)}
+        .code-info{font-size:.7rem;color:var(--muted);margin-top:8px}
+        /* hide code controls in edit mode — code is the PK, cannot change */
+        .code-box.edit-mode .code-actions{display:none}
+        .code-box.edit-mode .code-info{display:none}
+        .code-box.edit-mode::after{content:'Code cannot be changed after creation.';display:block;font-size:.7rem;color:var(--muted);margin-top:6px}
+
+        .btn-save{width:100%;padding:14px;border-radius:14px;background:var(--coffee);color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:.93rem;font-weight:700;cursor:pointer;transition:background .25s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px}
+        .btn-save:hover:not(:disabled){background:var(--caramel)}
+        .btn-save:disabled{opacity:.6;cursor:not-allowed}
+        .btn-save svg{width:16px;height:16px}
+
+        /* ── LOADING SKELETON ── */
+        .skeleton{background:linear-gradient(90deg,#f0ebe5 25%,#e8e2db 50%,#f0ebe5 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:12px}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        .sk-card{background:var(--card);border-radius:20px;border:1px solid var(--border);overflow:hidden}
+        .sk-top{height:110px}.sk-body{padding:14px 18px}
+        .sk-line{height:12px;margin-bottom:10px}.sk-line.short{width:60%}
+
+        /* ── EMPTY ── */
+        .empty{text-align:center;padding:60px 20px;color:var(--muted)}
+        .empty-icon{font-size:3rem;margin-bottom:14px;opacity:.4}
+        .empty p{font-size:.87rem;line-height:1.7}
+        .empty a{color:var(--caramel);font-weight:600;text-decoration:none}
+
+        /* ── ERROR BANNER ── */
+        .err-banner{background:#FFF5F5;border:1px solid #FFCDD2;color:#C62828;border-radius:14px;padding:14px 18px;margin-bottom:20px;font-size:.85rem;display:none;align-items:center;gap:10px}
+        .err-banner.show{display:flex}
+        .err-banner button{margin-left:auto;background:none;border:none;cursor:pointer;color:#C62828;font-weight:700;font-size:.8rem;white-space:nowrap}
+
+        /* ── TOAST ── */
+        .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--coffee);color:#fff;padding:10px 22px;border-radius:50px;font-size:.82rem;font-weight:600;z-index:9999;display:none;white-space:nowrap;box-shadow:var(--shl)}
+        .toast.error{background:#C62828}
+
+        /* ── BOTTOM NAV ── */
+        .bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:10px 0 14px;z-index:200}
+        .bni{display:flex;justify-content:space-around}
+        .bna{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:var(--muted);font-size:.63rem;font-weight:600;padding:4px 10px}
+        .bna.active{color:var(--coffee)}
+        .bna svg{width:21px;height:21px}
+
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .bc{animation:fadeIn .4s var(--ease) both}
+
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%);width:260px}
+            .main{margin-left:0;padding:14px 14px 90px}
+            .mhdr{display:flex}.bnav{display:block}
+            .batch-grid{grid-template-columns:1fr}
+            .fg-row{grid-template-columns:1fr}
+        }
+        @media(max-width:480px){.code-big{font-size:1.4rem;letter-spacing:3px}}
+    </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar" id="sidebar">
+    <a href="teacher-dashboard.html" class="sl">Edu<span>Coffee.</span></a>
+    <nav class="snav">
+        <div class="nsec">Dashboard</div>
+        <a href="teacher-dashboard.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Overview
+        </a>
+        <div class="nsec">Manage</div>
+        <a href="teacher-batches.html" class="nl active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Batches
+        </a>
+        <a href="teacher-students.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Students
+        </a>
+        <a href="teacher-notices.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notices
+        </a>
+        <a href="teacher-results.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Results
+        </a>
+        <div class="nsec">Account</div>
+        <a href="teacher-profile.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile & Settings
+        </a>
+    </nav>
+    <div class="sfooter">
+        <div class="uc" onclick="location.href='teacher-profile.html'">
+            <div class="uav" id="sidebarAvatar">T</div>
+            <div style="flex:1;min-width:0">
+                <div class="un" id="sidebarName">Teacher</div>
+                <div class="ur">Teacher Account</div>
+            </div>
+            <button class="lob" onclick="event.stopPropagation();doLogout()" title="Logout">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
+        </div>
+    </div>
+</aside>
+<div class="mov" id="mov" onclick="closeSB()"></div>
+
+<header class="mhdr">
+    <a href="teacher-dashboard.html" class="mlogo">Edu<span>Coffee.</span></a>
+    <button class="ham" onclick="toggleSB()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+</header>
+
+<main class="main">
+
+    <div class="ph">
+        <div class="ph-left">
+            <h1>My Batches</h1>
+            <p>Create and manage batches. One class can have multiple batches with different schedules.</p>
+        </div>
+        <button class="btn-primary" id="newBatchBtn" onclick="openModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Batch
+        </button>
+    </div>
+
+    <!-- Error banner -->
+    <div class="err-banner" id="errBanner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="errMsg">Could not load batches.</span>
+        <button onclick="loadBatches()">Retry</button>
+    </div>
+
+    <div id="batchContainer">
+        <!-- Loading skeleton -->
+        <div class="batch-grid" id="skeletonGrid">
+            ${[1,2,3].map(() => `
+            <div class="sk-card">
+                <div class="skeleton sk-top"></div>
+                <div class="sk-body">
+                    <div class="skeleton sk-line short"></div>
+                    <div class="skeleton sk-line"></div>
+                    <div class="skeleton sk-line short"></div>
+                </div>
+            </div>`).join('')}
+        </div>
+    </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+    <div class="bni">
+        <a href="teacher-dashboard.html" class="bna">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
+        </a>
+        <a href="teacher-batches.html" class="bna active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Batches
+        </a>
+        <a href="teacher-notices.html" class="bna">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notices
+        </a>
+        <a href="teacher-results.html" class="bna">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Results
+        </a>
+        <a href="teacher-profile.html" class="bna">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile
+        </a>
+    </div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     CREATE / EDIT BATCH MODAL
+     ══════════════════════════════════════════ -->
+<div class="modal-overlay" id="batchModal">
+    <div class="modal-box">
+        <div class="mh">
+            <h2 id="modalTitle">Create New Batch</h2>
+            <button class="mcl" onclick="closeModal()">✕</button>
+        </div>
+        <div class="mbody">
+
+            <div class="class-note">
+                <strong>Multiple batches per class:</strong> A single class (e.g. Class 9) can have several batches with different schedules and times. Give each batch a distinct label and schedule.
+            </div>
+
+            <div class="fg-row">
+                <div class="fg">
+                    <label>Class / Grade *</label>
+                    <select id="bClass" onchange="onClassChange()">
+                        <option value="">Select class...</option>
+                        <option value="Class 1">Class 1</option>
+                        <option value="Class 2">Class 2</option>
+                        <option value="Class 3">Class 3</option>
+                        <option value="Class 4">Class 4</option>
+                        <option value="Class 5">Class 5</option>
+                        <option value="Class 6">Class 6</option>
+                        <option value="Class 7">Class 7</option>
+                        <option value="Class 8">Class 8</option>
+                        <option value="Class 9">Class 9</option>
+                        <option value="Class 10">Class 10</option>
+                        <option value="SSC">SSC</option>
+                        <option value="HSC 1st Year">HSC 1st Year</option>
+                        <option value="HSC 2nd Year">HSC 2nd Year</option>
+                        <option value="Degree">Degree</option>
+                        <option value="custom">✏️ Custom class...</option>
+                    </select>
+                </div>
+                <div class="fg" id="customClassWrap" style="display:none">
+                    <label>Custom Class Name</label>
+                    <input type="text" id="bClassCustom" placeholder="e.g. A Levels, Grade 7B...">
+                </div>
+            </div>
+
+            <div class="fg">
+                <label>Batch Label *
+                    <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.7rem">— distinguishes multiple batches of the same class</span>
+                </label>
+                <input type="text" id="bLabel" placeholder='e.g. Morning Batch, Evening Batch, Batch A, Group 2...'>
+                <p class="fg-info" id="namePreview" style="color:var(--caramel);font-weight:600"></p>
+            </div>
+
+            <div class="fg-row">
+                <div class="fg">
+                    <label>Academic Year</label>
+                    <input type="text" id="bYear" placeholder="e.g. 2025-26">
+                </div>
+                <div class="fg">
+                    <label>Schedule & Time *</label>
+                    <input type="text" id="bSchedule" placeholder="e.g. Sat-Mon 4PM, Sun-Tue 6PM">
+                    <p class="fg-info">Each batch can have a different day & time.</p>
+                </div>
+            </div>
+
+            <div class="code-box" id="codeBox">
+                <label>Batch Code (students use this to join)</label>
+                <span class="code-big" id="codeDisplay">XXXXXX</span>
+                <div class="code-actions">
+                    <button class="code-btn code-btn-regen" onclick="regenCode()">🔄 Regenerate</button>
+                    <button class="code-btn code-btn-custom" onclick="customCode()">✏️ Custom</button>
+                </div>
+                <p class="code-info">Students enter this code to join the batch.</p>
+            </div>
+
+            <button class="btn-save" id="saveBtn" onclick="saveBatch()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span id="saveBtnLabel">Create Batch</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="api.js"></script>
+<script>
+/* ─────────────────────────────────────────
+   STATE
+───────────────────────────────────────── */
+let batches     = [];   // loaded from API
+let editingCode = null; // code of batch being edited, or null for create
+let currentTeacherId = null;
+let currentTeacherName = '';
+
+/* ─────────────────────────────────────────
+   INIT — read teacher from localStorage, load batches
+───────────────────────────────────────── */
+(async function init() {
+    // Expect localStorage to have the logged-in user stored as JSON
+    // e.g. { id, name, email, role } saved at login time
+    const raw = localStorage.getItem('current_userid');
+    if (!raw) {
+        alert(raw)
+        window.location.href = 'index.html';
+        return;
+    }
+
+    let user;
+    user = await GetUserByID(raw)
+
+    if (!user.id || user.role !== 'teacher') {
+        alert(user)
+        window.location.href = 'index.html';
+        return;
+    }
+
+    currentTeacherId   = user.id;
+    currentTeacherName = user.name || 'Teacher';
+
+    // Update sidebar user info
+    const initials = currentTeacherName.trim().split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() || 'T';
+    document.getElementById('sidebarAvatar').textContent = initials;
+    document.getElementById('sidebarName').textContent   = currentTeacherName;
+
+    await loadBatches();
+})();
+
+/* ─────────────────────────────────────────
+   LOAD BATCHES from API
+───────────────────────────────────────── */
+async function loadBatches() {
+    hideBanner();
+    showSkeleton(true);
+
+    try {
+        const data = await GetBatchesByTID(currentTeacherId);
+        batches = Array.isArray(data) ? data : [];
+        renderBatches();
+    } catch (err) {
+        showBanner('Could not load batches: ' + (err.message || 'Server error.'));
+        // Render empty state so the page isn't stuck on skeleton
+        batches = [];
+        renderBatches();
+    } finally {
+        showSkeleton(false);
+    }
+}
+
+function showSkeleton(show) {
+    const sk = document.getElementById('skeletonGrid');
+    if (sk) sk.style.display = show ? 'grid' : 'none';
+}
+
+/* ─────────────────────────────────────────
+   CODE GENERATION
+───────────────────────────────────────── */
+let currentCode = '';
+
+function genCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let r = '';
+    for (let i = 0; i < 6; i++) r += chars[Math.floor(Math.random() * chars.length)];
+    return r;
+}
+function regenCode() {
+    currentCode = genCode();
+    document.getElementById('codeDisplay').textContent = currentCode;
+}
+function customCode() {
+    const v = prompt('Enter a custom code (4–8 characters, no spaces):', currentCode);
+    if (v && v.trim().length >= 4 && v.trim().length <= 8) {
+        currentCode = v.trim().toUpperCase().replace(/\s/g, '');
+        document.getElementById('codeDisplay').textContent = currentCode;
+    }
+}
+
+/* ─────────────────────────────────────────
+   CLASS DROPDOWN + LIVE NAME PREVIEW
+───────────────────────────────────────── */
+function onClassChange() {
+    const val = document.getElementById('bClass').value;
+    document.getElementById('customClassWrap').style.display = val === 'custom' ? 'block' : 'none';
+    updateNamePreview();
+}
+
+function updateNamePreview() {
+    const cls   = getSelectedClass();
+    const label = document.getElementById('bLabel').value.trim();
+    const prev  = document.getElementById('namePreview');
+    if (cls && label)  prev.textContent = '→ Batch name: "' + cls + ' — ' + label + '"';
+    else if (cls)      prev.textContent = '→ Enter a batch label to complete the name.';
+    else               prev.textContent = '';
+}
+
+function getSelectedClass() {
+    const sel = document.getElementById('bClass').value;
+    if (!sel) return '';
+    if (sel === 'custom') return document.getElementById('bClassCustom').value.trim();
+    return sel;
+}
+
+/* ─────────────────────────────────────────
+   OPEN / CLOSE MODAL
+───────────────────────────────────────── */
+function openModal() {
+    editingCode = null;
+    document.getElementById('modalTitle').textContent  = 'Create New Batch';
+    document.getElementById('saveBtnLabel').textContent = 'Create Batch';
+    document.getElementById('bClass').value            = '';
+    document.getElementById('bClassCustom').value      = '';
+    document.getElementById('customClassWrap').style.display = 'none';
+    document.getElementById('bLabel').value    = '';
+    document.getElementById('bYear').value     = '';
+    document.getElementById('bSchedule').value = '';
+    document.getElementById('namePreview').textContent = '';
+    document.getElementById('codeBox').classList.remove('edit-mode');
+    currentCode = genCode();
+    document.getElementById('codeDisplay').textContent = currentCode;
+    document.getElementById('saveBtn').disabled = false;
+    document.getElementById('batchModal').classList.add('open');
+}
+
+function closeModal() {
+    document.getElementById('batchModal').classList.remove('open');
+    editingCode = null;
+}
+
+/* ─────────────────────────────────────────
+   EDIT BATCH — prefills modal
+───────────────────────────────────────── */
+function editBatch(code) {
+    const b = batches.find(b => b.code === code);
+    if (!b) return;
+    editingCode = code;
+
+    document.getElementById('modalTitle').textContent  = 'Edit Batch';
+    document.getElementById('saveBtnLabel').textContent = 'Save Changes';
+
+    // Parse name → class + label  (format: "{class} — {label}")
+    const sep    = ' — ';
+    const sepIdx = b.name.indexOf(sep);
+    let cls = '', label = '';
+    if (sepIdx > -1) { cls = b.name.slice(0, sepIdx); label = b.name.slice(sepIdx + sep.length); }
+    else             { label = b.name; }
+
+    // Set class dropdown
+    const sel = document.getElementById('bClass');
+    const known = Array.from(sel.options).find(o => o.value === cls);
+    if (known) {
+        sel.value = cls;
+        document.getElementById('customClassWrap').style.display = 'none';
+    } else {
+        sel.value = 'custom';
+        document.getElementById('bClassCustom').value = cls;
+        document.getElementById('customClassWrap').style.display = 'block';
+    }
+
+    document.getElementById('bLabel').value    = label;
+    document.getElementById('bYear').value     = b.year     || '';
+    document.getElementById('bSchedule').value = b.schedule || '';
+
+    // Show code as read-only (code is the PK — cannot change after creation)
+    currentCode = b.code;
+    document.getElementById('codeDisplay').textContent = currentCode;
+    document.getElementById('codeBox').classList.add('edit-mode');
+
+    document.getElementById('saveBtn').disabled = false;
+    updateNamePreview();
+    document.getElementById('batchModal').classList.add('open');
+}
+
+/* ─────────────────────────────────────────
+   SAVE BATCH — CREATE or UPDATE via API
+───────────────────────────────────────── */
+async function saveBatch() {
+    const cls      = getSelectedClass();
+    const label    = document.getElementById('bLabel').value.trim();
+    const schedule = document.getElementById('bSchedule').value.trim();
+    const year     = document.getElementById('bYear').value.trim();
+
+    if (!cls)      { showToast('Please select a class / grade.');  return; }
+    if (!label)    { showToast('Please enter a batch label.');     return; }
+    if (!schedule) { showToast('Please enter a schedule & time.'); return; }
+
+    const name = cls + ' — ' + label;
+
+    // Duplicate code check (create only)
+    if (!editingCode && batches.find(b => b.code === currentCode)) {
+        showToast('This batch code is already in use. Regenerate.');
+        return;
+    }
+
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = true;
+    document.getElementById('saveBtnLabel').textContent = editingCode ? 'Saving…' : 'Creating…';
+
+    try {
+        if (editingCode) {
+            /* ── UPDATE ── */
+            await UpdateBatch(editingCode, { name, year, schedule });
+
+            // Reflect change in local state
+            const idx = batches.findIndex(b => b.code === editingCode);
+            if (idx > -1) batches[idx] = { ...batches[idx], name, year, schedule };
+
+            showToast('Batch updated ✓');
+        } else {
+            /* ── CREATE ── */
+            const created = await CreateNewBatch({
+                code:       currentCode,
+                name,
+                year,
+                schedule,
+                teacher_id: currentTeacherId,
+            });
+
+            // Use server-returned object if available, otherwise build locally
+            batches.push(created || {
+                code:       currentCode,
+                name,
+                year,
+                schedule,
+                teacher_id: currentTeacherId,
+            });
+
+            showToast('Batch created ✓');
+        }
+
+        closeModal();
+        renderBatches();
+    } catch (err) {
+        showToast(err.message || 'Something went wrong.', true);
+        saveBtn.disabled = false;
+        document.getElementById('saveBtnLabel').textContent = editingCode ? 'Save Changes' : 'Create Batch';
+    }
+}
+
+/* ─────────────────────────────────────────
+   DELETE BATCH via API
+───────────────────────────────────────── */
+async function deleteBatch(code) {
+    const b = batches.find(b => b.code === code);
+    if (!confirm('Delete batch "' + (b?.name || code) + '"? This cannot be undone.')) return;
+
+    // Disable the button to prevent double-click
+    const card = document.getElementById('bc-' + code);
+    if (card) card.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+    try {
+        await DeleteBatch(code);
+        batches = batches.filter(b => b.code !== code);
+        renderBatches();
+        showToast('Batch deleted.');
+    } catch (err) {
+        showToast(err.message || 'Could not delete batch.', true);
+        // Re-enable buttons on failure
+        if (card) card.querySelectorAll('button').forEach(btn => btn.disabled = false);
+    }
+}
+
+/* ─────────────────────────────────────────
+   RENDER BATCHES — groups by class label
+───────────────────────────────────────── */
+function renderBatches() {
+    const container = document.getElementById('batchContainer');
+    // Remove skeleton once we have real content
+    const sk = document.getElementById('skeletonGrid');
+    if (sk) sk.remove();
+
+    if (!batches.length) {
+        container.innerHTML = `
+            <div class="empty">
+                <div class="empty-icon">☕</div>
+                <p>No batches yet.<br>
+                   <a href="#" onclick="openModal();return false">Create your first batch</a> to get started.
+                </p>
+            </div>`;
+        return;
+    }
+
+    // Group by class label (part before " — ")
+    const groups = {};
+    batches.forEach(b => {
+        const sep = ' — ';
+        const idx = b.name.indexOf(sep);
+        const key = idx > -1 ? b.name.slice(0, idx) : b.name;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(b);
+    });
+
+    container.innerHTML = Object.entries(groups).map(([cls, blist]) => `
+        <div class="class-group">
+            <div class="cg-label">
+                <div class="cg-title">📚 ${escHtml(cls)}</div>
+                <div class="cg-count">${blist.length} batch${blist.length > 1 ? 'es' : ''}</div>
+                <div class="cg-line"></div>
+            </div>
+            <div class="batch-grid">
+                ${blist.map(b => buildBatchCard(b)).join('')}
+                <div class="bc-add" onclick="openModalForClass('${escAttr(cls)}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>Add another ${escHtml(cls)} batch</span>
+                </div>
+            </div>
+        </div>`).join('') + `
+        <div style="margin-top:8px">
+            <div class="batch-grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+                <div class="bc-add" style="min-height:80px" onclick="openModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>New Batch (different class)</span>
+                </div>
+            </div>
+        </div>`;
+}
+
+function buildBatchCard(b) {
+    const sep    = ' — ';
+    const sepIdx = b.name.indexOf(sep);
+    const label  = sepIdx > -1 ? b.name.slice(sepIdx + sep.length) : b.name;
+
+    return `
+    <div class="bc" id="bc-${b.code}">
+        <div class="bc-top">
+            <div class="bc-avatar">${escHtml(label[0].toUpperCase())}</div>
+            <div class="bc-name">${escHtml(label)}</div>
+            <div class="bc-schedule">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                ${escHtml(b.schedule || '—')}
+            </div>
+        </div>
+        <div class="bc-body">
+            <div class="bc-code" onclick="copyCode('${b.code}')" title="Copy batch code">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                ${escHtml(b.code)}
+            </div>
+            <div class="bc-meta">
+                <div class="bc-mi">
+                    <strong>${escHtml(b.schedule || '—')}</strong>Schedule
+                </div>
+                <div class="bc-mi">
+                    <strong>${escHtml(b.year || '—')}</strong>Session
+                </div>
+            </div>
+            <div class="bc-actions">
+                <button class="bc-btn bc-btn-students" onclick="location.href='teacher-students.html?batch=${encodeURIComponent(b.code)}'">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    Students
+                </button>
+                <button class="bc-btn bc-btn-edit" onclick="editBatch('${b.code}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Edit
+                </button>
+                <button class="bc-btn bc-btn-del" onclick="deleteBatch('${b.code}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>`;
+}
+
+/* Pre-fill class for "Add another X batch" shortcut */
+function openModalForClass(cls) {
+    openModal();
+    const sel = document.getElementById('bClass');
+    const opt = Array.from(sel.options).find(o => o.value === cls);
+    if (opt) {
+        sel.value = cls;
+        document.getElementById('customClassWrap').style.display = 'none';
+    } else {
+        sel.value = 'custom';
+        document.getElementById('bClassCustom').value = cls;
+        document.getElementById('customClassWrap').style.display = 'block';
+    }
+    updateNamePreview();
+}
+
+/* ─────────────────────────────────────────
+   UTILITIES
+───────────────────────────────────────── */
+function copyCode(code) {
+    navigator.clipboard.writeText(code).then(() => showToast('Code copied: ' + code));
+}
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escAttr(s) {
+    return String(s).replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+}
+function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.toggle('error', isError);
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; t.classList.remove('error'); }, 2800);
+}
+function showBanner(msg) {
+    document.getElementById('errMsg').textContent = msg;
+    document.getElementById('errBanner').classList.add('show');
+}
+function hideBanner() {
+    document.getElementById('errBanner').classList.remove('show');
+}
+function toggleSB() {
+    document.getElementById('sidebar').classList.toggle('mopen');
+    document.getElementById('mov').classList.toggle('open');
+}
+function closeSB() {
+    document.getElementById('sidebar').classList.remove('mopen');
+    document.getElementById('mov').classList.remove('open');
+}
+function doLogout() {
+    if (!confirm('Log out?')) return;
+    // localStorage.removeItem('user');
+    localStorage.removeItem('current_userid');
+    window.location.href = 'index.html';
+}
+
+/* Live name preview listeners */
+document.getElementById('bLabel').addEventListener('input', updateNamePreview);
+document.getElementById('bClassCustom').addEventListener('input', updateNamePreview);
+
+/* Close modal on backdrop click */
+document.getElementById('batchModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('batchModal')) closeModal();
+});
+
+/* Auto-open create modal from URL hash */
+if (window.location.hash === '#create') openModal();
+</script>
+</body>
+</html>

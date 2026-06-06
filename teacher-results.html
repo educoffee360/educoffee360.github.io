@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results | EduCoffee Teacher</title>
+    <meta name="robots" content="noindex">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --bg:#FDFBF7;--coffee:#3E2723;--caramel:#C68642;
+            --cl:rgba(198,134,66,.10);--text:#2D241E;--muted:#7D6E64;
+            --card:#fff;--border:rgba(62,39,35,.07);
+            --sh:0 2px 20px rgba(62,39,35,.06);
+            --shl:0 12px 40px rgba(62,39,35,.10);
+            --ease:cubic-bezier(.16,1,.3,1);
+            --pass:#2E7D32;--fail:#C62828
+        }
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+        /* ── SIDEBAR ── */
+        .sidebar{position:fixed;top:0;left:0;height:100%;width:240px;background:var(--coffee);display:flex;flex-direction:column;z-index:200;transition:transform .4s var(--ease)}
+        .sl{padding:26px 24px 18px;font-family:'DM Serif Display',serif;font-size:1.5rem;color:#fff;border-bottom:1px solid rgba(255,255,255,.08);text-decoration:none;display:block}
+        .sl span{color:var(--caramel);font-style:italic}
+        .snav{flex:1;padding:14px 0;overflow-y:auto}
+        .nl{display:flex;align-items:center;gap:12px;padding:12px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:.87rem;font-weight:500;border-left:3px solid transparent;transition:all .25s}
+        .nl:hover{color:#fff;background:rgba(255,255,255,.06)}
+        .nl.active{color:#fff;border-left-color:var(--caramel);background:rgba(198,134,66,.12)}
+        .nl svg{width:17px;height:17px;flex-shrink:0}
+        .nsec{padding:18px 24px 5px;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.3)}
+        .sfooter{padding:18px 22px;border-top:1px solid rgba(255,255,255,.08)}
+        .uc{display:flex;align-items:center;gap:10px;padding:10px 13px;background:rgba(255,255,255,.07);border-radius:12px;cursor:pointer}
+        .uav{width:34px;height:34px;border-radius:10px;background:var(--caramel);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:.9rem;color:#fff;flex-shrink:0}
+        .un{font-size:.82rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .ur{font-size:.67rem;color:rgba(255,255,255,.5)}
+        .lob{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);padding:4px;border-radius:6px;display:flex;transition:color .2s;margin-left:auto}
+        .lob:hover{color:#fff}
+
+        /* ── MOBILE ── */
+        .mhdr{display:none;position:sticky;top:0;z-index:150;background:var(--card);border-bottom:1px solid var(--border);padding:13px 18px;align-items:center;justify-content:space-between;box-shadow:var(--sh)}
+        .mlogo{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--coffee);text-decoration:none}
+        .mlogo span{color:var(--caramel);font-style:italic}
+        .ham{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--coffee)}
+        .ham svg{width:22px;height:22px}
+        .mov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:190;backdrop-filter:blur(3px)}
+        .mov.open{display:block}
+        .sidebar.mopen{transform:translateX(0)!important}
+
+        /* ── MAIN ── */
+        .main{margin-left:240px;padding:30px 26px 50px;min-height:100vh}
+
+        /* ── PAGE HEADER ── */
+        .ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+        .ph-left h1{font-family:'DM Serif Display',serif;font-size:1.85rem;color:var(--coffee);line-height:1;margin-bottom:4px}
+        .ph-left p{font-size:.87rem;color:var(--muted)}
+        .btn-primary{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;border-radius:50px;background:var(--coffee);color:#fff;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;transition:all .3s var(--ease);text-decoration:none;white-space:nowrap}
+        .btn-primary:hover{background:var(--caramel);transform:translateY(-1px);box-shadow:0 4px 15px rgba(198,134,66,.3)}
+        .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+        .btn-primary svg{width:16px;height:16px;flex-shrink:0}
+
+        /* ── BREADCRUMB ── */
+        .breadcrumb{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);margin-bottom:20px;flex-wrap:wrap}
+        .bc-item{cursor:pointer;transition:color .2s}
+        .bc-item:hover{color:var(--caramel)}
+        .bc-item.active{color:var(--coffee);font-weight:600;cursor:default}
+        .bc-sep{color:var(--border)}
+
+        /* ── FOLDER GRID ── */
+        .folder-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:28px}
+        .folder-card{background:var(--card);border-radius:18px;border:1px solid var(--border);box-shadow:var(--sh);padding:20px;cursor:pointer;transition:all .3s var(--ease);position:relative}
+        .folder-card:hover{transform:translateY(-4px);box-shadow:var(--shl);border-color:rgba(198,134,66,.35)}
+        .folder-icon{font-size:2rem;margin-bottom:12px;display:block}
+        .folder-name{font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--coffee);margin-bottom:4px}
+        .folder-meta{font-size:.75rem;color:var(--muted)}
+        .folder-count{position:absolute;top:14px;right:14px;background:var(--cl);color:var(--caramel);font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:8px}
+        .folder-add{background:var(--card);border-radius:18px;border:2px dashed var(--border);padding:20px;cursor:pointer;transition:all .3s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:130px;color:var(--muted)}
+        .folder-add:hover{border-color:var(--caramel);color:var(--caramel)}
+        .folder-add svg{width:28px;height:28px;opacity:.4}
+        .folder-add span{font-size:.82rem;font-weight:600}
+
+        /* ── BATCH VIEW ── */
+        .results-view{display:none}
+        .results-view.active{display:block}
+        .batch-header{background:linear-gradient(135deg,var(--coffee),#5D4037);border-radius:18px;padding:22px 24px;margin-bottom:22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+        .bh-icon{font-size:2rem}
+        .bh-info{flex:1;min-width:0}
+        .bh-name{font-family:'DM Serif Display',serif;font-size:1.3rem;color:#fff}
+        .bh-meta{font-size:.78rem;color:rgba(255,255,255,.7);margin-top:3px}
+        .bh-stats{display:flex;gap:20px;flex-wrap:wrap}
+        .bh-stat{text-align:center}
+        .bh-snum{font-family:'DM Serif Display',serif;font-size:1.4rem;color:#fff}
+        .bh-slbl{font-size:.68rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px}
+
+        /* ── EXAM CARDS ── */
+        .exam-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:28px}
+        .exam-card{background:var(--card);border-radius:16px;border:1px solid var(--border);box-shadow:var(--sh);padding:18px;transition:all .3s var(--ease)}
+        .exam-card:hover{transform:translateY(-3px);box-shadow:var(--shl);border-color:rgba(198,134,66,.3)}
+        .ec-badge{display:inline-block;font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:6px;text-transform:uppercase;margin-bottom:10px}
+        .eb-pub{background:#E8F5E9;color:var(--pass)}
+        .ec-title{font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--coffee);margin-bottom:6px}
+        .ec-meta{font-size:.75rem;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;line-height:1.5}
+        .ec-actions{display:flex;gap:7px;border-top:1px solid var(--border);padding-top:12px}
+        .ec-btn{flex:1;padding:9px 6px;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:600;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:4px}
+        .ec-btn svg{width:13px;height:13px}
+        .ec-btn-view{background:var(--cl);color:var(--caramel)}
+        .ec-btn-del{background:#FFF5F5;color:var(--fail)}
+        .ec-btn:hover:not(:disabled){opacity:.8;transform:translateY(-1px)}
+        .ec-btn:disabled{opacity:.5;cursor:not-allowed}
+
+        /* ── MODAL SHARED ── */
+        .modal-overlay{position:fixed;inset:0;background:rgba(45,36,30,.6);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;z-index:500;padding:20px;overflow-y:auto}
+        .modal-overlay.open{display:flex}
+        .modal-box{background:var(--card);border-radius:24px;width:100%;max-width:720px;box-shadow:0 30px 80px rgba(62,39,35,.2);animation:slideUp .4s var(--ease) both;margin:auto}
+        @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        .mh{padding:22px 26px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+        .mh h2{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--coffee)}
+        .mcl{background:none;border:none;cursor:pointer;color:var(--muted);padding:6px 10px;border-radius:8px;font-size:1.2rem;line-height:1;transition:all .2s}
+        .mcl:hover{background:var(--bg);color:var(--coffee)}
+        .mbody{padding:0 26px 26px}
+
+        /* ── FORM FIELDS ── */
+        .fg{margin-bottom:18px}
+        .fg label{display:block;font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:8px}
+        .fg input,.fg select,.fg textarea{
+            width:100%;padding:13px 15px;border-radius:12px;border:1.5px solid var(--border);
+            background:var(--bg);font-family:'DM Sans',sans-serif;font-size:.95rem;color:var(--text);
+            outline:none;transition:all .25s;-webkit-appearance:none;appearance:none
+        }
+        .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--caramel);background:#fff;box-shadow:0 0 0 4px rgba(198,134,66,.08)}
+        .fg textarea{resize:vertical;min-height:80px;line-height:1.6}
+        .fg-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+        .fg-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+        .fg-info{font-size:.73rem;color:var(--muted);margin-top:5px}
+
+        .pass-preview{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:5px 12px;border-radius:8px;background:rgba(46,125,50,.08);border:1px solid rgba(46,125,50,.2);font-size:.76rem;font-weight:600;color:var(--pass)}
+        .pass-preview svg{width:13px;height:13px}
+
+        .type-row{display:flex;gap:10px;flex-wrap:wrap}
+        .type-row select{flex:1;min-width:140px}
+        .type-custom{flex:1;min-width:140px}
+        .type-custom input{border-style:dashed}
+
+        /* ── STUDENT SCORE SECTION ── */
+        .score-section-label{font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+        .score-section-label span{flex:1;height:1px;background:var(--border)}
+
+        .student-score-card{background:var(--bg);border:1.5px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:14px;transition:border-color .2s}
+        .student-score-card:focus-within{border-color:rgba(198,134,66,.4);background:#fff}
+        .ssc-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+        .st-avatar{width:36px;height:36px;border-radius:10px;background:var(--coffee);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;font-weight:700;flex-shrink:0}
+        .st-name{font-size:.95rem;font-weight:600;color:var(--text)}
+        .st-id{font-size:.72rem;color:var(--muted);margin-top:1px}
+        .absent-toggle{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;user-select:none;flex-shrink:0}
+        .absent-toggle input[type=checkbox]{accent-color:var(--fail);width:16px;height:16px;cursor:pointer}
+        .absent-toggle.is-absent{color:var(--fail)}
+        .ssc-fields{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:flex-start}
+        .marks-wrap{display:flex;flex-direction:column;gap:6px}
+        .marks-input{width:100%;padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-family:'DM Sans',sans-serif;font-size:1.25rem;font-weight:700;color:var(--coffee);text-align:center;outline:none;transition:all .25s}
+        .marks-input:focus{border-color:var(--caramel);background:#fff;box-shadow:0 0 0 4px rgba(198,134,66,.08)}
+        .marks-input:disabled{background:rgba(198,40,40,.05);border-color:rgba(198,40,40,.2);color:var(--fail);font-size:.82rem}
+        .marks-pct{text-align:center;font-size:.75rem;font-weight:700;height:20px}
+        .remarks-textarea{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text);outline:none;transition:all .25s;resize:vertical;min-height:80px;line-height:1.6}
+        .remarks-textarea:focus{border-color:var(--caramel);background:#fff;box-shadow:0 0 0 4px rgba(198,134,66,.08)}
+        .remarks-textarea:disabled{opacity:.4;cursor:not-allowed;resize:none}
+        .remarks-textarea::placeholder{color:rgba(125,110,100,.4)}
+
+        /* ── PUBLISH BUTTONS ── */
+        .pub-row{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+        .btn-pub-base{flex:1;min-width:130px;padding:13px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:7px;border:none}
+        .btn-pub-base:disabled{opacity:.5;cursor:not-allowed}
+        .btn-draft{background:var(--bg);border:1.5px solid var(--border) !important;color:var(--muted)}
+        .btn-draft:hover:not(:disabled){border-color:var(--caramel) !important;color:var(--caramel)}
+        .btn-publish{flex:2;min-width:180px;background:var(--coffee);color:#fff}
+        .btn-publish:hover:not(:disabled){background:var(--caramel)}
+        .btn-pub-base svg{width:16px;height:16px;flex-shrink:0}
+
+        /* ── ERROR BANNER ── */
+        .err-banner{background:#FFF5F5;border:1px solid #FFCDD2;color:#C62828;border-radius:14px;padding:14px 18px;margin-bottom:20px;font-size:.85rem;display:none;align-items:center;gap:10px}
+        .err-banner.show{display:flex}
+        .err-banner button{margin-left:auto;background:none;border:none;cursor:pointer;color:#C62828;font-weight:700;font-size:.8rem;white-space:nowrap}
+
+        /* ── VIEW MODAL TABLE ── */
+        .vtable{width:100%;border-collapse:collapse}
+        .vtable th{padding:11px 13px;background:rgba(62,39,35,.04);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;border-bottom:1px solid var(--border)}
+        .vtable td{padding:12px 13px;border-bottom:1px solid var(--border);font-size:.88rem;vertical-align:top}
+        .vtable tr:last-child td{border-bottom:none}
+        .vtable tr:hover td{background:rgba(198,134,66,.03)}
+        .score-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;font-weight:700;font-size:.88rem}
+        .sp-pass{background:rgba(46,125,50,.1);color:var(--pass)}
+        .sp-fail{background:rgba(198,40,40,.08);color:var(--fail)}
+        .sp-absent{background:rgba(62,39,35,.07);color:var(--muted)}
+        .sp-none{background:var(--cl);color:var(--caramel)}
+
+        /* ── SUMMARY STRIP ── */
+        .summary-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+        .ss-card{border-radius:12px;padding:14px;text-align:center}
+        .ss-num{font-family:'DM Serif Display',serif;font-size:1.5rem;line-height:1;margin-bottom:4px}
+        .ss-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+
+        /* ── LOADING SKELETON ── */
+        .skeleton{background:linear-gradient(90deg,#f0ebe5 25%,#e8e2db 50%,#f0ebe5 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:10px}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        .sk-folder{background:var(--card);border-radius:18px;border:1px solid var(--border);padding:20px}
+        .sk-icon{width:40px;height:40px;border-radius:10px;margin-bottom:12px}
+        .sk-line{height:12px;margin-bottom:8px}
+        .sk-line.short{width:60%}
+
+        /* ── TOAST ── */
+        .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--coffee);color:#fff;padding:10px 22px;border-radius:50px;font-size:.82rem;font-weight:600;z-index:9999;display:none;white-space:nowrap;box-shadow:var(--shl)}
+        .toast.error{background:#C62828}
+
+        /* ── BOTTOM NAV ── */
+        .bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:10px 0 14px;z-index:200}
+        .bni{display:flex;justify-content:space-around}
+        .bna{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:var(--muted);font-size:.63rem;font-weight:600;padding:4px 10px}
+        .bna.active{color:var(--coffee)}
+        .bna svg{width:21px;height:21px}
+
+        /* ── EMPTY ── */
+        .empty{text-align:center;padding:44px 20px;color:var(--muted)}
+        .empty-icon{font-size:2.5rem;margin-bottom:10px;opacity:.5}
+        .empty p{font-size:.85rem;line-height:1.7}
+
+        @media(max-width:900px){.exam-grid{grid-template-columns:1fr 1fr}}
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%);width:260px}
+            .main{margin-left:0;padding:14px 14px 90px}
+            .mhdr{display:flex}.bnav{display:block}
+            .folder-grid{grid-template-columns:repeat(2,1fr)}
+            .fg-row,.fg-3{grid-template-columns:1fr}
+            .ssc-fields{grid-template-columns:1fr}
+            .marks-input{font-size:1.1rem}
+            .summary-strip{grid-template-columns:1fr 1fr 1fr}
+            .pub-row{flex-direction:column}
+            .btn-draft,.btn-publish{flex:none;width:100%}
+            .exam-grid{grid-template-columns:1fr}
+        }
+        @media(max-width:480px){
+            .folder-grid{grid-template-columns:1fr}
+            .summary-strip{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar" id="sidebar">
+    <a href="teacher-dashboard.html" class="sl">Edu<span>Coffee.</span></a>
+    <nav class="snav">
+        <div class="nsec">Dashboard</div>
+        <a href="teacher-dashboard.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Overview
+        </a>
+        <div class="nsec">Manage</div>
+        <a href="teacher-batches.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Batches
+        </a>
+        <a href="teacher-students.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Students
+        </a>
+        <a href="teacher-notices.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notices
+        </a>
+        <a href="teacher-results.html" class="nl active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Results
+        </a>
+        <div class="nsec">Account</div>
+        <a href="teacher-profile.html" class="nl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile & Settings
+        </a>
+    </nav>
+    <div class="sfooter">
+        <div class="uc" onclick="location.href='teacher-profile.html'">
+            <div class="uav" id="sidebarAvatar">T</div>
+            <div style="flex:1;min-width:0">
+                <div class="un" id="sidebarName">Teacher</div>
+                <div class="ur">Teacher Account</div>
+            </div>
+            <button class="lob" onclick="event.stopPropagation();doLogout()" title="Logout">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
+        </div>
+    </div>
+</aside>
+<div class="mov" id="mov" onclick="closeSB()"></div>
+
+<header class="mhdr">
+    <a href="teacher-dashboard.html" class="mlogo">Edu<span>Coffee.</span></a>
+    <button class="ham" onclick="toggleSB()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+</header>
+
+<main class="main">
+
+    <!-- ── FOLDER VIEW ── -->
+    <div id="folderView">
+        <div class="ph">
+            <div class="ph-left">
+                <h1>Result Folders</h1>
+                <p>Each batch has its own result folder. Click to view or upload.</p>
+            </div>
+            <button class="btn-primary" onclick="openUploadModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload Result
+            </button>
+        </div>
+
+        <div class="err-banner" id="errBanner">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="errMsg">Could not load data.</span>
+            <button onclick="loadAll()">Retry</button>
+        </div>
+
+        <div class="folder-grid" id="folderGrid">
+            <!-- skeleton -->
+            <div class="sk-folder"><div class="skeleton sk-icon"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div></div>
+            <div class="sk-folder"><div class="skeleton sk-icon"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div></div>
+            <div class="sk-folder"><div class="skeleton sk-icon"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div></div>
+        </div>
+    </div>
+
+    <!-- ── BATCH RESULTS VIEW ── -->
+    <div class="results-view" id="batchView">
+        <div class="breadcrumb">
+            <span class="bc-item" onclick="showFolderView()">📁 All Batches</span>
+            <span class="bc-sep">›</span>
+            <span class="bc-item active" id="bcBatchName">Batch</span>
+        </div>
+        <div class="batch-header" id="batchHeader"></div>
+        <div class="ph" style="margin-bottom:16px">
+            <div style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--coffee)">All Results</div>
+            <button class="btn-primary" onclick="openUploadModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New Result
+            </button>
+        </div>
+        <div class="exam-grid" id="examGrid"></div>
+    </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+    <div class="bni">
+        <a href="teacher-dashboard.html" class="bna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+        <a href="teacher-batches.html" class="bna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Batches</a>
+        <a href="teacher-notices.html" class="bna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notices</a>
+        <a href="teacher-results.html" class="bna active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Results</a>
+        <a href="teacher-profile.html" class="bna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</a>
+    </div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     UPLOAD RESULT MODAL
+     POST /api/new_result
+     ══════════════════════════════════════════ -->
+<div class="modal-overlay" id="uploadModal">
+    <div class="modal-box">
+        <div class="mh">
+            <h2 id="modalTitle">Upload New Result</h2>
+            <button class="mcl" onclick="closeUploadModal()">✕</button>
+        </div>
+        <div class="mbody">
+
+            <!-- Batch select — value = batch.code (FK) -->
+            <div class="fg">
+                <label>Select Batch *</label>
+                <select id="uBatch" onchange="onBatchChange(this.value)">
+                    <option value="">Choose a batch...</option>
+                </select>
+            </div>
+
+            <!-- Result.title -->
+            <div class="fg">
+                <label>Exam Title *</label>
+                <input type="text" id="uTitle" placeholder="e.g. Chapter 4 Weekly Test — Week 5">
+            </div>
+
+            <!-- Exam type (front-end label only; appended to title if chosen) -->
+            <div class="fg">
+                <label>Exam Type <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.7rem">(optional)</span></label>
+                <div class="type-row">
+                    <select id="uTypePreset" onchange="onTypePresetChange(this.value)">
+                        <option value="">Select a type...</option>
+                        <option value="Weekly Test">Weekly Test</option>
+                        <option value="Monthly Exam">Monthly Exam</option>
+                        <option value="Chapter Test">Chapter Test</option>
+                        <option value="Mid-Term">Mid-Term</option>
+                        <option value="Final Exam">Final Exam</option>
+                        <option value="Quiz">Quiz</option>
+                        <option value="custom">✏️ Custom...</option>
+                    </select>
+                    <div class="type-custom" id="typeCustomWrap" style="display:none">
+                        <input type="text" id="uTypeCustom" placeholder="Type your exam type...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result.total_marks + pass marks + date -->
+            <div class="fg-3">
+                <div class="fg" style="margin-bottom:0">
+                    <label>Total Marks *</label>
+                    <input type="number" id="uTotal" placeholder="e.g. 100" min="1" oninput="autoCalcPass()">
+                    <div class="fg-info">Pass auto-calculates at 40%.</div>
+                </div>
+                <div class="fg" style="margin-bottom:0">
+                    <label>Pass Marks <span style="font-size:.65rem;font-weight:400;text-transform:none;letter-spacing:0">(auto / editable)</span></label>
+                    <input type="number" id="uPass" placeholder="—" min="0">
+                    <div class="pass-preview" id="passPreview" style="display:none">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span id="passPreviewText"></span>
+                    </div>
+                </div>
+                <div class="fg" style="margin-bottom:0">
+                    <label>Exam Date</label>
+                    <input type="date" id="uDate">
+                </div>
+            </div>
+
+            <!-- Result.description -->
+            <div class="fg">
+                <label>Description <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.7rem">(optional)</span></label>
+                <textarea id="uDesc" placeholder="Syllabus covered, special instructions, topics..."></textarea>
+            </div>
+
+            <!-- Student Scores -->
+            <div class="score-section-label">
+                Student Scores
+                <span></span>
+                <small id="scoreCount" style="text-transform:none;letter-spacing:0;font-size:.7rem;color:var(--muted);font-weight:400"></small>
+            </div>
+            <div id="scoreCards">
+                <div class="empty" style="padding:28px 0">
+                    <div class="empty-icon" style="font-size:2rem">👥</div>
+                    <p style="font-size:.82rem">Select a batch to load students.</p>
+                </div>
+            </div>
+
+            <div class="pub-row">
+                <button class="btn-pub-base btn-publish" id="publishBtn" onclick="saveResult()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    <span id="publishBtnLabel">Publish Result</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ── VIEW RESULT MODAL ── -->
+<div class="modal-overlay" id="viewModal">
+    <div class="modal-box" style="max-width:680px">
+        <div class="mh">
+            <h2 id="vmTitle">Result Details</h2>
+            <button class="mcl" onclick="closeViewModal()">✕</button>
+        </div>
+        <div class="mbody" id="vmBody"></div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="api.js"></script>
+<script>
+/* ─────────────────────────────────────────
+   STATE
+───────────────────────────────────────── */
+let batches          = [];   // Batch[] from API
+let results          = {};   // { [batch_code]: Result[] }
+let currentStudents  = [];   // User[] for the currently selected batch in modal
+let currentBatchCode = null; // batch currently open in batch-view
+let currentTeacherId = null;
+let studentMap       = {};   // { [student_id]: User } — for name lookups in view modal
+let loadingStudents  = false;
+
+/* ─────────────────────────────────────────
+   INIT
+───────────────────────────────────────── */
+(async function init() {
+    const raw = localStorage.getItem('current_userid');
+    if (!raw) { window.location.href = 'index.html'; return; }
+
+    let user;
+    user = await GetUserByID(raw)
+    if (!user.id || user.role !== 'teacher') { window.location.href = 'index.html'; return; }
+
+    currentTeacherId = user.id;
+    const name = user.name || 'Teacher';
+    const initials = name.trim().split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'T';
+    document.getElementById('sidebarAvatar').textContent = initials;
+    document.getElementById('sidebarName').textContent   = name;
+
+    // Set today's date
+    document.getElementById('uDate').value = new Date().toISOString().split('T')[0];
+    // Track manual pass-marks edits
+    document.getElementById('uPass').addEventListener('input', function () { this.dataset.manual = '1'; });
+
+    await loadAll();
+})();
+
+/* ─────────────────────────────────────────
+   LOAD BATCHES + RESULTS FOR ALL BATCHES
+───────────────────────────────────────── */
+async function loadAll() {
+    hideBanner();
+    showFolderSkeletons(true);
+
+    try {
+        batches = await GetBatchesByTID(currentTeacherId);
+        if (!Array.isArray(batches)) batches = [];
+
+        // Populate batch <select> in upload modal
+        populateBatchSelect();
+
+        // Load results for every batch in parallel
+        results = {};
+        await Promise.all(batches.map(async b => {
+            try {
+                const bRes = await GetResultsByBatch(b.code);
+                results[b.code] = Array.isArray(bRes) ? bRes : [];
+            } catch {
+                results[b.code] = [];
+            }
+        }));
+
+        // Build student map for name lookups
+        studentMap = {};
+        await Promise.all(batches.map(async b => {
+            try {
+                const students = await GetStudentsByBC(b.code);
+                if (Array.isArray(students)) {
+                    students.forEach(s => { studentMap[s.id] = s; });
+                }
+            } catch { /* silent */ }
+        }));
+
+        renderFolders();
+    } catch (err) {
+        showBanner('Could not load data: ' + (err.message || 'Server error.'));
+        renderFolders(); // render whatever we have
+    } finally {
+        showFolderSkeletons(false);
+    }
+}
+
+function showFolderSkeletons(show) {
+    // The initial skeleton nodes are inside folderGrid; once rendered they're replaced
+    // Only acts on the first load (skeletons are static HTML)
+    const grid = document.getElementById('folderGrid');
+    if (!show) return; // renderFolders() replaces content; skeletons shown by default HTML
+}
+
+function populateBatchSelect() {
+    const sel = document.getElementById('uBatch');
+    // Keep the placeholder option, replace the rest
+    sel.innerHTML = '<option value="">Choose a batch...</option>' +
+        batches.map(b => `<option value="${escAttr(b.code)}">${escHtml(b.name)}</option>`).join('');
+}
+
+/* ─────────────────────────────────────────
+   AUTO PASS MARKS CALCULATION (40%)
+───────────────────────────────────────── */
+function autoCalcPass() {
+    const total = parseInt(document.getElementById('uTotal').value);
+    if (!total || total <= 0) { document.getElementById('passPreview').style.display = 'none'; return; }
+
+    const calc     = Math.round(total * 0.4);
+    const passInput = document.getElementById('uPass');
+    if (!passInput.dataset.manual) passInput.value = calc;
+
+    document.getElementById('passPreviewText').textContent =
+        'Pass marks set to ' + (passInput.value || calc) + ' / ' + total + ' (40%)';
+    document.getElementById('passPreview').style.display = 'inline-flex';
+
+    currentStudents.forEach(s => updateStudentPct(s.id));
+}
+
+/* ─────────────────────────────────────────
+   EXAM TYPE CUSTOM TOGGLE
+───────────────────────────────────────── */
+function onTypePresetChange(val) {
+    document.getElementById('typeCustomWrap').style.display = val === 'custom' ? 'block' : 'none';
+    if (val !== 'custom') document.getElementById('uTypeCustom').value = '';
+}
+
+/* ─────────────────────────────────────────
+   BATCH CHANGE → LOAD STUDENTS via API
+───────────────────────────────────────── */
+async function onBatchChange(batchCode) {
+    currentStudents = [];
+    document.getElementById('scoreCount').textContent = '';
+    if (!batchCode) {
+        document.getElementById('scoreCards').innerHTML =
+            '<div class="empty" style="padding:28px 0"><div class="empty-icon" style="font-size:2rem">👥</div><p style="font-size:.82rem">Select a batch to load students.</p></div>';
+        return;
+    }
+
+    document.getElementById('scoreCards').innerHTML =
+        '<div class="empty" style="padding:28px 0"><div class="empty-icon" style="font-size:2rem">⏳</div><p style="font-size:.82rem">Loading students…</p></div>';
+
+    try {
+        const students = await GetStudentsByBC(batchCode);
+        buildScoreCards(Array.isArray(students) ? students : []);
+        // Also update studentMap
+        (Array.isArray(students) ? students : []).forEach(s => { studentMap[s.id] = s; });
+    } catch (err) {
+        document.getElementById('scoreCards').innerHTML =
+            `<div class="empty" style="padding:20px 0"><p style="font-size:.82rem;color:var(--fail)">Could not load students: ${escHtml(err.message || 'Server error.')}</p></div>`;
+    }
+}
+
+/* ─────────────────────────────────────────
+   BUILD STUDENT SCORE CARDS
+───────────────────────────────────────── */
+function buildScoreCards(students) {
+    currentStudents = students;
+    const total = parseInt(document.getElementById('uTotal').value) || 0;
+    document.getElementById('scoreCount').textContent = students.length + ' student' + (students.length !== 1 ? 's' : '');
+
+    if (!students.length) {
+        document.getElementById('scoreCards').innerHTML =
+            '<div class="empty" style="padding:20px 0"><p style="font-size:.82rem">No students in this batch yet.</p></div>';
+        return;
+    }
+
+    document.getElementById('scoreCards').innerHTML = students.map(s => `
+        <div class="student-score-card" id="card-${s.id}">
+            <div class="ssc-top">
+                <div class="st-avatar">${escHtml(s.name[0].toUpperCase())}</div>
+                <div>
+                    <div class="st-name">${escHtml(s.name)}</div>
+                    <div class="st-id">${escHtml(s.email || s.id)}</div>
+                </div>
+                <label class="absent-toggle" id="abtLabel-${s.id}">
+                    <input type="checkbox" id="ab-${s.id}" onchange="toggleAbsent('${s.id}', this)">
+                    Absent
+                </label>
+            </div>
+            <div class="ssc-fields">
+                <div class="marks-wrap">
+                    <input type="number" class="marks-input" id="sc-${s.id}"
+                           placeholder="Marks" min="0" max="${total || ''}"
+                           oninput="updateStudentPct('${s.id}')">
+                    <div class="marks-pct" id="pct-${s.id}" style="color:var(--muted)">— %</div>
+                </div>
+                <textarea class="remarks-textarea" id="rm-${s.id}"
+                          placeholder="Remarks / Feedback for this student..."></textarea>
+            </div>
+        </div>`).join('');
+}
+
+/* ─────────────────────────────────────────
+   ABSENT TOGGLE
+───────────────────────────────────────── */
+function toggleAbsent(sid, cb) {
+    const sc  = document.getElementById('sc-'  + sid);
+    const rm  = document.getElementById('rm-'  + sid);
+    const pct = document.getElementById('pct-' + sid);
+    const lbl = document.getElementById('abtLabel-' + sid);
+    if (cb.checked) {
+        sc.disabled = true; sc.value = ''; sc.placeholder = 'Absent';
+        rm.disabled = true;
+        pct.textContent = 'Absent'; pct.style.color = 'var(--fail)';
+        lbl.classList.add('is-absent');
+    } else {
+        sc.disabled = false; sc.placeholder = 'Marks';
+        rm.disabled = false;
+        pct.textContent = '— %'; pct.style.color = 'var(--muted)';
+        lbl.classList.remove('is-absent');
+    }
+}
+
+/* ─────────────────────────────────────────
+   PER-STUDENT LIVE PERCENTAGE
+───────────────────────────────────────── */
+function updateStudentPct(sid) {
+    const total = parseInt(document.getElementById('uTotal').value);
+    const val   = parseFloat(document.getElementById('sc-' + sid)?.value);
+    const el    = document.getElementById('pct-' + sid);
+    if (!el) return;
+    if (!total || isNaN(val)) { el.textContent = '— %'; el.style.color = 'var(--muted)'; return; }
+    const pct  = Math.round((val / total) * 100);
+    const pass = parseInt(document.getElementById('uPass').value) || Math.round(total * 0.4);
+    el.textContent = pct + '%';
+    el.style.color = val >= pass ? 'var(--pass)' : 'var(--fail)';
+}
+
+/* ─────────────────────────────────────────
+   COLLECT SCORES from form
+───────────────────────────────────────── */
+function collectScores() {
+    return currentStudents.map(s => ({
+        student_id:       s.id,
+        marks:            document.getElementById('ab-' + s.id)?.checked
+                            ? null
+                            : (parseFloat(document.getElementById('sc-' + s.id)?.value) || null),
+        remarks:          document.getElementById('rm-' + s.id)?.value?.trim() || '',
+        absent:           document.getElementById('ab-' + s.id)?.checked || false,
+        seen_by_guardian: false
+    }));
+}
+
+/* ─────────────────────────────────────────
+   SAVE RESULT → POST /api/new_result
+───────────────────────────────────────── */
+async function saveResult() {
+    const batchCode   = document.getElementById('uBatch').value;
+    const title       = document.getElementById('uTitle').value.trim();
+    const total_marks = parseInt(document.getElementById('uTotal').value);
+
+    if (!batchCode)               { showToast('Please select a batch.', true);    return; }
+    if (!title)                   { showToast('Please enter an exam title.', true); return; }
+    if (!total_marks || total_marks <= 0) { showToast('Please enter total marks.', true); return; }
+
+    const btn = document.getElementById('publishBtn');
+    btn.disabled = true;
+    document.getElementById('publishBtnLabel').textContent = 'Publishing…';
+
+    const payload = {
+        title,
+        description:  document.getElementById('uDesc').value.trim(),
+        total_marks,
+        batch_code:   batchCode,
+        scores:       collectScores()
+    };
+
+    try {
+        const created = await CreateResult(payload);
+
+        // Attach pass threshold for local use in view modal
+        const passThreshold = parseInt(document.getElementById('uPass').value) || Math.round(total_marks * 0.4);
+        const newResult = { ...(created || {}), ...payload, _pass: passThreshold };
+        if (created?.id) newResult.id = created.id;
+
+        if (!results[batchCode]) results[batchCode] = [];
+        results[batchCode].unshift(newResult);
+
+        closeUploadModal();
+        if (currentBatchCode === batchCode) renderExams(batchCode);
+        renderFolders();
+        showToast('Result published ✓');
+    } catch (err) {
+        showToast(err.message || 'Could not publish result.', true);
+    } finally {
+        btn.disabled = false;
+        document.getElementById('publishBtnLabel').textContent = 'Publish Result';
+    }
+}
+
+/* ─────────────────────────────────────────
+   DELETE RESULT → DELETE /api/result/{id}
+───────────────────────────────────────── */
+async function deleteResult(rid, batchCode) {
+    if (!confirm('Delete this result? This cannot be undone.')) return;
+
+    const card = document.getElementById('ec-' + rid);
+    if (card) card.querySelectorAll('button').forEach(b => b.disabled = true);
+
+    try {
+        await DeleteResult(rid);
+        results[batchCode] = (results[batchCode] || []).filter(r => r.id !== rid);
+        renderExams(batchCode);
+        renderFolders();
+        showToast('Result deleted.');
+    } catch (err) {
+        showToast(err.message || 'Could not delete result.', true);
+        if (card) card.querySelectorAll('button').forEach(b => b.disabled = false);
+    }
+}
+
+/* ─────────────────────────────────────────
+   RENDER FOLDERS
+───────────────────────────────────────── */
+function renderFolders() {
+    const g = document.getElementById('folderGrid');
+    if (!batches.length) {
+        g.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📁</div><p>No batches yet.<br>Create a batch first to upload results.</p></div>';
+        return;
+    }
+    g.innerHTML = batches.map(b => {
+        const count = (results[b.code] || []).length;
+        return `
+        <div class="folder-card" onclick="openBatchView('${escAttr(b.code)}')">
+            <span class="folder-icon">📁</span>
+            <div class="folder-name">${escHtml(b.name)}</div>
+            <div class="folder-meta">${escHtml(b.schedule || '—')} · ${escHtml(b.year || '—')}</div>
+            <div class="folder-count">${count} result${count !== 1 ? 's' : ''}</div>
+        </div>`;
+    }).join('') + `
+        <div class="folder-add" onclick="openUploadModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Upload Result</span>
+        </div>`;
+}
+
+/* ─────────────────────────────────────────
+   OPEN / SHOW BATCH VIEW
+───────────────────────────────────────── */
+function openBatchView(batchCode) {
+    const b = batches.find(b => b.code === batchCode);
+    if (!b) return;
+    currentBatchCode = batchCode;
+
+    document.getElementById('bcBatchName').textContent = b.name;
+    const bRes = results[batchCode] || [];
+    document.getElementById('batchHeader').innerHTML = `
+        <div class="bh-icon">📁</div>
+        <div class="bh-info">
+            <div class="bh-name">${escHtml(b.name)}</div>
+            <div class="bh-meta">Code: ${escHtml(b.code)} · ${escHtml(b.schedule || '—')}</div>
+        </div>
+        <div class="bh-stats">
+            <div class="bh-stat">
+                <div class="bh-snum">${bRes.length}</div>
+                <div class="bh-slbl">Results</div>
+            </div>
+        </div>`;
+    renderExams(batchCode);
+    document.getElementById('folderView').style.display = 'none';
+    document.getElementById('batchView').classList.add('active');
+}
+
+function showFolderView() {
+    currentBatchCode = null;
+    document.getElementById('folderView').style.display = '';
+    document.getElementById('batchView').classList.remove('active');
+}
+
+/* ─────────────────────────────────────────
+   RENDER EXAM CARDS
+───────────────────────────────────────── */
+function renderExams(batchCode) {
+    const bRes = results[batchCode] || [];
+    const g    = document.getElementById('examGrid');
+    if (!bRes.length) {
+        g.innerHTML = `<div class="empty" style="grid-column:1/-1">
+            <div class="empty-icon" style="font-size:2rem">📊</div>
+            <p>No results yet for this batch.</p>
+        </div>`;
+        return;
+    }
+    g.innerHTML = bRes.map(r => {
+        const passThreshold = r._pass || Math.round(r.total_marks * 0.4);
+        const scored   = (r.scores || []).filter(s => !s.absent && s.marks !== null);
+        const passed   = scored.filter(s => s.marks >= passThreshold).length;
+        const totalSt  = (r.scores || []).length;
+        return `
+        <div class="exam-card" id="ec-${r.id}">
+            <div class="ec-badge eb-pub">✓ Published</div>
+            <div class="ec-title">${escHtml(r.title)}</div>
+            <div class="ec-meta">
+                <span>📊 ${r.total_marks} marks</span>
+                <span>👥 ${totalSt} students</span>
+                <span>✓ ${passed} passed</span>
+                ${r.description ? `<span title="${escAttr(r.description)}">📝 Has notes</span>` : ''}
+            </div>
+            <div class="ec-actions">
+                <button class="ec-btn ec-btn-view" onclick="viewResult('${escAttr(r.id)}','${escAttr(batchCode)}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View
+                </button>
+                <button class="ec-btn ec-btn-del" onclick="deleteResult('${escAttr(r.id)}','${escAttr(batchCode)}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>Delete
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+/* ─────────────────────────────────────────
+   VIEW RESULT MODAL
+   Uses studentMap to resolve student_id → name
+───────────────────────────────────────── */
+function viewResult(rid, batchCode) {
+    const r = (results[batchCode] || []).find(r => String(r.id) === String(rid));
+    if (!r) return;
+
+    document.getElementById('vmTitle').textContent = r.title;
+
+    const passThreshold  = r._pass || Math.round(r.total_marks * 0.4);
+    const scoredStudents = (r.scores || []).filter(s => !s.absent && s.marks !== null);
+    const passCount      = scoredStudents.filter(s => s.marks >= passThreshold).length;
+    const avg            = scoredStudents.length
+        ? Math.round(scoredStudents.reduce((a, s) => a + (s.marks / r.total_marks) * 100, 0) / scoredStudents.length)
+        : 0;
+    const highest        = scoredStudents.length ? Math.max(...scoredStudents.map(s => s.marks)) : 0;
+
+    document.getElementById('vmBody').innerHTML = `
+        ${r.description ? `<p style="font-size:.85rem;color:var(--muted);margin-bottom:16px;line-height:1.6">${escHtml(r.description)}</p>` : ''}
+        <div class="summary-strip">
+            <div class="ss-card" style="background:var(--cl)">
+                <div class="ss-num" style="color:var(--coffee)">${avg}%</div>
+                <div class="ss-lbl">Class Average</div>
+            </div>
+            <div class="ss-card" style="background:rgba(46,125,50,.1)">
+                <div class="ss-num" style="color:var(--pass)">${passCount}</div>
+                <div class="ss-lbl">Passed</div>
+            </div>
+            <div class="ss-card" style="background:rgba(62,39,35,.07)">
+                <div class="ss-num" style="color:var(--coffee)">${highest}</div>
+                <div class="ss-lbl">Highest</div>
+            </div>
+        </div>
+        <div style="overflow-x:auto">
+        <table class="vtable">
+            <thead><tr>
+                <th>#</th><th>Student</th><th>Marks / ${r.total_marks}</th><th>%</th><th>Remarks</th>
+            </tr></thead>
+            <tbody>
+            ${(r.scores || []).map((s, i) => {
+                // Resolve name from studentMap; fall back to student_id
+                const student    = studentMap[s.student_id];
+                const displayName = student ? student.name : (s.student_id || '—');
+                const pct        = s.absent ? null : s.marks !== null ? Math.round((s.marks / r.total_marks) * 100) : null;
+                const pillCls    = s.absent ? 'sp-absent' : s.marks === null ? 'sp-none' : s.marks >= passThreshold ? 'sp-pass' : 'sp-fail';
+                const scoreLabel = s.absent ? 'Absent' : s.marks !== null ? s.marks : '—';
+                const pctColor   = pct === null ? 'var(--muted)' : pct >= 80 ? 'var(--pass)' : pct >= 50 ? 'var(--caramel)' : 'var(--fail)';
+                return `<tr>
+                    <td style="color:var(--muted);font-size:.8rem">${i + 1}</td>
+                    <td style="font-weight:600">${escHtml(displayName)}</td>
+                    <td><span class="score-pill ${pillCls}">${scoreLabel}${(!s.absent && s.marks !== null) ? ' / ' + r.total_marks : ''}</span></td>
+                    <td style="font-size:.85rem;font-weight:600;color:${pctColor}">${pct !== null ? pct + '%' : '—'}</td>
+                    <td style="font-size:.82rem;color:var(--muted);line-height:1.5;max-width:220px">${escHtml(s.remarks || '—')}</td>
+                </tr>`;
+            }).join('')}
+            </tbody>
+        </table>
+        </div>`;
+    document.getElementById('viewModal').classList.add('open');
+}
+
+/* ─────────────────────────────────────────
+   MODAL OPEN / CLOSE
+───────────────────────────────────────── */
+function openUploadModal() {
+    document.getElementById('modalTitle').textContent = 'Upload New Result';
+    document.getElementById('uBatch').value           = currentBatchCode || '';
+    document.getElementById('uTitle').value           = '';
+    document.getElementById('uDesc').value            = '';
+    document.getElementById('uTotal').value           = '';
+    document.getElementById('uPass').value            = '';
+    delete document.getElementById('uPass').dataset.manual;
+    document.getElementById('uTypePreset').value      = '';
+    document.getElementById('uTypeCustom').value      = '';
+    document.getElementById('typeCustomWrap').style.display = 'none';
+    document.getElementById('passPreview').style.display   = 'none';
+    document.getElementById('uDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('scoreCards').innerHTML =
+        '<div class="empty" style="padding:28px 0"><div class="empty-icon" style="font-size:2rem">👥</div><p style="font-size:.82rem">Select a batch to load students.</p></div>';
+    document.getElementById('scoreCount').textContent = '';
+    document.getElementById('publishBtn').disabled = false;
+    document.getElementById('publishBtnLabel').textContent = 'Publish Result';
+    currentStudents = [];
+
+    // If already in a batch view, pre-select that batch and load its students
+    if (currentBatchCode) {
+        document.getElementById('uBatch').value = currentBatchCode;
+        onBatchChange(currentBatchCode);
+    }
+    document.getElementById('uploadModal').classList.add('open');
+}
+
+function closeUploadModal() { document.getElementById('uploadModal').classList.remove('open'); }
+function closeViewModal()   { document.getElementById('viewModal').classList.remove('open'); }
+
+/* ─────────────────────────────────────────
+   UTILITIES
+───────────────────────────────────────── */
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escAttr(s) {
+    return String(s).replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+}
+function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.toggle('error', isError);
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; t.classList.remove('error'); }, 2800);
+}
+function showBanner(msg) {
+    document.getElementById('errMsg').textContent = msg;
+    document.getElementById('errBanner').classList.add('show');
+}
+function hideBanner() {
+    document.getElementById('errBanner').classList.remove('show');
+}
+function toggleSB() {
+    document.getElementById('sidebar').classList.toggle('mopen');
+    document.getElementById('mov').classList.toggle('open');
+}
+function closeSB() {
+    document.getElementById('sidebar').classList.remove('mopen');
+    document.getElementById('mov').classList.remove('open');
+}
+function doLogout() {
+    if (!confirm('Log out?')) return;
+    localStorage.removeItem('user');
+    localStorage.removeItem('isLoggedIn');
+    window.location.href = 'index.html';
+}
+
+/* Close modals on backdrop click */
+document.getElementById('uploadModal').addEventListener('click', e => { if (e.target === document.getElementById('uploadModal')) closeUploadModal(); });
+document.getElementById('viewModal').addEventListener('click',   e => { if (e.target === document.getElementById('viewModal'))   closeViewModal(); });
+</script>
+</body>
+</html>

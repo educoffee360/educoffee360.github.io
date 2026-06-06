@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduCoffee — Seamless Connectivity, Centralized Learning</title>
+    <meta name="description" content="EduCoffee is the premium digital hub connecting teachers and students across Bangladesh. Manage batches, publish results, and broadcast notices — all in one place.">
+    <meta name="keywords" content="EduCoffee, teacher portal, student portal, Bangladesh education, online coaching, batch management, result tracking">
+    <meta property="og:title" content="EduCoffee — Seamless Connectivity, Centralized Learning">
+    <meta property="og:description" content="The premium digital hub for private educators and students in Bangladesh.">
+    <meta property="og:type" content="website">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://educoffee.app/">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "EduCoffee",
+      "description": "Digital hub connecting teachers and students for batch management, results, and notices",
+      "url": "https://educoffee.app",
+      "applicationCategory": "EducationalApplication",
+      "inLanguage": ["bn", "en"],
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "BDT"}
+    }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+    :root {
+        --cream:   #FDFBF7;
+        --coffee:  #3E2723;
+        --coffee2: #5D4037;
+        --caramel: #C68642;
+        --caramel2:#E8A255;
+        --text:    #2D241E;
+        --muted:   #7D6E64;
+        --card:    #FFFFFF;
+        --border:  rgba(62,39,35,.08);
+        --sh:      0 4px 30px rgba(62,39,35,.07);
+        --sh-lg:   0 20px 60px rgba(62,39,35,.14);
+        --ease:    cubic-bezier(.16,1,.3,1);
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+        font-family: 'Sora', sans-serif;
+        background: var(--cream);
+        color: var(--text);
+        line-height: 1.6;
+        overflow-x: hidden;
+    }
+    img { display:block; max-width:100%; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: inherit; }
+    .serif { font-family: 'DM Serif Display', serif; }
+
+    /* Grain */
+    body::before {
+        content: '';
+        position: fixed; inset: 0;
+        pointer-events: none; z-index: 9999; opacity: 0.025;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 200px 200px;
+    }
+
+    /* NAV */
+    .nav {
+        position: sticky; top: 0; z-index: 500;
+        background: rgba(253,251,247,.92);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border-bottom: 1px solid var(--border);
+        padding: 0 6vw; height: 70px;
+        display: flex; align-items: center; justify-content: space-between;
+        transition: box-shadow .3s;
+    }
+    .nav.scrolled { box-shadow: var(--sh); }
+    .nav-logo { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--coffee); letter-spacing: -.3px; }
+    .nav-logo span { color: var(--caramel); font-style: italic; }
+    .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+    .nav-links a { font-size: .875rem; font-weight: 500; color: var(--muted); transition: color .2s; position: relative; }
+    .nav-links a::after { content: ''; position: absolute; bottom: -3px; left: 0; right: 0; height: 1.5px; background: var(--caramel); transform: scaleX(0); transform-origin: left; transition: transform .3s var(--ease); }
+    .nav-links a:hover { color: var(--coffee); }
+    .nav-links a:hover::after { transform: scaleX(1); }
+    .nav-cta { padding: 10px 22px; background: var(--coffee); color: #fff; border-radius: 50px; font-size: .85rem; font-weight: 600; border: none; transition: all .3s var(--ease); letter-spacing: .2px; }
+    .nav-cta:hover { background: var(--caramel); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(198,134,66,.3); }
+
+    /* Hamburger */
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 4px; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--coffee); border-radius: 2px; transition: all .3s; }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    .mobile-nav { display: none; position: fixed; inset: 70px 0 0; background: var(--cream); padding: 32px 6vw; flex-direction: column; gap: 24px; z-index: 499; border-top: 1px solid var(--border); animation: slideDown .3s var(--ease); }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a { font-size: 1.1rem; font-weight: 600; color: var(--text); }
+    @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+
+    /* HERO */
+    .hero { position: relative; min-height: calc(100vh - 70px); display: flex; align-items: center; justify-content: center; text-align: center; padding: 80px 6vw 100px; overflow: hidden; }
+    .hero-blob { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; animation: drift 10s ease-in-out infinite alternate; }
+    .hero-blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(198,134,66,.18), rgba(198,134,66,0)); top: -100px; right: -100px; animation-delay: 0s; }
+    .hero-blob-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(62,39,35,.12), rgba(62,39,35,0)); bottom: -80px; left: -80px; animation-delay: -4s; }
+    .hero-blob-3 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(232,162,85,.15), rgba(232,162,85,0)); top: 40%; left: 50%; transform: translate(-50%,-50%); animation-delay: -7s; }
+    @keyframes drift { from{transform:translate(0,0) scale(1)} to{transform:translate(30px,-20px) scale(1.05)} }
+    .hero-inner { position: relative; z-index: 1; max-width: 780px; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 7px 18px; background: rgba(198,134,66,.1); border: 1px solid rgba(198,134,66,.3); border-radius: 50px; font-size: .75rem; font-weight: 600; color: var(--caramel); letter-spacing: .8px; text-transform: uppercase; margin-bottom: 32px; animation: fadeUp .7s var(--ease) both; }
+    .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--caramel); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+    .hero h1 { font-family: 'DM Serif Display', serif; font-size: clamp(2.4rem, 6vw, 4.2rem); line-height: 1.1; color: var(--coffee); margin-bottom: 24px; letter-spacing: -.5px; animation: fadeUp .7s .1s var(--ease) both; }
+    .hero h1 em { font-style: italic; color: var(--caramel); }
+    .hero p { font-size: 1.05rem; color: var(--muted); max-width: 560px; margin: 0 auto 44px; font-weight: 300; line-height: 1.7; animation: fadeUp .7s .2s var(--ease) both; }
+    .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; animation: fadeUp .7s .3s var(--ease) both; }
+    .btn-hero-primary { padding: 15px 34px; background: var(--coffee); color: #fff; border-radius: 50px; font-weight: 700; font-size: .95rem; border: none; transition: all .35s var(--ease); letter-spacing: .2px; display: flex; align-items: center; gap: 8px; }
+    .btn-hero-primary:hover { background: var(--caramel); transform: translateY(-3px); box-shadow: 0 12px 35px rgba(198,134,66,.35); }
+    .btn-hero-secondary { padding: 15px 34px; background: transparent; color: var(--coffee); border: 1.5px solid rgba(62,39,35,.2); border-radius: 50px; font-weight: 600; font-size: .95rem; transition: all .3s; display: inline-block; }
+    .btn-hero-secondary:hover { border-color: var(--caramel); color: var(--caramel); transform: translateY(-2px); }
+    .hero-stats { display: flex; gap: 40px; justify-content: center; margin-top: 70px; flex-wrap: wrap; animation: fadeUp .8s .5s var(--ease) both; }
+    .stat-item { text-align: center; }
+    .stat-num { font-family: 'DM Serif Display', serif; font-size: 2.2rem; color: var(--coffee); line-height: 1; margin-bottom: 4px; }
+    .stat-lbl { font-size: .75rem; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+    .stat-divider { width: 1px; background: var(--border); align-self: stretch; }
+
+    /* PORTAL SECTION */
+    .portal-section { padding: 100px 6vw; background: var(--cream); }
+    .portal-section-header { text-align: center; margin-bottom: 60px; }
+    .section-tag { display: inline-block; padding: 5px 14px; background: rgba(198,134,66,.08); border: 1px solid rgba(198,134,66,.2); border-radius: 50px; font-size: .72rem; font-weight: 700; color: var(--caramel); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+    .section-title { font-family: 'DM Serif Display', serif; font-size: clamp(1.8rem, 4vw, 2.8rem); color: var(--coffee); margin-bottom: 16px; line-height: 1.15; }
+    .section-sub { font-size: .97rem; color: var(--muted); max-width: 520px; margin: 0 auto; line-height: 1.7; font-weight: 300; }
+    .portals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; max-width: 780px; margin: 0 auto; }
+    .portal-card { background: var(--card); padding: 48px 36px 40px; border-radius: 28px; box-shadow: var(--sh); border: 1.5px solid var(--border); transition: all .4s var(--ease); display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; position: relative; overflow: hidden; }
+    .portal-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--caramel), var(--coffee)); transform: scaleX(0); transform-origin: left; transition: transform .4s var(--ease); }
+    .portal-card:hover::before { transform: scaleX(1); }
+    .portal-card:hover { transform: translateY(-10px); box-shadow: var(--sh-lg); border-color: rgba(198,134,66,.3); }
+    .portal-role-badge { position: absolute; top: 18px; right: 18px; padding: 4px 12px; border-radius: 20px; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; }
+    .badge-teacher { background: rgba(62,39,35,.07); color: var(--coffee); }
+    .badge-student { background: rgba(198,134,66,.1); color: var(--caramel); }
+    .portal-icon { width: 80px; height: 80px; background: var(--cream); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 28px; transition: all .4s var(--ease); font-size: 2.2rem; }
+    .portal-card:hover .portal-icon { background: var(--coffee); }
+    .portal-card h2 { font-family: 'DM Serif Display', serif; font-size: 1.75rem; color: var(--coffee); margin-bottom: 14px; }
+    .portal-card > p { font-size: .93rem; color: var(--muted); margin-bottom: 32px; line-height: 1.65; }
+    .btn-portal { width: 100%; padding: 14px; border-radius: 14px; text-align: center; font-weight: 700; font-size: .85rem; text-transform: uppercase; letter-spacing: 1px; background: transparent; color: var(--coffee); border: 1.5px solid rgba(62,39,35,.2); transition: all .3s var(--ease); }
+    .portal-card:hover .btn-portal { background: var(--coffee); color: #fff; border-color: var(--coffee); }
+    .features-bar { display: flex; justify-content: center; gap: 36px; margin-top: 70px; flex-wrap: wrap; padding-bottom: 20px; }
+    .feature { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .83rem; font-weight: 500; }
+    .feature svg { width: 17px; height: 17px; stroke: var(--caramel); flex-shrink: 0; }
+
+    /* FEATURES SECTION */
+    .section { padding: 100px 6vw; }
+    #features { background: var(--coffee); }
+    #features .section-tag { background: rgba(198,134,66,.15); color: var(--caramel2); }
+    #features .section-title { color: #fff; }
+    #features .section-sub { color: rgba(255,255,255,.6); }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .feat-card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 20px; padding: 28px 26px; transition: all .35s var(--ease); position: relative; overflow: hidden; }
+    .feat-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(198,134,66,.08), transparent); opacity: 0; transition: opacity .3s; }
+    .feat-card:hover { transform: translateY(-5px); border-color: rgba(198,134,66,.3); }
+    .feat-card:hover::before { opacity: 1; }
+    .feat-icon { width: 50px; height: 50px; background: rgba(198,134,66,.15); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 1.3rem; position: relative; z-index: 1; }
+    .feat-title { font-family: 'DM Serif Display',serif; font-size: 1.15rem; color: #fff; margin-bottom: 10px; position:relative;z-index:1; }
+    .feat-desc { font-size: .85rem; color: rgba(255,255,255,.55); line-height: 1.6; position:relative;z-index:1; }
+
+    /* HOW IT WORKS */
+    #how { background: var(--cream); }
+    .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; }
+    .step { text-align: center; padding: 32px 24px; background: var(--card); border-radius: 22px; border: 1px solid var(--border); box-shadow: var(--sh); transition: all .35s var(--ease); }
+    .step:hover { transform: translateY(-6px); box-shadow: var(--sh-lg); border-color: rgba(198,134,66,.3); }
+    .step-num { font-family: 'DM Serif Display', serif; font-size: 3rem; color: rgba(198,134,66,.15); line-height: 1; margin-bottom: 16px; }
+    .step-icon { font-size: 2.2rem; margin-bottom: 14px; }
+    .step-title { font-family: 'DM Serif Display',serif; font-size: 1.1rem; color: var(--coffee); margin-bottom: 10px; }
+    .step-desc { font-size: .83rem; color: var(--muted); line-height: 1.6; }
+
+    /* PRICING */
+    #pricing { background: var(--cream); }
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 22px; align-items: start; }
+    .plan-card { background: var(--card); border-radius: 24px; border: 1.5px solid var(--border); box-shadow: var(--sh); overflow: hidden; transition: all .4s var(--ease); }
+    .plan-card:hover { transform: translateY(-8px); box-shadow: var(--sh-lg); }
+    .plan-card.featured { border-color: var(--caramel); transform: scale(1.03); box-shadow: 0 24px 60px rgba(198,134,66,.2); z-index: 2; }
+    .plan-card.featured:hover { transform: scale(1.03) translateY(-8px); }
+    .plan-badge { background: linear-gradient(90deg, var(--coffee), var(--coffee2)); color: #fff; text-align: center; padding: 8px; font-size: .72rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+    .plan-badge.elite { background: linear-gradient(90deg, var(--caramel), var(--caramel2)); }
+    .plan-body { padding: 30px 28px; }
+    .plan-icon { font-size: 2rem; margin-bottom: 16px; }
+    .plan-name { font-family: 'DM Serif Display', serif; font-size: 1.35rem; color: var(--coffee); margin-bottom: 6px; }
+    .plan-tagline { font-size: .8rem; color: var(--muted); margin-bottom: 24px; }
+    .plan-price { display: flex; align-items: flex-end; gap: 4px; margin-bottom: 8px; }
+    .plan-currency { font-size: 1.1rem; font-weight: 700; color: var(--caramel); margin-bottom: 8px; }
+    .plan-amount { font-family: 'DM Serif Display', serif; font-size: 3rem; color: var(--coffee); line-height: 1; }
+    .plan-period { font-size: .82rem; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+    .plan-original { font-size: .8rem; color: var(--muted); text-decoration: line-through; margin-bottom: 20px; }
+    .plan-divider { height: 1px; background: var(--border); margin: 22px 0; }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+    .plan-features li { display: flex; align-items: flex-start; gap: 10px; font-size: .85rem; color: var(--text); }
+    .pf-check { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .7rem; flex-shrink: 0; margin-top: 1px; }
+    .pf-yes { background: rgba(46,125,50,.12); color: #2E7D32; }
+    .pf-no  { background: rgba(62,39,35,.07); color: var(--muted); }
+    .plan-cta { width: 100%; padding: 14px; border-radius: 14px; font-family: 'Sora', sans-serif; font-size: .9rem; font-weight: 700; border: none; transition: all .3s var(--ease); letter-spacing: .2px; }
+    .cta-outline { background: transparent; color: var(--coffee); border: 1.5px solid rgba(62,39,35,.2); }
+    .cta-outline:hover { border-color: var(--caramel); color: var(--caramel); transform: translateY(-2px); }
+    .cta-filled { background: var(--coffee); color: #fff; }
+    .cta-filled:hover { background: var(--caramel); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(198,134,66,.3); }
+    .cta-gold { background: linear-gradient(135deg, var(--caramel), var(--caramel2)); color: #fff; box-shadow: 0 6px 20px rgba(198,134,66,.3); }
+    .cta-gold:hover { transform: translateY(-2px); box-shadow: 0 12px 35px rgba(198,134,66,.45); }
+
+    /* PAYMENT SECTION */
+    #payment-section { display: none; padding: 80px 6vw 100px; background: var(--cream); animation: fadeIn .5s var(--ease); }
+    #payment-section.visible { display: block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .payment-wrapper { max-width: 680px; margin: 0 auto; }
+    .payment-card { background: var(--card); border-radius: 28px; box-shadow: var(--sh-lg); border: 1px solid var(--border); overflow: hidden; }
+    .payment-header { background: linear-gradient(135deg, var(--coffee), var(--coffee2)); padding: 32px 36px; color: #fff; position: relative; overflow: hidden; }
+    .payment-header::before { content: ''; position: absolute; right: -40px; top: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.04); }
+    .payment-header::after { content: ''; position: absolute; right: 60px; bottom: -60px; width: 120px; height: 120px; border-radius: 50%; background: rgba(198,134,66,.12); }
+    .ph-back { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); color: #fff; padding: 7px 14px; border-radius: 50px; font-size: .78rem; font-weight: 600; margin-bottom: 20px; cursor: pointer; transition: background .2s; position: relative; z-index: 1; }
+    .ph-back:hover { background: rgba(255,255,255,.2); }
+    .ph-selected-plan { display: inline-flex; align-items: center; gap: 8px; background: rgba(198,134,66,.2); border-radius: 10px; padding: 6px 14px; font-size: .78rem; font-weight: 600; color: var(--caramel2); margin-bottom: 12px; position: relative; z-index: 1; }
+    .payment-header h2 { font-family: 'DM Serif Display', serif; font-size: 1.75rem; margin-bottom: 6px; position: relative; z-index: 1; }
+    .payment-header p { font-size: .85rem; color: rgba(255,255,255,.65); position: relative; z-index: 1; }
+
+    /* Payment method tabs */
+    .pay-method-tabs { display: flex; gap: 0; margin: 28px 32px 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+    .pay-tab { flex: 1; padding: 12px; text-align: center; font-size: .82rem; font-weight: 700; cursor: pointer; background: var(--cream); color: var(--muted); border: none; font-family: 'Sora', sans-serif; transition: all .25s; }
+    .pay-tab.active { background: var(--coffee); color: #fff; }
+    .pay-tab:hover:not(.active) { background: rgba(62,39,35,.05); color: var(--coffee); }
+
+    /* Online payment */
+    .pay-panel { display: none; }
+    .pay-panel.active { display: block; }
+    .payment-instructions { margin: 20px 32px 0; background: rgba(198,134,66,.06); border: 1.5px solid rgba(198,134,66,.2); border-radius: 18px; padding: 22px 24px; }
+    .pi-title { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--caramel); margin-bottom: 14px; }
+    .pi-methods { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .pi-method { flex: 1; min-width: 160px; background: var(--card); border-radius: 12px; padding: 14px 16px; border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .pi-method-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+    .pm-bkash { background: rgba(220,0,90,.1); }
+    .pm-nagad { background: rgba(255,140,0,.1); }
+    .pi-method-info { min-width: 0; }
+    .pi-method-name { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; }
+    .pi-method-num { font-size: .92rem; font-weight: 700; color: var(--coffee); font-family: monospace; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .copy-icon { font-size: .7rem; opacity: .5; }
+    .pi-steps { list-style: none; counter-reset: steps; }
+    .pi-steps li { counter-increment: steps; display: flex; align-items: flex-start; gap: 10px; font-size: .8rem; color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
+    .pi-steps li::before { content: counter(steps); width: 20px; height: 20px; background: rgba(198,134,66,.15); color: var(--caramel); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+    /* Offline payment panel */
+    .offline-card { margin: 20px 32px 0; background: linear-gradient(135deg, rgba(62,39,35,.04), rgba(198,134,66,.06)); border: 1.5px solid rgba(198,134,66,.2); border-radius: 18px; padding: 28px 24px; }
+    .offline-icon { font-size: 3rem; margin-bottom: 16px; text-align: center; }
+    .offline-title { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--coffee); text-align: center; margin-bottom: 8px; }
+    .offline-sub { font-size: .85rem; color: var(--muted); text-align: center; margin-bottom: 24px; line-height: 1.6; }
+    .offline-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+    .offline-info-item { background: var(--card); border-radius: 12px; padding: 16px; border: 1px solid var(--border); }
+    .offline-info-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 5px; }
+    .offline-info-value { font-size: .9rem; font-weight: 600; color: var(--coffee); }
+    .offline-steps { list-style: none; counter-reset: offsteps; }
+    .offline-steps li { counter-increment: offsteps; display: flex; align-items: flex-start; gap: 10px; font-size: .82rem; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+    .offline-steps li::before { content: counter(offsteps); width: 22px; height: 22px; background: var(--coffee); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+    .offline-note { background: rgba(198,134,66,.1); border-radius: 10px; padding: 12px 16px; font-size: .78rem; color: var(--caramel); font-weight: 600; text-align: center; margin-top: 16px; }
+
+    /* Payment form */
+    .payment-form { padding: 28px 32px 32px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group.full { grid-column: 1/-1; }
+    .form-label { display: block; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 7px; }
+    .form-input, .form-select { width: 100%; padding: 13px 16px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--cream); font-family: 'Sora', sans-serif; font-size: .9rem; color: var(--text); outline: none; transition: all .25s; -webkit-appearance: none; appearance: none; }
+    .form-input:focus, .form-select:focus { border-color: var(--caramel); background: #fff; box-shadow: 0 0 0 4px rgba(198,134,66,.1); }
+    .form-input::placeholder { color: rgba(125,110,100,.5); }
+    .select-wrap { position: relative; }
+    .select-wrap::after { content: '▾'; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: .8rem; pointer-events: none; }
+    .trx-hint { font-size: .72rem; color: var(--muted); margin-top: 5px; }
+    .btn-verify { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--coffee), var(--coffee2)); color: #fff; border: none; border-radius: 16px; font-family: 'Sora', sans-serif; font-size: .95rem; font-weight: 700; transition: all .35s var(--ease); display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 8px; letter-spacing: .2px; }
+    .btn-verify:hover { background: linear-gradient(135deg, var(--caramel), var(--caramel2)); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(198,134,66,.4); }
+    .btn-verify svg { width: 18px; height: 18px; }
+
+    /* Success */
+    .payment-success { display: none; text-align: center; padding: 60px 32px; }
+    .payment-success.show { display: block; animation: fadeIn .5s var(--ease); }
+    .success-icon { width: 80px; height: 80px; background: rgba(46,125,50,.12); color: #2E7D32; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 24px; animation: pop .5s var(--ease); }
+    @keyframes pop { from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+    .success-h { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--coffee); margin-bottom: 10px; }
+    .success-p { font-size: .9rem; color: var(--muted); max-width: 320px; margin: 0 auto 28px; line-height: 1.6; }
+    .success-ref { display: inline-block; padding: 8px 20px; background: rgba(198,134,66,.1); border: 1px solid rgba(198,134,66,.25); border-radius: 10px; font-family: monospace; font-size: .9rem; font-weight: 700; color: var(--caramel); letter-spacing: 2px; margin-bottom: 28px; }
+
+    /* FOOTER */
+    footer { background: var(--coffee); color: rgba(255,255,255,.7); padding: 60px 6vw 32px; }
+    .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 50px; }
+    .footer-logo { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: #fff; margin-bottom: 14px; display: block; }
+    .footer-logo span { color: var(--caramel); font-style: italic; }
+    .footer-about { font-size: .83rem; line-height: 1.7; color: rgba(255,255,255,.55); margin-bottom: 20px; }
+    .footer-social { display: flex; gap: 10px; }
+    .soc-btn { width: 36px; height: 36px; background: rgba(255,255,255,.08); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: .9rem; transition: background .2s; text-decoration: none; }
+    .soc-btn:hover { background: rgba(198,134,66,.3); }
+    .footer-h { font-family: 'DM Serif Display', serif; font-size: .95rem; color: #fff; margin-bottom: 16px; }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-links a { font-size: .82rem; color: rgba(255,255,255,.5); transition: color .2s; }
+    .footer-links a:hover { color: var(--caramel); }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,.06); padding-top: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: .78rem; color: rgba(255,255,255,.35); }
+    .footer-bottom a { color: rgba(255,255,255,.35); transition: color .2s; }
+    .footer-bottom a:hover { color: var(--caramel); }
+
+    /* UTILS */
+    @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--coffee); color: #fff; padding: 10px 22px; border-radius: 50px; font-size: .82rem; font-weight: 600; z-index: 9998; transition: transform .3s var(--ease); white-space: nowrap; box-shadow: 0 8px 30px rgba(62,39,35,.25); }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+        .footer-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
+        .pricing-grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+        .plan-card.featured { transform: scale(1); }
+        .plan-card.featured:hover { transform: translateY(-8px); }
+        .offline-info-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+        .nav-links, .nav-cta { display: none; }
+        .hamburger { display: flex; }
+        .hero h1 { font-size: 2.2rem; }
+        .hero-stats { gap: 24px; }
+        .stat-divider { display: none; }
+        .section { padding: 70px 5vw; }
+        .portal-section { padding: 70px 5vw; }
+        .form-grid { grid-template-columns: 1fr; }
+        .payment-form { padding: 22px 20px 28px; }
+        .payment-instructions, .offline-card { margin: 18px 18px 0; }
+        .pay-method-tabs { margin: 18px 18px 0; }
+        .pi-methods { flex-direction: column; }
+        .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+        .footer-bottom { flex-direction: column; text-align: center; }
+        .payment-header { padding: 26px 22px; }
+    }
+    @media (max-width: 480px) {
+        .nav { padding: 0 18px; }
+        .hero-actions { flex-direction: column; align-items: center; }
+        .btn-hero-primary, .btn-hero-secondary { width: 100%; justify-content: center; }
+    }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="nav" id="mainNav">
+    <a href="#" class="nav-logo">Edu<span>Coffee.</span></a>
+    <ul class="nav-links">
+        <li><a href="#portal">Get Started</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how">How It Works</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+    </ul>
+    <button class="nav-cta" onclick="document.getElementById('portal').scrollIntoView({behavior:'smooth'})">Get Started</button>
+    <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle Menu">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<!-- Mobile Nav -->
+<div class="mobile-nav" id="mobileNav">
+    <a href="#portal" onclick="toggleMobileNav()">Get Started</a>
+    <a href="#features" onclick="toggleMobileNav()">Features</a>
+    <a href="#how" onclick="toggleMobileNav()">How It Works</a>
+    <a href="#pricing" onclick="toggleMobileNav()">Pricing</a>
+    <a href="auth.html" style="font-weight:600;color:var(--caramel)" onclick="toggleMobileNav()">Login / Sign Up</a>
+</div>
+
+<!-- HERO -->
+<section class="hero" id="home">
+    <div class="hero-blob hero-blob-1"></div>
+    <div class="hero-blob hero-blob-2"></div>
+    <div class="hero-blob hero-blob-3"></div>
+    <div class="hero-inner">
+        <div class="hero-badge">
+            <div class="hero-badge-dot"></div>
+            Bangladesh's First Smart Coaching Hub
+        </div>
+        <h1>Seamless Connectivity,<br><em>Centralized Learning</em></h1>
+        <p>EduCoffee connects private teachers and students across your city — manage batches, publish results, broadcast notices, and track every student's journey from one elegant dashboard.</p>
+        <div class="hero-actions">
+            <button class="btn-hero-primary" onclick="document.getElementById('portal').scrollIntoView({behavior:'smooth'})">
+                ☕ Get Started
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <a href="auth.html" class="btn-hero-secondary">Login / Sign Up</a>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-item">
+                <div class="stat-num">∞</div>
+                <div class="stat-lbl">Multi-Teacher</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-num">OTP</div>
+                <div class="stat-lbl">Verified Access</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-num">Live</div>
+                <div class="stat-lbl">Result Tracking</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-num">CRUD</div>
+                <div class="stat-lbl">Full Control</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PORTAL SELECTION (formerly main.html) -->
+<section class="portal-section reveal" id="portal">
+    <div class="portal-section-header">
+        <div class="section-tag">✦ Choose Your Portal</div>
+        <h2 class="section-title">আপনি কে?</h2>
+        <p class="section-sub">শিক্ষক বা শিক্ষার্থী — আপনার পোর্টাল বেছে নিন এবং শুরু করুন।</p>
+    </div>
+    <div class="portals-grid">
+        <div class="portal-card reveal" onclick="goToAuth('teacher')" role="button" tabindex="0" aria-label="Teacher Portal">
+            <div class="portal-role-badge badge-teacher">Teacher</div>
+            <div class="portal-icon">👨‍🏫</div>
+            <h2>Teacher</h2>
+            <p>ব্যাচ তৈরি করুন, রেজাল্ট শেয়ার করুন ও শিক্ষার্থীদের নোটিশ পাঠান।</p>
+            <div class="btn-portal">Enter Dashboard →</div>
+        </div>
+        <div class="portal-card reveal" onclick="goToAuth('student')" role="button" tabindex="0" aria-label="Student Portal">
+            <div class="portal-role-badge badge-student">Student</div>
+            <div class="portal-icon">🧑‍🎓</div>
+            <h2>Student</h2>
+            <p>একাধিক শিক্ষকের সাথে সংযুক্ত হোন, রেজাল্ট ও নোটিশ পান — এক ড্যাশবোর্ডে।</p>
+            <div class="btn-portal">Student Access →</div>
+        </div>
+    </div>
+    <div class="features-bar reveal">
+        <div class="feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Secure OTP Access
+        </div>
+        <div class="feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Live Performance Tracking
+        </div>
+        <div class="feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Instant Email Notices
+        </div>
+        <div class="feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            Multi-Teacher Dashboard
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+    <div class="section-header reveal" style="margin-bottom:60px">
+        <div class="section-tag">✦ Features</div>
+        <h2 class="section-title" style="color:#fff">Everything a teacher<br>& student needs</h2>
+        <p class="section-sub">Built for the realities of private coaching in Bangladesh — no bloat, no complexity.</p>
+    </div>
+    <div class="features-grid reveal">
+        <div class="feat-card">
+            <div class="feat-icon">📚</div>
+            <div class="feat-title">Batch Management</div>
+            <div class="feat-desc">Create unlimited batches, generate unique batch codes, set schedules, and manage enrollment effortlessly.</div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon">📊</div>
+            <div class="feat-title">Result Publishing</div>
+            <div class="feat-desc">Upload exam scores for every student, add remarks, and publish with one click. Students see results instantly.</div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon">🔔</div>
+            <div class="feat-title">Notice Broadcasting</div>
+            <div class="feat-desc">Send urgent or general notices to specific batches or all students. Mark as urgent with email notifications.</div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon">🧑‍🎓</div>
+            <div class="feat-title">Multi-Teacher Dashboard</div>
+            <div class="feat-desc">Students connect with multiple teachers in one dashboard — no juggling between accounts or logging in/out.</div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon">📈</div>
+            <div class="feat-title">Performance Analytics</div>
+            <div class="feat-desc">Visual trend charts for every student. Teachers spot who's improving and who needs attention at a glance.</div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon">🔐</div>
+            <div class="feat-title">OTP Verification</div>
+            <div class="feat-desc">Secure email OTP during signup. Optional 2FA for teachers. Your data is protected at every step.</div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon">👨‍👩‍👧</div>
+            <div class="feat-title">Parent-Friendly Design</div>
+            <div class="feat-desc">Guardians and students share the same dashboard — designed for both. Check notices & results on mobile.</div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon">📧</div>
+            <div class="feat-title">Parent Communication</div>
+            <div class="feat-desc">Message individual parents or broadcast to all. Keep guardians informed about exams, results, and events.</div>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+    <div class="section-header reveal" style="margin-bottom:60px">
+        <div class="section-tag">✦ How It Works</div>
+        <h2 class="section-title">Up and running<br>in 3 steps</h2>
+        <p class="section-sub">EduCoffee is designed to get teachers and students connected without any technical hurdles.</p>
+    </div>
+    <div class="steps-grid reveal">
+        <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-icon">🖊️</div>
+            <div class="step-title">Teacher Signs Up</div>
+            <div class="step-desc">Register with email, choose a subscription plan, and set up your coaching center profile.</div>
+        </div>
+        <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-icon">🔗</div>
+            <div class="step-title">Students Join</div>
+            <div class="step-desc">Students enter the batch code from their teacher. They can join multiple teachers — all in one account.</div>
+        </div>
+        <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-icon">🚀</div>
+            <div class="step-title">Start Managing</div>
+            <div class="step-desc">Publish results, send notices, track performance, and communicate with parents — everything from one hub.</div>
+        </div>
+    </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+    <div class="section-header reveal" style="margin-bottom:60px">
+        <div class="section-tag">✦ Pricing</div>
+        <h2 class="section-title">Simple, transparent<br>pricing for teachers</h2>
+        <p class="section-sub">Start free. Upgrade when you need more power. Cancel anytime.</p>
+    </div>
+    <div class="pricing-grid reveal">
+        <!-- STARTER -->
+        <div class="plan-card">
+            <div class="plan-badge">For New Teachers</div>
+            <div class="plan-body">
+                <div class="plan-icon">☕</div>
+                <div class="plan-name">Starter</div>
+                <div class="plan-tagline">Perfect to get started — completely free</div>
+                <div class="plan-price"><span class="plan-amount">Free</span></div>
+                <div class="plan-period">12 months · No credit card</div>
+                <div class="plan-divider"></div>
+                <ul class="plan-features">
+                    <li><div class="pf-check pf-yes">✓</div><span>Up to <strong>10 students</strong></span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span>Up to <strong>5 notices/day</strong></span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span>Advanced batch management</span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span>Result publishing</span></li>
+                    <li><div class="pf-check pf-no">✗</div><span style="color:var(--muted)">Monthly magazine / book reward</span></li>
+                    <li><div class="pf-check pf-no">✗</div><span style="color:var(--muted)">Performance analytics</span></li>
+                    <li><div class="pf-check pf-no">✗</div><span style="color:var(--muted)">Parent communication</span></li>
+                </ul>
+                <button class="plan-cta cta-outline" onclick="buyPlan('Starter','Free')">Start for Free →</button>
+            </div>
+        </div>
+        <!-- PROFESSIONAL -->
+        <div class="plan-card">
+            <div class="plan-badge">Most Popular</div>
+            <div class="plan-body">
+                <div class="plan-icon">🏆</div>
+                <div class="plan-name">Professional</div>
+                <div class="plan-tagline">For growing coaching centers</div>
+                <div class="plan-price">
+                    <span class="plan-currency">৳</span>
+                    <span class="plan-amount">150</span>
+                </div>
+                <div class="plan-period">per month</div>
+                <div class="plan-divider"></div>
+                <ul class="plan-features">
+                    <li><div class="pf-check pf-yes">✓</div><span><strong>Unlimited</strong> students</span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span><strong>Unlimited</strong> notices</span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span>Advanced batch management</span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span>Full performance analytics</span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span>Parent communication</span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span><strong>1 monthly magazine/book</strong> for top student</span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span>Priority support</span></li>
+                    <li><div class="pf-check pf-no">✗</div><span style="color:var(--muted)">Special gift reward</span></li>
+                </ul>
+                <button class="plan-cta cta-filled" onclick="buyPlan('Professional','৳150/month')">Get Professional →</button>
+            </div>
+        </div>
+        <!-- ELITE -->
+        <div class="plan-card featured">
+            <div class="plan-badge elite">Best Value — Elite</div>
+            <div class="plan-body">
+                <div class="plan-icon">👑</div>
+                <div class="plan-name">Elite</div>
+                <div class="plan-tagline">The ultimate package for serious educators</div>
+                <div class="plan-price">
+                    <span class="plan-currency">৳</span>
+                    <span class="plan-amount">600</span>
+                </div>
+                <div class="plan-period">per 6 months</div>
+                <div class="plan-original">৳ 900 if paid monthly</div>
+                <div class="plan-divider"></div>
+                <ul class="plan-features">
+                    <li><div class="pf-check pf-yes">✓</div><span><strong>Everything in Professional</strong></span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span><strong>6 monthly books/magazines</strong> for top performer</span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span><strong>1 Special Gift</strong> for top performer</span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span>Dedicated account manager</span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span>Custom center branding</span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span>Batch export & reports</span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span>Early access to new features</span></li>
+                    <li><div class="pf-check pf-yes">✓</div><span>24/7 WhatsApp support</span></li>
+                </ul>
+                <button class="plan-cta cta-gold" onclick="buyPlan('Elite','৳600/6 months')">Get Elite — Best Value →</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PAYMENT SECTION -->
+<section id="payment-section">
+    <div class="payment-wrapper">
+        <div class="payment-card">
+            <div class="payment-header">
+                <button class="ph-back" onclick="showPricing()">← Back to Pricing</button>
+                <div class="ph-selected-plan">📦 Selected: <strong id="selectedPlanDisplay">Professional</strong></div>
+                <h2>Complete Your Payment</h2>
+                <p>অনলাইনে (bKash/Nagad) অথবা আমাদের অফিসে সরাসরি পেমেন্ট করুন।</p>
+            </div>
+
+            <!-- Payment Method Tabs -->
+            <div class="pay-method-tabs">
+                <button class="pay-tab active" onclick="switchPayTab('online')">📲 Online Payment</button>
+                <button class="pay-tab" onclick="switchPayTab('offline')">🏢 Offline / Office</button>
+            </div>
+
+            <!-- ONLINE TAB -->
+            <div class="pay-panel active" id="panelOnline">
+                <div class="payment-instructions">
+                    <div class="pi-title">📲 Send Payment To</div>
+                    <div class="pi-methods">
+                        <div class="pi-method">
+                            <div class="pi-method-icon pm-bkash">💳</div>
+                            <div class="pi-method-info">
+                                <div class="pi-method-name">bKash Personal</div>
+                                <div class="pi-method-num" onclick="copyNum('01700-000000')">01700-000000 <span class="copy-icon">📋</span></div>
+                            </div>
+                        </div>
+                        <div class="pi-method">
+                            <div class="pi-method-icon pm-nagad">🟠</div>
+                            <div class="pi-method-info">
+                                <div class="pi-method-name">Nagad Personal</div>
+                                <div class="pi-method-num" onclick="copyNum('01700-000001')">01700-000001 <span class="copy-icon">📋</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <ol class="pi-steps">
+                        <li>উপরের নম্বরে "Send Money" করুন (bKash বা Nagad)।</li>
+                        <li>পেমেন্ট সম্পন্ন হলে Transaction ID (TrxID) সংরক্ষণ করুন।</li>
+                        <li>নিচের ফর্মটি সঠিকভাবে পূরণ করুন এবং সাবমিট করুন।</li>
+                        <li>যাচাইয়ের পর ২৪ ঘন্টার মধ্যে আপনার অ্যাকাউন্ট সক্রিয় হবে।</li>
+                    </ol>
+                </div>
+
+                <div class="payment-form" id="paymentFormOnline">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" class="form-input" id="payName" placeholder="আপনার পুরো নাম" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Address *</label>
+                            <input type="email" class="form-input" id="payEmail" placeholder="your@email.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number *</label>
+                            <input type="tel" class="form-input" id="payPhone" placeholder="01XXXXXXXXX" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Selected Package</label>
+                            <div class="select-wrap">
+                                <select class="form-select" id="payPackage">
+                                    <option value="Starter">Starter — Free</option>
+                                    <option value="Professional">Professional — ৳150/month</option>
+                                    <option value="Elite">Elite — ৳600/6 months</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Payment Method *</label>
+                            <div class="select-wrap">
+                                <select class="form-select" id="payMethod">
+                                    <option value="">পদ্ধতি বেছে নিন...</option>
+                                    <option value="bkash">bKash (Personal)</option>
+                                    <option value="nagad">Nagad (Personal)</option>
+                                    <option value="rocket">Rocket (DBBL)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Transaction ID (TrxID) *</label>
+                            <input type="text" class="form-input" id="payTrxId" placeholder="e.g. 8K9J2XA1R5" style="font-family:monospace;letter-spacing:1px;text-transform:uppercase" required>
+                            <div class="trx-hint">bKash/Nagad থেকে পাওয়া TrxID লিখুন।</div>
+                        </div>
+                        <div class="form-group full">
+                            <label class="form-label">Coaching Center Name (Optional)</label>
+                            <input type="text" class="form-input" id="payCenter" placeholder="আপনার কোচিং সেন্টারের নাম">
+                        </div>
+                    </div>
+                    <button class="btn-verify" onclick="submitPayment()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        Verify & Submit Payment
+                    </button>
+                </div>
+            </div>
+
+            <!-- OFFLINE TAB -->
+            <div class="pay-panel" id="panelOffline">
+                <div class="offline-card">
+                    <div class="offline-icon">🏢</div>
+                    <div class="offline-title">Offline Payment at Our Office</div>
+                    <div class="offline-sub">আমাদের অফিসে সরাসরি এসে ক্যাশে অথবা যেকোনো মাধ্যমে পেমেন্ট করুন এবং তাৎক্ষণিকভাবে অ্যাকাউন্ট সক্রিয় করুন।</div>
+
+                    <div class="offline-info-grid">
+                        <div class="offline-info-item">
+                            <div class="offline-info-label">📍 Address</div>
+                            <div class="offline-info-value">EduCoffee Office<br>Naogaon, Bangladesh</div>
+                        </div>
+                        <div class="offline-info-item">
+                            <div class="offline-info-label">🕐 Office Hours</div>
+                            <div class="offline-info-value">Sat – Thu<br>9:00 AM – 6:00 PM</div>
+                        </div>
+                        <div class="offline-info-item">
+                            <div class="offline-info-label">📞 Phone</div>
+                            <div class="offline-info-value" style="cursor:pointer" onclick="copyNum('01700-000000')">+880 1700-000000</div>
+                        </div>
+                        <div class="offline-info-item">
+                            <div class="offline-info-label">💬 WhatsApp</div>
+                            <div class="offline-info-value">+880 1700-000000</div>
+                        </div>
+                    </div>
+
+                    <ol class="offline-steps">
+                        <li>আমাদের অফিসে সরাসরি আসুন অথবা আগে ফোনে যোগাযোগ করুন।</li>
+                        <li>আপনার পছন্দের প্যাকেজটি (Starter / Professional / Elite) জানান।</li>
+                        <li>ক্যাশ, bKash, Nagad বা অন্য যেকোনো মাধ্যমে সুবিধামতো পেমেন্ট করুন।</li>
+                        <li>পেমেন্টের সাথে সাথেই আমরা আপনার অ্যাকাউন্ট সক্রিয় করে দেবো।</li>
+                    </ol>
+
+                    <div class="offline-note">
+                        ⚡ অফলাইন পেমেন্টে তাৎক্ষণিক অ্যাকাউন্ট অ্যাক্টিভেশন — কোনো অপেক্ষা নেই!
+                    </div>
+                </div>
+
+                <div class="payment-form">
+                    <p style="text-align:center;color:var(--muted);font-size:.88rem;margin-bottom:20px">অফিসে আসার আগে অ্যাপয়েন্টমেন্ট নিতে চাইলে নিচে ফর্মটি পূরণ করুন।</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-input" id="offName" placeholder="আপনার পুরো নাম">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-input" id="offPhone" placeholder="01XXXXXXXXX">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Preferred Package</label>
+                            <div class="select-wrap">
+                                <select class="form-select" id="offPackage">
+                                    <option value="Starter">Starter — Free</option>
+                                    <option value="Professional">Professional — ৳150/month</option>
+                                    <option value="Elite">Elite — ৳600/6 months</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Preferred Visit Date</label>
+                            <input type="date" class="form-input" id="offDate">
+                        </div>
+                    </div>
+                    <button class="btn-verify" onclick="submitOfflineAppointment()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        Book Appointment
+                    </button>
+                </div>
+            </div>
+
+            <!-- Success State -->
+            <div class="payment-success" id="paymentSuccess">
+                <div class="success-icon">✓</div>
+                <div class="success-h">Payment Submitted!</div>
+                <p class="success-p">আপনার পেমেন্ট তথ্য আমরা পেয়েছি। যাচাইয়ের পর ২৪ ঘন্টার মধ্যে অ্যাকাউন্ট সক্রিয় হবে। এই কোডটি সংরক্ষণ করুন:</p>
+                <div class="success-ref" id="successRef">EDCF-000000</div>
+                <button class="btn-verify" style="max-width:280px;margin:0 auto" onclick="window.location.href='auth.html'">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    Go to Login
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-grid">
+        <div>
+            <span class="footer-logo">Edu<span>Coffee.</span></span>
+            <p class="footer-about">Bangladesh's premier digital hub connecting private teachers and students — beautifully, securely, and efficiently.</p>
+            <div class="footer-social">
+                <a class="soc-btn" href="#" aria-label="Facebook">f</a>
+                <a class="soc-btn" href="#" aria-label="Email">@</a>
+            </div>
+        </div>
+        <div>
+            <div class="footer-h">Quick Links</div>
+            <ul class="footer-links">
+                <li><a href="#portal">Get Started</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="auth.html">Login</a></li>
+            </ul>
+        </div>
+        <div>
+            <div class="footer-h">Portals</div>
+            <ul class="footer-links">
+                <li><a href="auth.html?role=teacher">Teacher Account</a></li>
+                <li><a href="auth.html?role=student">Student Account</a></li>
+                <li><a href="teacher-dashboard.html">Teacher Dashboard</a></li>
+                <li><a href="student-dashboard.html">Student Dashboard</a></li>
+            </ul>
+        </div>
+        <div>
+            <div class="footer-h">Contact</div>
+            <ul class="footer-links">
+                <li><a href="mailto:hello@educoffee.app">hello@educoffee.app</a></li>
+                <li><a href="tel:+8801700000000">+880 1700-000000</a></li>
+                <li><a href="#">Naogaon, Bangladesh</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>© 2025 EduCoffee. All rights reserved.</span>
+        <span>
+            <a href="#">Privacy Policy</a> &nbsp;·&nbsp;
+            <a href="#">Terms of Service</a> &nbsp;·&nbsp;
+            <a href="#">Refund Policy</a>
+        </span>
+    </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// NAV
+let mobileNavOpen = false;
+function toggleMobileNav() {
+    mobileNavOpen = !mobileNavOpen;
+    document.getElementById('mobileNav').classList.toggle('open', mobileNavOpen);
+    document.getElementById('hamburger').classList.toggle('open', mobileNavOpen);
+    document.body.style.overflow = mobileNavOpen ? 'hidden' : '';
+}
+window.addEventListener('scroll', () => {
+    document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 20);
+});
+
+// PORTAL
+function goToAuth(role) {
+    sessionStorage.setItem('selectedRole', role);
+    window.location.href = 'auth.html?role=' + role;
+}
+document.querySelectorAll('.portal-card').forEach(card => {
+    card.addEventListener('keypress', e => { if (e.key === 'Enter' || e.key === ' ') card.click(); });
+});
+
+// Check if logged in, update nav
+document.addEventListener('DOMContentLoaded', () => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const userRole = localStorage.getItem('userRole');
+    if (isLoggedIn === 'true' && userRole) {
+        const cta = document.querySelector('.nav-cta');
+        if (cta) {
+            cta.textContent = 'My Dashboard';
+            cta.onclick = () => window.location.href = userRole === 'teacher' ? 'teacher-dashboard.html' : 'student-dashboard.html';
+        }
+    }
+});
+
+// PRICING
+function buyPlan(planName, price) {
+    if (planName === 'Starter') { window.location.href = 'auth.html?role=teacher'; return; }
+    document.getElementById('selectedPlanDisplay').textContent = planName + ' — ' + price;
+    document.getElementById('payPackage').value = planName;
+    document.getElementById('offPackage').value = planName;
+    document.getElementById('pricing').style.display = 'none';
+    const ps = document.getElementById('payment-section');
+    ps.classList.add('visible');
+    document.getElementById('paymentSuccess').classList.remove('show');
+    ps.scrollIntoView({ behavior: 'smooth' });
+}
+function showPricing() {
+    document.getElementById('pricing').style.display = '';
+    document.getElementById('payment-section').classList.remove('visible');
+    document.getElementById('pricing').scrollIntoView({ behavior: 'smooth' });
+}
+
+// PAYMENT TAB SWITCH
+function switchPayTab(tab) {
+    document.querySelectorAll('.pay-tab').forEach((t, i) => t.classList.toggle('active', (i === 0 && tab === 'online') || (i === 1 && tab === 'offline')));
+    document.getElementById('panelOnline').classList.toggle('active', tab === 'online');
+    document.getElementById('panelOffline').classList.toggle('active', tab === 'offline');
+}
+
+// ONLINE PAYMENT SUBMIT
+function submitPayment() {
+    const name   = document.getElementById('payName').value.trim();
+    const email  = document.getElementById('payEmail').value.trim();
+    const phone  = document.getElementById('payPhone').value.trim();
+    const method = document.getElementById('payMethod').value;
+    const trxId  = document.getElementById('payTrxId').value.trim();
+
+    if (!name || !email || !phone || !method || !trxId) { showToast('⚠️ সমস্ত প্রয়োজনীয় ঘর পূরণ করুন।'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('⚠️ সঠিক ইমেইল ঠিকানা দিন।'); return; }
+
+    const ref = 'EDCF-' + Math.floor(100000 + Math.random() * 900000);
+    document.getElementById('paymentFormOnline').style.display = 'none';
+    document.getElementById('successRef').textContent = ref;
+    document.getElementById('paymentSuccess').classList.add('show');
+    showToast('✓ পেমেন্ট তথ্য জমা হয়েছে!');
+}
+
+// OFFLINE APPOINTMENT SUBMIT
+function submitOfflineAppointment() {
+    const name  = document.getElementById('offName').value.trim();
+    const phone = document.getElementById('offPhone').value.trim();
+    if (!name || !phone) { showToast('⚠️ নাম এবং ফোন নম্বর দিন।'); return; }
+    showToast('✓ অ্যাপয়েন্টমেন্ট রিকোয়েস্ট পাঠানো হয়েছে! আমরা শীঘ্রই যোগাযোগ করবো।');
+    setTimeout(() => showPricing(), 2500);
+}
+
+// COPY NUMBER
+function copyNum(num) {
+    navigator.clipboard.writeText(num).then(() => showToast('✓ নম্বর কপি হয়েছে: ' + num));
+}
+
+// TOAST
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// SCROLL REVEAL
+const revealObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.style.transitionDelay = (e.target.dataset.delay || '0') + 'ms'; e.target.classList.add('visible'); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach((el, i) => { el.dataset.delay = i * 50; revealObserver.observe(el); });
+
+// SMOOTH SCROLL
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+    });
+});
+</script>
+</body>
+</html>
