@@ -1,0 +1,107 @@
+# ============================================================
+#  robots.txt — EduCoffee (educoffee.app)
+#  Last Updated: June 2025
+# ============================================================
+
+# ── All crawlers: default rules ──────────────────────────────
+User-agent: *
+
+# Public pages — allowed
+Allow: /$
+Allow: /index.html
+Allow: /auth.html
+Allow: /guidelines.html
+Allow: /terms.html
+Allow: /privacy.html
+Allow: /404.html
+
+# Block all authenticated/private pages
+Disallow: /admin-login.html
+Disallow: /admin-panel.html
+Disallow: /teacher-dashboard.html
+Disallow: /teacher-batches.html
+Disallow: /teacher-notices.html
+Disallow: /teacher-results.html
+Disallow: /teacher-students.html
+Disallow: /teacher-profile.html
+Disallow: /student-dashboard.html
+Disallow: /student-notices.html
+Disallow: /student-results.html
+Disallow: /student-profile.html
+
+# Block API endpoints
+Disallow: /api/
+Disallow: /api
+
+# Block query strings and search
+Disallow: /*?*
+
+# Crawl delay (be polite to the server)
+Crawl-delay: 5
+
+# ── Google ────────────────────────────────────────────────────
+User-agent: Googlebot
+Allow: /$
+Allow: /index.html
+Allow: /auth.html
+Allow: /guidelines.html
+Allow: /terms.html
+Allow: /privacy.html
+Disallow: /admin-login.html
+Disallow: /admin-panel.html
+Disallow: /teacher-dashboard.html
+Disallow: /teacher-batches.html
+Disallow: /teacher-notices.html
+Disallow: /teacher-results.html
+Disallow: /teacher-students.html
+Disallow: /teacher-profile.html
+Disallow: /student-dashboard.html
+Disallow: /student-notices.html
+Disallow: /student-results.html
+Disallow: /student-profile.html
+Disallow: /api/
+
+# ── Bingbot ──────────────────────────────────────────────────
+User-agent: Bingbot
+Allow: /$
+Allow: /index.html
+Allow: /auth.html
+Allow: /guidelines.html
+Allow: /terms.html
+Allow: /privacy.html
+Disallow: /admin-login.html
+Disallow: /admin-panel.html
+Disallow: /teacher-dashboard.html
+Disallow: /teacher-batches.html
+Disallow: /teacher-notices.html
+Disallow: /teacher-results.html
+Disallow: /teacher-students.html
+Disallow: /teacher-profile.html
+Disallow: /student-dashboard.html
+Disallow: /student-notices.html
+Disallow: /student-results.html
+Disallow: /student-profile.html
+Disallow: /api/
+Crawl-delay: 10
+
+# ── Block bad bots completely ─────────────────────────────────
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+# ── Sitemap location ─────────────────────────────────────────
+Sitemap: https://educoffee.app/sitemap.xml

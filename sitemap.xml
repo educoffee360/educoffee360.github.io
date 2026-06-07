@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    sitemap.xml — EduCoffee (educoffee.app)
+    Generated: June 2025
+    Only public-facing pages are included.
+    Authenticated / dashboard pages are intentionally excluded.
+    Submit to: https://search.google.com/search-console
+               https://www.bing.com/webmasters
+-->
+<urlset
+    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+    <!-- ═══════════════════════════════
+         CORE PUBLIC PAGES
+    ═══════════════════════════════ -->
+
+    <!-- Homepage — highest priority -->
+    <url>
+        <loc>https://educoffee.app/</loc>
+        <lastmod>2025-06-01</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <url>
+        <loc>https://educoffee.app/index.html</loc>
+        <lastmod>2025-06-01</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <!-- Auth / Login & Register -->
+    <url>
+        <loc>https://educoffee.app/auth.html</loc>
+        <lastmod>2025-06-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+
+    <!-- Teacher portal entry (role=teacher) -->
+    <url>
+        <loc>https://educoffee.app/auth.html?role=teacher</loc>
+        <lastmod>2025-06-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- Student portal entry (role=student) -->
+    <url>
+        <loc>https://educoffee.app/auth.html?role=student</loc>
+        <lastmod>2025-06-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- ═══════════════════════════════
+         LEGAL & POLICY PAGES
+    ═══════════════════════════════ -->
+
+    <url>
+        <loc>https://educoffee.app/guidelines.html</loc>
+        <lastmod>2025-05-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <url>
+        <loc>https://educoffee.app/terms.html</loc>
+        <lastmod>2025-05-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <url>
+        <loc>https://educoffee.app/privacy.html</loc>
+        <lastmod>2025-05-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <!-- ═══════════════════════════════
+         ERROR PAGES
+    ═══════════════════════════════ -->
+
+    <url>
+        <loc>https://educoffee.app/404.html</loc>
+        <lastmod>2025-05-01</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.1</priority>
+    </url>
+
+    <!--
+        NOTE: The following pages are intentionally EXCLUDED from this sitemap
+        because they require authentication and should not be indexed:
+
+        /admin-login.html
+        /admin-panel.html
+        /teacher-dashboard.html
+        /teacher-batches.html
+        /teacher-notices.html
+        /teacher-results.html
+        /teacher-students.html
+        /teacher-profile.html
+        /student-dashboard.html
+        /student-notices.html
+        /student-results.html
+        /student-profile.html
+
+        These pages are also blocked in robots.txt.
+    -->
+
+</urlset>

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms & Conditions | EduCoffee</title>
+    <meta name="description" content="EduCoffee Terms and Conditions — the agreement governing your use of the EduCoffee platform.">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --bg:#FDFBF7;--coffee:#3E2723;--caramel:#C68642;
+            --cl:rgba(198,134,66,.09);--text:#2D241E;--muted:#7D6E64;
+            --card:#fff;--border:rgba(62,39,35,.08);
+            --sh:0 2px 20px rgba(62,39,35,.06);
+            --ease:cubic-bezier(.16,1,.3,1)
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth;font-size:16px}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+        a{color:var(--caramel);text-decoration:none;font-weight:600}
+        a:hover{text-decoration:underline}
+
+        /* ── NAV ── */
+        nav{
+            position:sticky;top:0;z-index:100;
+            background:rgba(253,251,247,.95);backdrop-filter:blur(16px);
+            border-bottom:1px solid var(--border);
+            padding:0 clamp(16px,5vw,64px);
+            height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px
+        }
+        .logo{font-family:'DM Serif Display',serif;font-size:1.45rem;color:var(--coffee);text-decoration:none;font-weight:400}
+        .logo span{color:var(--caramel);font-style:italic}
+        .nav-pills{display:flex;gap:8px;list-style:none}
+        .nav-pills a{font-size:.78rem;font-weight:600;color:var(--muted);text-decoration:none;padding:5px 12px;border-radius:50px;transition:all .2s}
+        .nav-pills a:hover,.nav-pills a.active{color:var(--coffee);background:var(--cl)}
+        .nav-back{
+            display:inline-flex;align-items:center;gap:6px;
+            padding:7px 16px;border-radius:50px;
+            border:1.5px solid var(--border);
+            font-size:.8rem;font-weight:600;color:var(--coffee);text-decoration:none;
+            transition:all .25s;white-space:nowrap
+        }
+        .nav-back:hover{border-color:var(--caramel);color:var(--caramel);text-decoration:none}
+        .nav-back svg{width:14px;height:14px}
+
+        /* ── HERO ── */
+        .hero{
+            background:linear-gradient(135deg,#2D241E 0%,var(--coffee) 55%,#5D4037 100%);
+            padding:clamp(44px,7vw,80px) clamp(16px,5vw,64px) clamp(36px,6vw,68px);
+            position:relative;overflow:hidden
+        }
+        .hero::before{content:'';position:absolute;right:-60px;top:-60px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none}
+        .hero::after{content:'';position:absolute;left:-40px;bottom:-40px;width:220px;height:220px;border-radius:50%;background:rgba(198,134,66,.08);pointer-events:none}
+        .hero-inner{position:relative;z-index:1;max-width:680px;animation:fadeUp .55s var(--ease) both}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        .hero-tag{
+            display:inline-flex;align-items:center;gap:7px;
+            padding:5px 14px;border-radius:50px;
+            background:rgba(198,134,66,.2);border:1px solid rgba(198,134,66,.35);
+            font-size:.71rem;font-weight:700;color:var(--caramel);letter-spacing:.8px;text-transform:uppercase;
+            margin-bottom:18px
+        }
+        .hero-tag svg{width:13px;height:13px}
+        .hero h1{font-family:'DM Serif Display',serif;font-size:clamp(1.85rem,5vw,2.9rem);color:#fff;margin-bottom:14px;line-height:1.1}
+        .hero-desc{font-size:clamp(.88rem,2.5vw,1rem);color:rgba(255,255,255,.7);max-width:540px;line-height:1.65}
+        .hero-meta{display:flex;gap:16px;margin-top:24px;flex-wrap:wrap}
+        .hm{font-size:.76rem;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:5px}
+        .hm svg{width:12px;height:12px;flex-shrink:0}
+
+        /* ── ACCEPTANCE BANNER ── */
+        .accept-bar{
+            background:rgba(198,134,66,.07);
+            border-top:3px solid var(--caramel);
+            padding:14px clamp(16px,5vw,64px);
+            font-size:.84rem;color:var(--text);
+            display:flex;align-items:flex-start;gap:12px
+        }
+        .accept-bar svg{width:18px;height:18px;color:var(--caramel);flex-shrink:0;margin-top:2px}
+        .accept-bar strong{color:var(--caramel)}
+
+        /* ── LAYOUT ── */
+        .layout{
+            display:grid;
+            grid-template-columns:240px 1fr;
+            max-width:1160px;
+            margin:0 auto;
+            padding:0 clamp(16px,5vw,64px) 80px
+        }
+
+        /* ── TOC SIDEBAR ── */
+        .toc{
+            position:sticky;top:84px;align-self:flex-start;
+            padding:28px 0;
+            max-height:calc(100vh - 108px);overflow-y:auto
+        }
+        .toc::-webkit-scrollbar{width:4px}
+        .toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+        .toc-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted);margin-bottom:12px;padding-left:12px}
+        .toc-list{list-style:none}
+        .toc-list li a{
+            display:block;padding:7px 12px;
+            font-size:.81rem;color:var(--muted);text-decoration:none;
+            border-left:2px solid transparent;
+            border-radius:0 8px 8px 0;
+            transition:all .2s
+        }
+        .toc-list li a:hover{color:var(--coffee);border-left-color:rgba(198,134,66,.5);background:var(--cl)}
+        .toc-list li a.active{color:var(--coffee);font-weight:600;border-left-color:var(--caramel);background:var(--cl)}
+
+        /* ── MAIN CONTENT ── */
+        .content{padding:40px 0 0 44px;min-width:0}
+
+        /* ── SECTION ── */
+        .sec{margin-bottom:50px;padding-top:16px}
+        .sec-num{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--caramel);margin-bottom:7px}
+        .sec h2{font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.75rem);color:var(--coffee);margin-bottom:14px;line-height:1.2}
+        .sec h3{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--coffee);margin:22px 0 9px}
+        .sec p{font-size:.92rem;color:var(--text);margin-bottom:12px;line-height:1.75}
+        .sec ul,.sec ol{padding-left:20px;margin-bottom:12px}
+        .sec li{font-size:.92rem;color:var(--text);margin-bottom:7px;line-height:1.65}
+        .sec ul li::marker{color:var(--caramel)}
+        .sec strong{color:var(--coffee)}
+
+        /* ── CALLOUTS ── */
+        .callout{
+            border-radius:13px;padding:14px 18px;
+            margin:16px 0;display:flex;gap:12px;align-items:flex-start
+        }
+        .callout svg{width:17px;height:17px;flex-shrink:0;margin-top:2px}
+        .c-title{font-weight:700;font-size:.84rem;margin-bottom:3px}
+        .c-text{font-size:.82rem;line-height:1.6}
+        .callout-info{background:rgba(21,101,192,.05);border:1px solid rgba(21,101,192,.15)}
+        .callout-info svg,.callout-info .c-title{color:#1565C0}
+        .callout-warn{background:#FFF8E1;border:1px solid #FFE082}
+        .callout-warn svg,.callout-warn .c-title{color:#F57F17}
+        .callout-danger{background:#FFEBEE;border:1px solid #FFCDD2}
+        .callout-danger svg,.callout-danger .c-title{color:#C62828}
+        .callout-success{background:#E8F5E9;border:1px solid #A5D6A7}
+        .callout-success svg,.callout-success .c-title{color:#2E7D32}
+
+        /* ── PLAN TABLE ── */
+        .tbl-wrap{overflow-x:auto;margin:14px 0;border-radius:12px;border:1px solid var(--border)}
+        table{width:100%;border-collapse:collapse;min-width:440px}
+        thead th{
+            padding:10px 14px;background:rgba(62,39,35,.04);
+            font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+            color:var(--muted);text-align:left;border-bottom:2px solid var(--border);white-space:nowrap
+        }
+        tbody td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:.86rem;color:var(--text)}
+        tbody tr:last-child td{border-bottom:none}
+        tbody tr:hover td{background:rgba(198,134,66,.025)}
+        .td-plan{font-weight:700;color:var(--coffee)}
+
+        /* ── CONTACT CARD ── */
+        .contact-card{
+            background:var(--card);border-radius:16px;
+            padding:20px 22px;border:1px solid var(--border);
+            box-shadow:var(--sh);margin-top:6px;
+            display:grid;grid-template-columns:1fr 1fr;gap:16px
+        }
+        .cc-item .cc-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:3px}
+        .cc-item .cc-val{font-size:.88rem;font-weight:600;color:var(--coffee)}
+        .cc-item .cc-val a{color:var(--caramel)}
+
+        /* ── DIVIDER ── */
+        hr{border:none;border-top:1px solid var(--border);margin:40px 0}
+
+        /* ── FOOTER ── */
+        footer{background:var(--coffee);padding:38px clamp(16px,5vw,64px);text-align:center}
+        .footer-logo{font-family:'DM Serif Display',serif;font-size:1.4rem;color:#fff;margin-bottom:6px}
+        .footer-logo span{color:var(--caramel);font-style:italic}
+        .footer-sub{font-size:.8rem;color:rgba(255,255,255,.4);margin-bottom:16px}
+        .footer-nav{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;list-style:none;margin-bottom:16px}
+        .footer-nav a{font-size:.78rem;color:rgba(255,255,255,.45);text-decoration:none;transition:color .2s}
+        .footer-nav a:hover{color:var(--caramel)}
+        .footer-copy{font-size:.73rem;color:rgba(255,255,255,.28)}
+
+        /* ── RESPONSIVE ── */
+        @media(max-width:900px){
+            .layout{grid-template-columns:1fr}
+            .toc{display:none}
+            .content{padding:24px 0 0}
+        }
+        @media(max-width:600px){
+            .nav-pills{display:none}
+            .contact-card{grid-template-columns:1fr}
+        }
+        @media(max-width:400px){
+            .nav-back span{display:none}
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+    <a href="index.html" class="logo">Edu<span>Coffee.</span></a>
+    <ul class="nav-pills">
+        <li><a href="guidelines.html">Guidelines</a></li>
+        <li><a href="terms.html" class="active">Terms</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+    </ul>
+    <a href="index.html" class="nav-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span>Back to Home</span>
+    </a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Legal Agreement
+        </div>
+        <h1>Terms &amp; Conditions</h1>
+        <p class="hero-desc">This agreement governs your access to and use of EduCoffee. Please read carefully before creating an account or using any features of the platform.</p>
+        <div class="hero-meta">
+            <div class="hm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Effective: January 1, 2025</div>
+            <div class="hm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Last Updated: May 2025</div>
+            <div class="hm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Governed by Bangladesh law</div>
+        </div>
+    </div>
+</section>
+
+<!-- ACCEPTANCE BANNER -->
+<div class="accept-bar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span>By creating an account or using EduCoffee, you confirm you have read, understood, and agree to these Terms. <strong>If you do not agree, do not use the platform.</strong></span>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+    <!-- TOC -->
+    <aside class="toc" aria-label="Table of contents">
+        <div class="toc-label">Contents</div>
+        <ul class="toc-list">
+            <li><a href="#s1">1. Definitions</a></li>
+            <li><a href="#s2">2. Acceptance</a></li>
+            <li><a href="#s3">3. Accounts</a></li>
+            <li><a href="#s4">4. Services</a></li>
+            <li><a href="#s5">5. Teacher Terms</a></li>
+            <li><a href="#s6">6. Student Terms</a></li>
+            <li><a href="#s7">7. Subscriptions &amp; Payments</a></li>
+            <li><a href="#s8">8. Refund Policy</a></li>
+            <li><a href="#s9">9. Reward Program</a></li>
+            <li><a href="#s10">10. Intellectual Property</a></li>
+            <li><a href="#s11">11. Privacy &amp; Data</a></li>
+            <li><a href="#s12">12. Limitation of Liability</a></li>
+            <li><a href="#s13">13. Prohibited Conduct</a></li>
+            <li><a href="#s14">14. Termination</a></li>
+            <li><a href="#s15">15. Changes to Terms</a></li>
+            <li><a href="#s16">16. Governing Law</a></li>
+            <li><a href="#s17">17. Contact</a></li>
+        </ul>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="content">
+
+        <section class="sec" id="s1">
+            <div class="sec-num">Section 01</div>
+            <h2>Definitions</h2>
+            <p>For the purposes of these Terms &amp; Conditions, the following definitions apply:</p>
+            <ul>
+                <li><strong>"EduCoffee" / "Platform"</strong> — the website and web application operated at educoffee.app and all associated services.</li>
+                <li><strong>"We / Us / Our"</strong> — the EduCoffee team, based in Naogaon, Bangladesh.</li>
+                <li><strong>"User"</strong> — any individual (teacher, student, or parent) who accesses or uses the platform.</li>
+                <li><strong>"Teacher"</strong> — a registered educator who creates and manages batches on the platform.</li>
+                <li><strong>"Student"</strong> — a registered learner enrolled in one or more teacher batches.</li>
+                <li><strong>"Batch"</strong> — a class group created by a teacher, identified by a unique 6-character code (batch code).</li>
+                <li><strong>"Content"</strong> — any text, data, results, notices, or information submitted by users.</li>
+                <li><strong>"Subscription Plan"</strong> — the Starter, Professional, or Elite pricing tiers available to teachers.</li>
+                <li><strong>"TrxID"</strong> — the Transaction ID generated by a mobile payment method (bKash, Nagad, etc.) as proof of payment.</li>
+            </ul>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s2">
+            <div class="sec-num">Section 02</div>
+            <h2>Acceptance of Terms</h2>
+            <p>By registering an account, accessing any part of the platform, or clicking "I Agree" during registration, you confirm that:</p>
+            <ul>
+                <li>You are at least <strong>13 years of age</strong> (students) or <strong>18 years of age</strong> (teachers).</li>
+                <li>You have the legal capacity to enter into this agreement under the laws of Bangladesh.</li>
+                <li>All information you provide is accurate, current, and complete.</li>
+                <li>You will comply with all applicable laws and regulations in your use of the platform.</li>
+            </ul>
+            <div class="callout callout-warn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div>
+                    <div class="c-title">Minors</div>
+                    <div class="c-text">If you are under 18, your parent or legal guardian must review and consent to these Terms on your behalf before you use the platform.</div>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s3">
+            <div class="sec-num">Section 03</div>
+            <h2>Accounts &amp; Registration</h2>
+            <h3>Account Creation</h3>
+            <p>To use EduCoffee you must register with your full name, a valid email address, a phone number, and a password. Your account is personal and non-transferable.</p>
+            <h3>Account Security</h3>
+            <ul>
+                <li>You are responsible for maintaining the confidentiality of your login credentials.</li>
+                <li>Notify us immediately at <a href="mailto:support@educoffee.app">support@educoffee.app</a> if you suspect unauthorized access to your account.</li>
+                <li>EduCoffee is not liable for any loss arising from your failure to safeguard your credentials.</li>
+                <li>You may not share, sell, or transfer your account to any other person.</li>
+            </ul>
+            <h3>Accurate Information</h3>
+            <p>You agree to provide accurate, current information during registration and to update it when it changes. Accounts created with false information may be terminated without notice.</p>
+            <h3>Verification</h3>
+            <p>New accounts are verified via a One-Time Password (OTP) sent to the registered email. Teachers on paid plans must also submit a valid TrxID. EduCoffee may verify this transaction and may downgrade or suspend accounts where payment cannot be confirmed.</p>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s4">
+            <div class="sec-num">Section 04</div>
+            <h2>Services Provided</h2>
+            <p>EduCoffee provides the following core services to registered users:</p>
+            <ul>
+                <li><strong>Batch Management</strong> — creation and management of student batches with unique enrollment codes.</li>
+                <li><strong>Result Publishing</strong> — tools for teachers to publish exam results, marks, and student remarks.</li>
+                <li><strong>Notice Broadcasting</strong> — a communication system for teachers to reach students and parents.</li>
+                <li><strong>Performance Tracking</strong> — dashboards to monitor individual and class-wide academic progress.</li>
+                <li><strong>Reward Program</strong> — monthly recognition and physical rewards for top-performing students (paid plans only).</li>
+            </ul>
+            <div class="callout callout-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <div>
+                    <div class="c-title">Service Availability</div>
+                    <div class="c-text">EduCoffee targets 99% uptime but does not guarantee uninterrupted access. Scheduled maintenance may temporarily affect availability. We will provide advance notice where possible.</div>
+                </div>
+            </div>
+            <p>EduCoffee reserves the right to modify, discontinue, or add services at any time. Where commercially reasonable, we will provide 14 days' notice of significant changes.</p>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s5">
+            <div class="sec-num">Section 05</div>
+            <h2>Teacher-Specific Terms</h2>
+            <h3>Content Responsibility</h3>
+            <p>Teachers are solely responsible for all content published on the platform — including exam results, remarks, and notices. By publishing content, teachers represent and warrant that:</p>
+            <ul>
+                <li>The content is accurate and reflects genuine academic data.</li>
+                <li>The content does not violate any third party's rights.</li>
+                <li>The content complies with our <a href="guidelines.html">Usage Guidelines</a> and all applicable laws.</li>
+            </ul>
+            <h3>Student Data</h3>
+            <p>By enrolling students and publishing their results, teachers acknowledge they are handling personal data. Teachers agree to use student information only for educational purposes within the platform and not to share, sell, or misuse that data.</p>
+            <h3>Subscription Obligations</h3>
+            <p>Teachers on paid plans must maintain valid, confirmed payment. EduCoffee may downgrade a teacher's plan to Starter if payment cannot be verified, without any obligation to provide a refund.</p>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s6">
+            <div class="sec-num">Section 06</div>
+            <h2>Student-Specific Terms</h2>
+            <ul>
+                <li>Students join batches using a code provided by their teacher. Do not share batch codes with unauthorized individuals.</li>
+                <li>Students may enroll in multiple teachers' batches using a single EduCoffee account.</li>
+                <li>Students acknowledge that their exam results, marks, and attendance information may be visible to their teacher and, where applicable, to parents or guardians.</li>
+                <li>Students must not attempt to alter or falsify results. Any disputes must be raised directly with the teacher.</li>
+                <li>Student accounts are <strong>free of charge</strong>. EduCoffee does not charge students any subscription fees.</li>
+            </ul>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s7">
+            <div class="sec-num">Section 07</div>
+            <h2>Subscriptions &amp; Payments</h2>
+            <h3>Available Plans</h3>
+            <div class="tbl-wrap">
+                <table>
+                    <thead><tr><th>Plan</th><th>Price</th><th>Students</th><th>Notices</th><th>Reward</th></tr></thead>
+                    <tbody>
+                        <tr><td class="td-plan">Starter</td><td>Free</td><td>Up to 10</td><td>5 / day</td><td>None</td></tr>
+                        <tr><td class="td-plan">Professional</td><td>৳150 / month</td><td>Unlimited</td><td>Unlimited</td><td>1 book / month</td></tr>
+                        <tr><td class="td-plan">Elite</td><td>৳600 / 6 months</td><td>Unlimited</td><td>Unlimited</td><td>6 books + 1 special gift</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <h3>Payment Methods</h3>
+            <ul>
+                <li><strong>bKash (Personal):</strong> Send Money to our registered bKash number.</li>
+                <li><strong>Nagad (Personal):</strong> Send Money to our registered Nagad number.</li>
+                <li><strong>In-Person (Office):</strong> Cash or mobile payment at our Naogaon office during business hours.</li>
+            </ul>
+            <h3>Payment Verification</h3>
+            <p>After making an online payment, you must submit the Transaction ID (TrxID) during registration or through your profile page. EduCoffee will verify the TrxID within 24 hours. Paid features are activated upon successful verification.</p>
+            <div class="callout callout-danger">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <div>
+                    <div class="c-title">Fraudulent Payments</div>
+                    <div class="c-text">Submitting a false, invalid, or already-used TrxID constitutes fraud. Such accounts will be permanently terminated and may be reported to relevant authorities.</div>
+                </div>
+            </div>
+            <h3>Billing</h3>
+            <ul>
+                <li><strong>Professional:</strong> Billed monthly. Access continues as long as payment is renewed.</li>
+                <li><strong>Elite:</strong> Single payment for 6 months. Must be manually renewed at the end of the period.</li>
+                <li>EduCoffee does <strong>not</strong> charge recurring automatic payments. All renewals are manual.</li>
+            </ul>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s8">
+            <div class="sec-num">Section 08</div>
+            <h2>Refund Policy</h2>
+            <p>EduCoffee considers refund requests on a case-by-case basis under the following conditions:</p>
+            <ul>
+                <li>Requests must be submitted within <strong>3 calendar days</strong> of payment by emailing <a href="mailto:support@educoffee.app">support@educoffee.app</a> with your TrxID and reason.</li>
+                <li>Refunds will not be issued if you have actively used paid features after subscribing (published results, sent more than 5 notices, or added more than 10 students).</li>
+                <li>Payments made at our office (in-person) are <strong>non-refundable</strong> once the account is activated.</li>
+                <li>Partial refunds are not available. Approved refunds return the full amount paid.</li>
+                <li>EduCoffee reserves the right to decline refund requests made in bad faith.</li>
+                <li>Approved refunds are processed within 5–10 business days to the original payment method.</li>
+            </ul>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s9">
+            <div class="sec-num">Section 09</div>
+            <h2>Reward Program</h2>
+            <p>EduCoffee provides physical rewards (books, magazines, and special gifts) to top-scoring students. By participating, you agree to the following:</p>
+            <ul>
+                <li>Rewards are available exclusively to teachers on the Professional and Elite plans.</li>
+                <li>The top-scoring student is determined by the platform based on published result data.</li>
+                <li>Rewards cannot be exchanged for cash or transferred to another student.</li>
+                <li>EduCoffee ships rewards to the address provided. We are not responsible for delivery failures due to incorrect address information.</li>
+                <li>The teacher must sign and return an acknowledgement receipt before the reward is dispatched.</li>
+                <li>Each reward is assigned a unique serial number and recorded in EduCoffee's internal ledger.</li>
+                <li>EduCoffee reserves the right to modify, pause, or discontinue the reward program at any time with 30 days' notice to affected teachers.</li>
+            </ul>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s10">
+            <div class="sec-num">Section 10</div>
+            <h2>Intellectual Property</h2>
+            <h3>EduCoffee's Property</h3>
+            <p>The EduCoffee name, logo, platform design, software, and all associated materials are the exclusive intellectual property of EduCoffee. You may not copy, reproduce, modify, distribute, or create derivative works without our prior written consent.</p>
+            <h3>Your Content</h3>
+            <p>You retain ownership of content you submit (results, notices, descriptions). By submitting content, you grant EduCoffee a non-exclusive, royalty-free, worldwide licence to use, store, and process that content solely to provide the platform services.</p>
+            <h3>Feedback</h3>
+            <p>Any feedback or suggestions you share may be used by EduCoffee without any obligation to you, and you waive any right to compensation for such input.</p>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s11">
+            <div class="sec-num">Section 11</div>
+            <h2>Privacy &amp; Data</h2>
+            <p>Your use of EduCoffee involves the collection and processing of personal data. Our practices are governed by our <a href="privacy.html">Privacy Policy</a>, which is incorporated into these Terms by reference. By using EduCoffee, you consent to the data practices described therein.</p>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s12">
+            <div class="sec-num">Section 12</div>
+            <h2>Limitation of Liability</h2>
+            <p>To the fullest extent permitted by applicable law:</p>
+            <ul>
+                <li>EduCoffee is provided on an <strong>"as is" and "as available"</strong> basis without warranties of any kind.</li>
+                <li>EduCoffee shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the platform.</li>
+                <li>EduCoffee's total liability for any claim shall not exceed the amount you paid to EduCoffee in the 3 months preceding the claim.</li>
+                <li>EduCoffee is not responsible for the accuracy or quality of content published by teachers or students.</li>
+                <li>EduCoffee is not liable for loss of data due to technical failure, provided we have taken reasonable preventative steps.</li>
+            </ul>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s13">
+            <div class="sec-num">Section 13</div>
+            <h2>Prohibited Conduct</h2>
+            <p>The following are strictly prohibited and may result in immediate account termination:</p>
+            <ul>
+                <li>Creating fake accounts or impersonating another teacher or student.</li>
+                <li>Submitting false, invalid, or already-used Transaction IDs to obtain paid access.</li>
+                <li>Attempting to access other users' accounts without authorisation.</li>
+                <li>Posting offensive, sexually explicit, or politically inflammatory content.</li>
+                <li>Using the platform to conduct any form of financial fraud or scam.</li>
+                <li>Reverse-engineering, scraping, or extracting data from the platform's API without authorisation.</li>
+                <li>Using automated bots or scripts to interact with the platform.</li>
+                <li>Sharing, selling, or renting your account to another person.</li>
+            </ul>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s14">
+            <div class="sec-num">Section 14</div>
+            <h2>Termination</h2>
+            <h3>By You</h3>
+            <p>You may delete your account at any time via the Danger Zone in your Profile settings. Deletion is permanent and irreversible. Paid fees are non-refundable upon voluntary deletion.</p>
+            <h3>By EduCoffee</h3>
+            <p>We may suspend or permanently terminate your account if you:</p>
+            <ul>
+                <li>Violate these Terms, our Usage Guidelines, or Privacy Policy.</li>
+                <li>Engage in fraudulent, abusive, or illegal activity.</li>
+                <li>Pose a risk to other users or the integrity of the platform.</li>
+                <li>Are required to be removed by law or court order.</li>
+            </ul>
+            <p>Serious violations may result in immediate termination without prior notice.</p>
+            <h3>Effect of Termination</h3>
+            <p>Access ceases immediately upon termination. EduCoffee will retain your data only as required by law.</p>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s15">
+            <div class="sec-num">Section 15</div>
+            <h2>Changes to These Terms</h2>
+            <p>EduCoffee may revise these Terms at any time. For material changes, we will:</p>
+            <ul>
+                <li>Update the "Last Updated" date at the top of this page.</li>
+                <li>Send a notification to your registered email address.</li>
+                <li>Display a prominent notice on the platform for at least 7 days.</li>
+            </ul>
+            <p>Continued use of the platform after the effective date of revised Terms constitutes your acceptance. If you do not agree, stop using the platform and delete your account.</p>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s16">
+            <div class="sec-num">Section 16</div>
+            <h2>Governing Law &amp; Disputes</h2>
+            <p>These Terms are governed by the laws of the <strong>People's Republic of Bangladesh</strong>. Any dispute shall first be attempted to be resolved through informal negotiation within 30 days. Unresolved disputes shall be submitted to the competent courts of Naogaon, Bangladesh.</p>
+        </section>
+
+        <hr>
+
+        <section class="sec" id="s17">
+            <div class="sec-num">Section 17</div>
+            <h2>Contact Us</h2>
+            <p>Questions or concerns about these Terms? Reach us through any of the channels below.</p>
+            <div class="contact-card">
+                <div class="cc-item">
+                    <div class="cc-lbl">📧 Legal Email</div>
+                    <div class="cc-val"><a href="mailto:legal@educoffee.app">legal@educoffee.app</a></div>
+                </div>
+                <div class="cc-item">
+                    <div class="cc-lbl">📞 Phone</div>
+                    <div class="cc-val">+880 1700-000000</div>
+                </div>
+                <div class="cc-item">
+                    <div class="cc-lbl">📍 Address</div>
+                    <div class="cc-val">EduCoffee, Naogaon, Bangladesh</div>
+                </div>
+                <div class="cc-item">
+                    <div class="cc-lbl">🕐 Office Hours</div>
+                    <div class="cc-val">Saturday – Thursday, 9 AM – 6 PM</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-logo">Edu<span>Coffee.</span></div>
+    <div class="footer-sub">Bangladesh's digital hub for private educators and students.</div>
+    <ul class="footer-nav">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="guidelines.html">Guidelines</a></li>
+        <li><a href="terms.html">Terms</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="auth.html">Login</a></li>
+    </ul>
+    <div class="footer-copy">© 2025 EduCoffee. All rights reserved · Naogaon, Bangladesh</div>
+</footer>
+
+<script>
+/* Active TOC highlight on scroll */
+const tocLinks = document.querySelectorAll('.toc-list a');
+window.addEventListener('scroll', () => {
+    let current = '';
+    document.querySelectorAll('.sec[id]').forEach(s => {
+        if (window.scrollY >= s.offsetTop - 110) current = s.id;
+    });
+    tocLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
+}, { passive: true });
+</script>
+</body>
+</html>
