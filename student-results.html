@@ -6,6 +6,7 @@
     <title>Results | EduCoffee</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="api.js"></script>
 
     <!-- Progressive Web App Meta tags & Links -->
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, 		maximum-scale=1.0, user-scalable=no">
@@ -259,48 +260,43 @@
 </nav>
 
 <script>
-const API = 'https://educoffee.onrender.com/api';
 const studentId = localStorage.getItem('current_userid');
 
-if (!studentId) { window.location.href = 'auth.html'; }
+if (!studentId) {
+    window.location.href = 'auth.html';
+}
 
 const studentName = localStorage.getItem('current_user_name') || localStorage.getItem('userName') || 'Student';
 document.getElementById('sidebarName').textContent = studentName;
 document.getElementById('sidebarAvatar').textContent = studentName[0].toUpperCase();
 
-// ── STATE ──
-// allScores: enriched objects with title, total_marks, batch_code attached
 let allScores = [];
 let currentBatch = 'all';
 let chartInstance = null;
 let studentBatchCodes = [];
 
-async function apiFetch(path) {
-    try {
-        const res = await fetch(API + path);
-        if (!res.ok) return null;
-        return await res.json();
-    } catch { return null; }
+function safeNumber(value) {
+    return value === null || value === undefined ? null : Number(value);
+}
+
+function getPercentage(value, total) {
+    return value !== null && total ? Math.round((value / total) * 100) : null;
+}
+
+function showLoadError() {
+    document.querySelector('.page-header p').textContent = 'Could not load data. Please refresh.';
 }
 
 async function init() {
-    // Get student's batch codes
-    const student = await apiFetch(`/user/${studentId}`);
+    const student = await GetUserByID(studentId);
     if (!student) {
-        document.querySelector('.page-header p').textContent = 'Could not load data. Please refresh.';
+        showLoadError();
         return;
     }
+
     studentBatchCodes = student.batch_codes || [];
 
-    // Fetch raw scores for this student
-    const rawScores = await apiFetch(`/results/student/${studentId}`) || [];
-allScores = rawScores.map(s => ({
-    ...s,
-    percentage: (s.marks !== null && s.total_marks)
-        ? Math.round((s.marks / s.total_marks) * 100)
-        : null
-}));
-
+    const rawScores = await GetStudentResults(studentId) || [];
     if (!rawScores.length) {
         allScores = [];
         buildTabs();
@@ -308,37 +304,30 @@ allScores = rawScores.map(s => ({
         return;
     }
 
-    // For each score, fetch the result metadata using the existing
-    // GET /results/student/{student_id}/{result_id} endpoint
-    // De-duplicate result_ids first to avoid redundant fetches
-    const uniqueResultIds = [...new Set(rawScores.map(s => s.result_id))];
+    const uniqueResultIds = [...new Set(rawScores.map(score => score.result_id))];
+    const resultLookup = {};
 
-    const metaMap = {};
-    await Promise.all(uniqueResultIds.map(async (rid) => {
-        const detail = await apiFetch(`/results/student/${studentId}/${rid}`);
-        if (detail) metaMap[rid] = detail;
+    await Promise.all(uniqueResultIds.map(async (resultId) => {
+        const result = await GetStudentResult(studentId, resultId);
+        if (result) resultLookup[resultId] = result;
     }));
 
-    // We also need title + total_marks + batch_code which live on the Result,
-    // not on StudentScore. Fetch all results to get that.
-    // Use /results endpoint (returns all) and build a lookup.
-    const allResults = await apiFetch('/results') || [];
-    const resultLookup = {};
-    allResults.forEach(r => { resultLookup[r.id] = r; });
+    allScores = rawScores.map(score => {
+        const result = resultLookup[score.result_id] || {};
+        const marks = safeNumber(score.marks);
+        const total_marks = safeNumber(result.total_marks);
+        const percentage = getPercentage(marks, total_marks);
 
-    // Enrich each score
-    allScores = rawScores.map(s => {
-        const meta = resultLookup[s.result_id] || {};
-        const marks = s.marks === null || s.marks === undefined ? null : Number(s.marks);
-        const total_marks = meta.total_marks ?? null;
-        const percentage = (marks !== null && total_marks) ? Math.round((marks / total_marks) * 100) : null;
         return {
-            ...s,
-            title: meta.title || 'Exam',
-            description: meta.description || '',
+            ...score,
+            title: result.title || 'Exam',
+            description: result.description || '',
             total_marks,
-            batch_code: meta.batch_code || null,
+            batch_code: result.batch_code || null,
+            marks,
             percentage,
+            absent: Boolean(score.absent),
+            remarks: score.remarks || ''
         };
     });
 
@@ -346,7 +335,6 @@ allScores = rawScores.map(s => ({
     update();
 }
 
-// ── TABS ──
 function buildTabs() {
     const container = document.getElementById('teacherTabs');
     container.innerHTML = '';
@@ -373,7 +361,6 @@ function switchBatch(code, btn) {
     update();
 }
 
-// ── GET FILTERED SCORES ──
 function getFilteredScores() {
     return allScores.filter(s => currentBatch === 'all' || s.batch_code === currentBatch);
 }
@@ -382,62 +369,63 @@ function update() {
     const scores = getFilteredScores();
     updateSummary(scores);
     updateChart(scores);
-    renderList();
+    renderList(scores);
 }
 
-// ── SUMMARY ──
 function updateSummary(scores) {
     const scored = scores.filter(s => !s.absent && s.marks !== null && s.total_marks);
-    const totalEarned   = scored.reduce((sum, s) => sum + Number(s.marks), 0);
+    const totalEarned = scored.reduce((sum, s) => sum + Number(s.marks), 0);
     const totalPossible = scored.reduce((sum, s) => sum + Number(s.total_marks), 0);
-    const overallPct    = totalPossible ? Math.round((totalEarned / totalPossible) * 100) : null;
-    const best          = scored.reduce((max, s) => (s.percentage ?? -1) > max ? (s.percentage ?? -1) : max, -1);
+    const overallPct = totalPossible ? Math.round((totalEarned / totalPossible) * 100) : null;
+    const best = scored.reduce((max, s) => Math.max(max, s.percentage ?? -1), -1);
 
     document.getElementById('sumTotal').textContent = scores.length;
+    document.getElementById('sumAvg').textContent = overallPct !== null ? `${overallPct}%` : '—';
+    document.getElementById('sumBest').textContent = best >= 0 ? `${best}%` : '—';
 
     const badge = document.getElementById('trendBadge');
+    const trendText = document.getElementById('sumTrend');
 
-    if (!scored.length) {
-        document.getElementById('sumAvg').textContent  = '—';
-        document.getElementById('sumBest').textContent = '—';
-        document.getElementById('sumTrend').textContent = '—';
+    if (scored.length < 2) {
+        trendText.textContent = '—';
         badge.className = 'trend-badge trend-stable';
         badge.textContent = '→ Stable';
         return;
     }
 
-    document.getElementById('sumAvg').textContent  = overallPct !== null ? `${overallPct}%` : '—';
-    document.getElementById('sumBest').textContent = best >= 0 ? `${best}%` : '—';
-
     const pcts = scored.map(s => s.percentage).filter(v => v !== null);
-    if (pcts.length >= 2) {
-        const diff = pcts[pcts.length - 1] - pcts[0];
-        if (diff > 3) {
-            document.getElementById('sumTrend').textContent = '↑ Up';
-            badge.className = 'trend-badge trend-up'; badge.textContent = '↑ Improving';
-        } else if (diff < -3) {
-            document.getElementById('sumTrend').textContent = '↓ Down';
-            badge.className = 'trend-badge trend-down'; badge.textContent = '↓ Declining';
-        } else {
-            document.getElementById('sumTrend').textContent = '→ Stable';
-            badge.className = 'trend-badge trend-stable'; badge.textContent = '→ Stable';
-        }
+    const diff = pcts[pcts.length - 1] - pcts[0];
+
+    if (diff > 3) {
+        trendText.textContent = '↑ Up';
+        badge.className = 'trend-badge trend-up';
+        badge.textContent = '↑ Improving';
+    } else if (diff < -3) {
+        trendText.textContent = '↓ Down';
+        badge.className = 'trend-badge trend-down';
+        badge.textContent = '↓ Declining';
     } else {
-        document.getElementById('sumTrend').textContent = '—';
-        badge.className = 'trend-badge trend-stable'; badge.textContent = '→ Stable';
+        trendText.textContent = '→ Stable';
+        badge.className = 'trend-badge trend-stable';
+        badge.textContent = '→ Stable';
     }
 }
 
-// ── CHART ──
 function updateChart(scores) {
     const ctx = document.getElementById('perfChart').getContext('2d');
     const scored = scores.filter(s => !s.absent && s.marks !== null && s.total_marks);
 
-    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
-    if (!scored.length) return;
+    if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+    }
 
-    const last8  = scored.slice(-8);
-    const data   = last8.map(s => Math.round((s.marks / s.total_marks) * 100));
+    if (!scored.length) {
+        return;
+    }
+
+    const last8 = scored.slice(-8);
+    const data = last8.map(s => Math.round((s.marks / s.total_marks) * 100));
     const labels = last8.map(s => s.title.split(' ').slice(0, 2).join(' '));
 
     const grad = ctx.createLinearGradient(0, 0, 0, 220);
@@ -465,92 +453,47 @@ function updateChart(scores) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: {
-                callbacks: { label: ctx => ` ${ctx.parsed.y}%` }
-            }},
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y}%` } }
+            },
             scales: {
                 y: {
-                    beginAtZero: false, min: 0, max: 100,
+                    beginAtZero: false,
+                    min: 0,
+                    max: 100,
                     grid: { color: 'rgba(62,39,35,.04)' },
-                    ticks: { stepSize: 20, font: { size: 11, family: "'DM Sans'" }, callback: v => v + '%' }
+                    ticks: { stepSize: 20, font: { size: 11, family: "'DM Sans'" }, callback: v => `${v}%` }
                 },
-                x: { grid: { display: false }, ticks: { font: { size: 10, family: "'DM Sans'" }, maxRotation: 30 } }
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 10, family: "'DM Sans'" }, maxRotation: 30 }
+                }
             }
         }
     });
 }
 
-// ── RESULTS LIST ──
-function renderList() {
-    let scores = getFilteredScores();
-    const sortVal = document.getElementById('sortSelect').value;
+function getResultTag(pct) {
+    if (pct === null) return { className: 'tag-avg', label: 'Pending' };
+    if (pct >= 85) return { className: 'tag-exc', label: 'Excellent' };
+    if (pct >= 70) return { className: 'tag-pass', label: 'Good' };
+    if (pct >= 50) return { className: 'tag-avg', label: 'Average' };
+    return { className: 'tag-fail', label: 'Needs Work' };
+}
 
-    if (sortVal === 'score-high') {
-        scores = scores.filter(s => !s.absent && s.percentage !== null)
-            .sort((a, b) => b.percentage - a.percentage);
-    } else if (sortVal === 'score-low') {
-        scores = scores.filter(s => !s.absent && s.percentage !== null)
-            .sort((a, b) => a.percentage - b.percentage);
-    }
+function renderResultCard(score) {
+    const marks = score.marks ?? 0;
+    const total = score.total_marks ?? null;
+    const pct = score.percentage !== null ? score.percentage : getPercentage(marks, total);
+    const R = 24;
+    const C = 2 * Math.PI * R;
+    const dash = pct !== null ? (pct / 100) * C : 0;
+    const { className, label } = getResultTag(pct);
+    const description = score.description ? `<span>📝 ${score.description}</span>` : '';
+    const strokeColor = pct === null ? '#9E9E9E' : pct >= 85 ? '#2E7D32' : pct >= 70 ? '#C68642' : pct >= 50 ? '#1565C0' : '#C62828';
 
-    const container = document.getElementById('resultsList');
-
-    if (!scores.length) {
-        container.innerHTML = `<div class="empty-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            <h3>No results yet</h3>
-            <p>Results will appear here once published by your teacher.</p>
-        </div>`;
-        return;
-    }
-
-    container.innerHTML = scores.map(s => {
-        if (s.absent) {
-            return `
-            <div class="result-card">
-                <div class="score-circle">
-                    <svg width="56" height="56" viewBox="0 0 56 56">
-                        <circle class="sc-bg" cx="28" cy="28" r="24"/>
-                    </svg>
-                    <div class="sc-text">—</div>
-                </div>
-                <div class="rc-info">
-                    <div class="rc-exam">${s.title}</div>
-                    <div class="rc-meta">
-                        <span>📋 Batch: ${s.batch_code || '—'}</span>
-                        ${s.remarks ? `<span>💬 ${s.remarks}</span>` : ''}
-                    </div>
-                </div>
-                <div class="rc-score">
-                    <div class="rc-main-score">—</div>
-                    <div class="rc-total">/ ${s.total_marks || '—'}</div>
-                    <div class="rc-tag tag-absent">Absent</div>
-                </div>
-            </div>`;
-        }
-
-        const marks = s.marks ?? 0;
-        const total = s.total_marks ?? null;
-        const pct   = s.percentage !== null ? s.percentage : (total ? Math.round((marks / total) * 100) : null);
-        const R = 24, C = 2 * Math.PI * R;
-        const dash = pct !== null ? (pct / 100) * C : 0;
-        const strokeColor = pct === null ? '#9E9E9E'
-            : pct >= 85 ? '#2E7D32'
-            : pct >= 70 ? '#C68642'
-            : pct >= 50 ? '#1565C0'
-            : '#C62828';
-        const tagClass = pct === null ? 'tag-avg'
-            : pct >= 85 ? 'tag-exc'
-            : pct >= 70 ? 'tag-pass'
-            : pct >= 50 ? 'tag-avg'
-            : 'tag-fail';
-        const tagText = pct === null ? 'Pending'
-            : pct >= 85 ? 'Excellent'
-            : pct >= 70 ? 'Good'
-            : pct >= 50 ? 'Average'
-            : 'Needs Work';
-
-        return `
+    return `
         <div class="result-card">
             <div class="score-circle">
                 <svg width="56" height="56" viewBox="0 0 56 56">
@@ -560,28 +503,82 @@ function renderList() {
                         stroke-dasharray="${dash.toFixed(1)} ${C.toFixed(1)}"
                         stroke-dashoffset="0"/>
                 </svg>
-                <div class="sc-text">${pct !== null ? pct + '%' : '—'}</div>
+                <div class="sc-text">${pct !== null ? `${pct}%` : '—'}</div>
             </div>
             <div class="rc-info">
-                <div class="rc-exam">${s.title}</div>
+                <div class="rc-exam">${score.title}</div>
                 <div class="rc-meta">
-                    <span>📋 Batch: ${s.batch_code || '—'}</span>
-                    ${s.description ? `<span>📝 ${s.description}</span>` : ''}
+                    <span>📋 Batch: ${score.batch_code || '—'}</span>
+                    ${description}
                 </div>
             </div>
             <div class="rc-score">
                 <div class="rc-main-score">${marks}</div>
                 <div class="rc-total">/ ${total !== null ? total : '—'}</div>
-                <div class="rc-tag ${tagClass}">${tagText}</div>
+                <div class="rc-tag ${className}">${label}</div>
             </div>
         </div>`;
-    }).join('');
+}
+
+function renderAbsentCard(score) {
+    return `
+            <div class="result-card">
+                <div class="score-circle">
+                    <svg width="56" height="56" viewBox="0 0 56 56">
+                        <circle class="sc-bg" cx="28" cy="28" r="24"/>
+                    </svg>
+                    <div class="sc-text">—</div>
+                </div>
+                <div class="rc-info">
+                    <div class="rc-exam">${score.title}</div>
+                    <div class="rc-meta">
+                        <span>📋 Batch: ${score.batch_code || '—'}</span>
+                        ${score.remarks ? `<span>💬 ${score.remarks}</span>` : ''}
+                    </div>
+                </div>
+                <div class="rc-score">
+                    <div class="rc-main-score">—</div>
+                    <div class="rc-total">/ ${score.total_marks || '—'}</div>
+                    <div class="rc-tag tag-absent">Absent</div>
+                </div>
+            </div>`;
+}
+
+function renderList(scores) {
+    const sortVal = document.getElementById('sortSelect').value;
+    let sorted = [...scores];
+
+    if (sortVal === 'score-high') {
+        sorted = sorted.filter(s => !s.absent && s.percentage !== null)
+            .sort((a, b) => b.percentage - a.percentage);
+    } else if (sortVal === 'score-low') {
+        sorted = sorted.filter(s => !s.absent && s.percentage !== null)
+            .sort((a, b) => a.percentage - b.percentage);
+    }
+
+    const container = document.getElementById('resultsList');
+
+    if (!sorted.length) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <h3>No results yet</h3>
+                <p>Results will appear here once published by your teacher.</p>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = sorted.map(score => score.absent ? renderAbsentCard(score) : renderResultCard(score)).join('');
 }
 
 function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('mobile-open');
     document.getElementById('mobileOverlay').classList.toggle('open');
 }
+
 function closeSidebar() {
     document.getElementById('sidebar').classList.remove('mobile-open');
     document.getElementById('mobileOverlay').classList.remove('open');

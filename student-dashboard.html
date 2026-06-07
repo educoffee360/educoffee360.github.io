@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | EduCoffee</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="api.js"></script>
 
     <!-- Progressive Web App Meta tags & Links -->
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, 		maximum-scale=1.0, user-scalable=no">
@@ -658,19 +659,12 @@
 </div>
 
 <script>
-const API = 'https://educoffee.onrender.com/api';
-
 // ── AUTH ──
 const studentId = localStorage.getItem('current_userid') || localStorage.getItem('userId');
 const studentName = localStorage.getItem('current_user_name') || localStorage.getItem('userName') || 'Student';
 
 // if (!studentId) { window.location.href = 'auth.html'; }
 
-// ── SIDEBAR USER ──
-async function getUser(){
-    const res = await GetUserByID(studentId)
-    if (res) student = res
-}
 document.getElementById('sidebarName').textContent = studentName;
 document.getElementById('sidebarAvatar').textContent = studentName[0].toUpperCase();
 document.getElementById('welcomeName').textContent = `Hello, ${studentName}!`;
@@ -685,16 +679,23 @@ let batchData = [];     // [{code, name, year, schedule, teacher_id}]
 let noticesData = [];   // from API
 let scoresData = [];    // student scores from API
 let currentBatchCode = null;
+let resultLookup = {};
 
-// ── INIT ──
+function safeNumber(value) {
+    return value === null || value === undefined ? null : Number(value);
+}
+
+function getPercentage(value, total) {
+    return value !== null && total ? Math.round((value / total) * 100) : null;
+}
+
 async function init() {
-    const student = await apiFetch(`/user/${studentId}`);
+    const student = await GetUserByID(studentId);
     if (!student) {
         doLogout();
         return;
     }
 
-    student.name = student.name
     document.getElementById('sidebarName').textContent = student.name;
     document.getElementById('sidebarAvatar').textContent = student.name[0].toUpperCase();
     document.getElementById('welcomeName').textContent = `Hello, ${student.name}!`;
@@ -702,15 +703,33 @@ async function init() {
     const batchCodes = student.batch_codes || [];
     document.getElementById('statBatches').textContent = batchCodes.length;
 
-    // Fetch all batches info
     const allBatches = await apiFetch('/batches') || [];
     batchData = allBatches.filter(b => batchCodes.includes(b.code));
 
-    // Fetch notices for student
-    noticesData = await apiFetch(`/notices/${studentId}`) || [];
+    noticesData = await GetNoticesForStudent(studentId) || [];
+    scoresData = await GetStudentResults(studentId) || [];
 
-    // Fetch results/scores for student
-    scoresData = await apiFetch(`/results/student/${studentId}`) || [];
+    const uniqueResultIds = [...new Set(scoresData.map(s => s.result_id).filter(Boolean))];
+    resultLookup = {};
+    await Promise.all(uniqueResultIds.map(async id => {
+        const result = await GetStudentResult(studentId, id);
+        if (result) resultLookup[id] = result;
+    }));
+
+    scoresData = scoresData.map(score => {
+        const result = resultLookup[score.result_id] || {};
+        const marks = safeNumber(score.marks);
+        const total_marks = safeNumber(result.total_marks ?? score.total_marks);
+
+        return {
+            ...score,
+            title: result.title || score.title || 'Exam',
+            total_marks,
+            batch_code: result.batch_code || score.batch_code || '',
+            description: result.description || '',
+            percentage: getPercentage(marks, total_marks),
+        };
+    });
 
     renderStats();
     renderBatches(batchCodes);
@@ -720,10 +739,12 @@ async function init() {
 
 async function apiFetch(path) {
     try {
-        const res = await fetch(API + path);
+        const res = await fetch(api_url + path);
         if (!res.ok) return null;
         return await res.json();
-    } catch { return null; }
+    } catch {
+        return null;
+    }
 }
 
 // ── STATS ──
@@ -731,10 +752,12 @@ function renderStats() {
     document.getElementById('statNotices').textContent = noticesData.length;
     document.getElementById('statExams').textContent = scoresData.length;
 
-    const scored = scoresData.filter(s => !s.absent && s.marks !== null);
+    const scored = scoresData.filter(s => !s.absent && s.marks !== null && s.total_marks);
     if (scored.length > 0) {
-        // We need total_marks from the result; store a lookup if available
-        document.getElementById('statAvg').textContent = '—';
+        const totalEarned = scored.reduce((sum, s) => sum + Number(s.marks), 0);
+        const totalPossible = scored.reduce((sum, s) => sum + Number(s.total_marks), 0);
+        const average = totalPossible ? Math.round((totalEarned / totalPossible) * 100) : null;
+        document.getElementById('statAvg').textContent = average !== null ? `${average}%` : '—';
     } else {
         document.getElementById('statAvg').textContent = '—';
     }
@@ -816,32 +839,67 @@ function renderRecentNotices() {
 }
 
 // ── RECENT RESULTS ──
+function getResultGradeClass(pct) {
+    if (pct === null) return 'grade-c';
+    if (pct >= 85) return 'grade-a';
+    if (pct >= 70) return 'grade-b';
+    return 'grade-c';
+}
+
 function renderRecentResults() {
     const container = document.getElementById('resultsList');
     if (scoresData.length === 0) {
         container.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>No results yet.</p></div>`;
         return;
     }
-    const shown = scoresData.slice(0, 4);
+
+    const enriched = scoresData.map(score => {
+        const result = resultLookup[score.result_id] || {};
+        const marks = safeNumber(score.marks);
+        const total = safeNumber(result.total_marks ?? score.total_marks);
+        const pct = getPercentage(marks, total);
+        return {
+            ...score,
+            result,
+            marks,
+            total,
+            pct,
+            gradeClass: getResultGradeClass(pct),
+            title: result.title || score.title || 'Exam Result',
+            batchCode: result.batch_code || score.batch_code || 'Batch',
+        };
+    });
+
+    const shown = enriched
+        .sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1))
+        .slice(0, 4);
+
     container.innerHTML = shown.map(s => {
-        if (s.absent) return `
+        if (s.absent) {
+            return `
             <div class="result-item">
-                <div class="result-grade grade-c">A</div>
+                <div class="result-grade grade-c">AB</div>
                 <div class="result-info">
-                    <div class="result-exam">Exam</div>
-                    <div class="result-sub">Absent</div>
-                </div>
-                <div class="result-score"><div class="score-num">—</div></div>
-            </div>`;
-        return `
-            <div class="result-item">
-                <div class="result-grade grade-b">—</div>
-                <div class="result-info">
-                    <div class="result-exam">Exam Result</div>
-                    <div class="result-sub">${s.remarks || ''}</div>
+                    <div class="result-exam">${s.title}</div>
+                    <div class="result-sub">${s.batchCode} • Absent</div>
                 </div>
                 <div class="result-score">
-                    <div class="score-num">${s.marks ?? '—'}</div>
+                    <div class="score-num">—</div>
+                    <div class="score-total">/ ${s.total !== null ? s.total : '—'}</div>
+                </div>
+            </div>`;
+        }
+
+        return `
+            <div class="result-item">
+                <div class="result-grade ${s.gradeClass}">${s.pct !== null ? `${s.pct}%` : '—'}</div>
+                <div class="result-info">
+                    <div class="result-exam">${s.title}</div>
+                    <div class="result-sub">${s.batchCode}${s.total !== null ? ` • ${s.marks}/${s.total}` : ''}</div>
+                </div>
+                <div class="result-score">
+                    <div class="score-num">${s.marks !== null ? s.marks : '—'}</div>
+                    <div class="score-total">${s.total !== null ? `/${s.total}` : ''}</div>
                 </div>
             </div>`;
     }).join('');
