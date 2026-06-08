@@ -14,9 +14,14 @@ class User(Base):
     email = Column(String, unique=True)
     phone = Column(String)
     password = Column(String)
-    role = Column(Enum('teacher', 'student'))
+    
+    # FIX: Added name='user_role'
+    role = Column(Enum('teacher', 'student', name='user_role'))
+    
     batch_codes = Column(JSON, nullable=True)
-    plan = Column(Enum('Starter', 'Professional', 'Elite'), nullable=True)
+    
+    # FIX: Added name='user_plan'
+    plan = Column(Enum('Starter', 'Professional', 'Elite', name='user_plan'), nullable=True)
 
 class Batch(Base):
     __tablename__ = 'batches'
