@@ -1,14 +1,51 @@
-const api_url = "https://educoffee.onrender.com/api";
+const api_url = (typeof window !== "undefined" && window.API_URL) || (typeof globalThis !== "undefined" && globalThis.API_URL) || "https://educoffee.onrender.com/api";
 // const api_url = "http://127.0.0.1:8000/api";
+
+const defaultHeaders = {
+  "Content-Type": "application/json",
+  Accept: "application/json",
+};
+
+async function requestJson(path, options = {}) {
+  const { method = "GET", body, headers = {} } = options;
+  const response = await fetch(`${api_url}${path}`, {
+    method,
+    headers: {
+      ...defaultHeaders,
+      ...headers,
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    let errorPayload = {};
+
+    try {
+      errorPayload = await response.json();
+    } catch {
+      errorPayload = {};
+    }
+
+    const detail = errorPayload.detail || errorPayload.message || errorPayload.error || `Request failed with status ${response.status}`;
+    throw new Error(detail);
+  }
+
+  if (response.status === 204) {
+    return true;
+  }
+
+  try {
+    return await response.json();
+  } catch {
+    return true;
+  }
+}
 
 async function Register(data) {
   try {
-    const response = await fetch(`${api_url}/register`, {
+    return await requestJson("/register", {
       method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify({
+      body: {
         name: data.name,
         email: data.email,
         password: data.password,
@@ -16,400 +53,204 @@ async function Register(data) {
         center_name: data.center_name,
         role: data.role,
         batch_codes: data.batch_codes,
-        plan: data.plan
-      }),
+        plan: data.plan,
+      },
     });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-
-    const result = await response.json();
-    console.log(result);
-    return result;
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     throw error;
   }
 }
 
 async function GetUserByID(id) {
   try {
-    const response = await fetch(`${api_url}/user/${id}`, {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-
-    const data = await response.json();
-    console.log(data);
-    return data;
+    return await requestJson(`/user/${id}`);
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     throw error;
   }
 }
 
 async function Login(email, pass) {
   try {
-    const response = await fetch(`${api_url}/login`, {
+    return await requestJson("/login", {
       method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify({
-        email: email,
+      body: {
+        email,
         password: pass,
-      }),
+      },
     });
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-    const data = await response.json();
-    console.log(data);
-    return data;
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function CreateNewBatch(batch) {
   try {
-    const response = await fetch(`${api_url}/new_batch`, {
+    return await requestJson("/new_batch", {
       method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify({
+      body: {
         name: batch.name,
         year: batch.year,
         schedule: batch.schedule,
         teacher_id: batch.teacher_id,
         code: batch.code,
-      }),
+      },
     });
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-    const data = await response.json();
-    console.log(data);
-    return data;
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function UpdateBatch(code, batch) {
   try {
-    const response = await fetch(`${api_url}/batch/${code}`, {
+    return await requestJson(`/batch/${code}`, {
       method: "PUT",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify({
+      body: {
         name: batch.name,
         year: batch.year,
         schedule: batch.schedule,
-      }),
+      },
     });
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-    const data = await response.json();
-    console.log(data);
-    return data;
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function DeleteBatch(code) {
   try {
-    const response = await fetch(`${api_url}/batch/${code}`, {
+    return await requestJson(`/batch/${code}`, {
       method: "DELETE",
-      headers: {
-        "Content-type": "application/json",
-      },
     });
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-    return true;
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function GetBatchesByTID(teacher_id) {
   try {
-    const response = await fetch(`${api_url}/batches/${teacher_id}`, {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-    const data = await response.json();
-    console.log(data);
-    return data;
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+    return await requestJson(`/batches/${teacher_id}`);
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function GetMyStudents(teacher_id) {
   try {
-    const response = await fetch(`${api_url}/my_students/${teacher_id}`, {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-    const data = await response.json();
-    console.log(data);
-    return data;
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+    return await requestJson(`/my_students/${teacher_id}`);
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function GetStudentsByBC(batch_code) {
   try {
-    const response = await fetch(`${api_url}/students_in_batch/${batch_code}`, {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-    const data = await response.json();
-    console.log(data);
-    return data;
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+    return await requestJson(`/students_in_batch/${batch_code}`);
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function CreateResult(result) {
   try {
-    const response = await fetch(`${api_url}/new_result`, {
+    return await requestJson("/new_result", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+      body: {
         title: result.title,
         description: result.description,
         total_marks: result.total_marks,
         batch_code: result.batch_code,
-        scores: result.scores
-      })
+        scores: result.scores,
+      },
     });
-
-    if (!response.ok) {
-      const err = await response.json();
-      console.log("FASTAPI ERROR:", err);
-      throw new Error(err.detail);
-    }
-
-    return await response.json();
-
-  } catch (err) {
-    console.log("CLIENT ERROR:", err.message);
-    throw err;
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function GetStudentResults(student_id) {
   try {
-    const response = await fetch(`${api_url}/results/student/${student_id}`, {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-    const data = await response.json();
-    console.log(data);
-    return data;
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+    return await requestJson(`/results/student/${student_id}`);
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function GetStudentResult(student_id, result_id) {
   try {
-    const response = await fetch(`${api_url}/results/student/${student_id}/${result_id}`, {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-    const data = await response.json();
-    console.log(data);
-    return data;
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+    return await requestJson(`/results/student/${student_id}/${result_id}`);
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function GetMyNotices(teacher_id) {
   try {
-    const response = await fetch(`${api_url}/my_notices/${teacher_id}`, {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-    const data = await response.json();
-    console.log(data);
-    return data;
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+    return await requestJson(`/my_notices/${teacher_id}`);
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function CreateNotice(notice) {
-  console.log(notice.text)
   try {
-    const response = await fetch(`${api_url}/new_notice`, {
+    return await requestJson("/new_notice", {
       method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify({
+      body: {
         text: notice.text,
         teacher_id: notice.teacher_id,
         batch_codes: notice.batch_codes,
-      })
+      },
     });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-    const data = await response.json();
-    console.log(data);
-    return data;
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function UpdateNotice(noticeId, notice) {
   try {
-    const response = await fetch(`${api_url}/notice/${noticeId}`, {
+    return await requestJson(`/notice/${noticeId}`, {
       method: "PUT",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify({
+      body: {
         text: notice.text,
         teacher_id: notice.teacher_id,
         batch_codes: notice.batch_codes,
-      })
+      },
     });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-
-    return await response.json();
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function DeleteNotice(noticeId) {
   try {
-    const response = await fetch(`${api_url}/notice/${noticeId}`, {
+    return await requestJson(`/notice/${noticeId}`, {
       method: "DELETE",
-      headers: {
-        "Content-type": "application/json",
-      },
     });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-
-    return true;
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
 
 async function GetNoticesForStudent(student_id) {
   try {
-    const response = await fetch(`${api_url}/notices/${student_id}`, {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail);
-    }
-    const data = await response.json();
-    console.log(data);
-    return data;
-  } catch (err) {
-    console.log(err.message);
-    throw err;
+    return await requestJson(`/notices/${student_id}`);
+  } catch (error) {
+    console.error(error.message);
+    throw error;
   }
 }
