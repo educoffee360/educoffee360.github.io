@@ -6,6 +6,8 @@ import schemas
 import models
 from database import get_db
 
+from security import hash_password, verify_password, needs_rehash
+
 router = APIRouter(prefix="/api")
 
 
@@ -37,7 +39,7 @@ def register(user: schemas.User, db: Session = Depends(get_db)):
         name=user.name,
         phone=user.phone,
         email=user.email,
-        password=user.password,
+        password=hash_password(user.password),
         role=user.role,
         batch_codes=user.batch_codes if user.role == "student" else None,
         center_name=user.center_name if user.role == "teacher" else None,
@@ -55,8 +57,14 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
 
     if not db_user:
         raise HTTPException(404, "User doesn't exist")
-    if user.password != db_user.password:
-        raise HTTPException(400, "Incorrect password")
+    if not verify_password(db_user.password, user.password):
+        raise HTTPException(401, "Incorrect password")
+    if needs_rehash(db_user.password):
+        new_hash = hash_password(user.password)
+        db_user.password = new_hash
+
+        db.commit()
+        db.refresh(db_user)
 
     return {"message": "Login successful", "role": db_user.role, "id": db_user.id}
 
