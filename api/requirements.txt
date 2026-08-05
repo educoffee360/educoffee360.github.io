@@ -38,6 +38,7 @@ imagekitio==5.1.1
 itsdangerous==2.2.0
 Jinja2==3.1.6
 joblib==1.5.3
+jose==3.5.0
 lxml==6.0.2
 makefun==1.16.0
 markdown-it-py==4.0.0
