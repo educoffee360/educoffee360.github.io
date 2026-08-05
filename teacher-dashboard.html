@@ -1,34 +1,29 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Dashboard | EduCoffee</title>
-    <meta name="robots" content="noindex">
-
-    <!-- Progressive Web App Meta tags & Links -->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, 		maximum-scale=1.0, user-scalable=no">
-	<link rel="manifest" href="/manifest.json">
-	<meta name="theme-color" content="#3E2723">
-
-	<!-- iOS Web App Capability & Standard Styles -->
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="default">
-	<meta name="apple-mobile-web-app-title" content="EduCoffee">
-	<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
-
-	<!-- Custom PWA Installation Interceptor & Service Worker -->
-	<script src="/pwa-installer.js" defer></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Teacher Dashboard | EduCoffee</title>
+<meta content="noindex" name="robots"/>
+<!-- Progressive Web App Meta tags & Links -->
 
 
-	<!-- Favicon -->
-	<link rel="icon" href="/assets/icons/favicon.ico" type="image/x-icon">
-	<link rel="icon" type="image/png" href="/assets/icons/favicon-32x32.png">
-	<!-- Apple Touch Icon -->
-	<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
-    
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
+
+<!-- iOS Web App Capability & Standard Styles -->
+
+
+
+
+<!-- Custom PWA Installation Interceptor & Service Worker -->
+<script defer="" src="/pwa-installer.js"></script>
+<!-- Favicon -->
+
+
+<!-- Apple Touch Icon -->
+
+
+<style>
         :root{
             --bg:#FDFBF7;--coffee:#3E2723;--caramel:#C68642;
             --cl:rgba(198,134,66,.10);--text:#2D241E;--muted:#7D6E64;
@@ -176,86 +171,30 @@
         }
         @media(max-width:480px){.stats{grid-template-columns:1fr 1fr}.sc{padding:13px}}
     </style>
-</head>
-<body>
-
+<script defer="True" src="/shared_head.js"></script></head>
+<body data-ec-layout="teacher" data-ec-page="teacher-dashboard">
 <!-- ── SIDEBAR ── -->
-<aside class="sidebar" id="sidebar">
-    <a href="teacher-dashboard.html" class="sl">Edu<span>Coffee.</span></a>
-    <nav class="snav">
-        <div class="nsec">Dashboard</div>
-        <a href="teacher-dashboard.html" class="nl active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            Overview
-        </a>
-        <div class="nsec">Manage</div>
-        <a href="teacher-batches.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-            Batches
-        </a>
-        <a href="teacher-students.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            Students
-        </a>
-        <a href="teacher-notices.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            Notices
-        </a>
-        <a href="teacher-results.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Results
-        </a>
-        <div class="nsec">Account</div>
-        <a href="teacher-profile.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            Profile & Settings
-        </a>
-    </nav>
-    <div class="sfooter">
-        <div class="uc" onclick="location.href='teacher-profile.html'">
-            <div class="uav">T</div>
-            <div style="flex:1;min-width:0">
-                <div class="un" id="teacherName">Teacher</div>
-                <div class="ur" id="teacherEmail">Teacher Account</div>
-            </div>
-            <button class="lob" onclick="event.stopPropagation();doLogout()" title="Logout">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            </button>
-        </div>
-    </div>
-</aside>
-<div class="mov" id="mov" onclick="closeSB()"></div>
-
 <!-- ── MOBILE HEADER ── -->
-<header class="mhdr">
-    <a href="teacher-dashboard.html" class="mlogo">Edu<span>Coffee.</span></a>
-    <button class="ham" onclick="toggleSB()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-</header>
-
 <!-- ── MAIN ── -->
-<main class="main">
-
-    <!-- TOPBAR -->
-    <div class="topbar ani">
-        <div class="tl">
-            <h1>Teacher Dashboard</h1>
-            <p>Manage your batches, results, and notices in one place.</p>
-        </div>
-        <div class="tactions">
-            <a href="teacher-batches.html" class="btn-outline">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+<div data-ec-layout="teacher" data-ec-page="teacher-dashboard" id="ec-shell"></div><main class="main">
+<!-- TOPBAR -->
+<div class="topbar ani">
+<div class="tl">
+<h1>Teacher Dashboard</h1>
+<p>Manage your batches, results, and notices in one place.</p>
+</div>
+<div class="tactions">
+<a class="btn-outline" href="teacher-batches.html">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><rect height="14" rx="2" width="20" x="2" y="7"></rect><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path></svg>
                 View Batches
             </a>
-            <a href="teacher-batches.html" class="btn-primary">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+<a class="btn-primary" href="teacher-batches.html">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19"></line><line x1="5" x2="19" y1="12" y2="12"></line></svg>
                 New Batch
             </a>
-        </div>
-    </div>
-
-    <!--
+</div>
+</div>
+<!--
         STATS CARDS
         These numbers come from API calls made by the page that loads this dashboard:
           GET /api/batches/{teacher_id}      → count → #sTotalBatches
@@ -263,178 +202,142 @@
           GET /api/results                   → count → #sTotalResults
           GET /api/my_notices/{teacher_id}   → count → #sTotalNotices
     -->
-    <div class="stats ani d1">
-        <div class="sc">
-            <div class="sic si1">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-            </div>
-            <div>
-                <div class="snum" id="sTotalBatches">—</div>
-                <div class="slbl">Active Batches</div>
-            </div>
-        </div>
-        <div class="sc">
-            <div class="sic si2">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-            </div>
-            <div>
-                <div class="snum" id="sTotalStudents">—</div>
-                <div class="slbl">Total Students</div>
-            </div>
-        </div>
-        <div class="sc">
-            <div class="sic si3">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            </div>
-            <div>
-                <div class="snum" id="sTotalResults">—</div>
-                <div class="slbl">Results Published</div>
-            </div>
-        </div>
-        <div class="sc">
-            <div class="sic si4">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            </div>
-            <div>
-                <div class="snum" id="sTotalNotices">—</div>
-                <div class="slbl">Notices Sent</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- TWO COL -->
-    <div class="twocol ani d2">
-
-        <!--
+<div class="stats ani d1">
+<div class="sc">
+<div class="sic si1">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="14" rx="2" width="20" x="2" y="7"></rect><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path></svg>
+</div>
+<div>
+<div class="snum" id="sTotalBatches">—</div>
+<div class="slbl">Active Batches</div>
+</div>
+</div>
+<div class="sc">
+<div class="sic si2">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+</div>
+<div>
+<div class="snum" id="sTotalStudents">—</div>
+<div class="slbl">Total Students</div>
+</div>
+</div>
+<div class="sc">
+<div class="sic si3">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+</div>
+<div>
+<div class="snum" id="sTotalResults">—</div>
+<div class="slbl">Results Published</div>
+</div>
+</div>
+<div class="sc">
+<div class="sic si4">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+</div>
+<div>
+<div class="snum" id="sTotalNotices">—</div>
+<div class="slbl">Notices Sent</div>
+</div>
+</div>
+</div>
+<!-- TWO COL -->
+<div class="twocol ani d2">
+<!--
             MY BATCHES PREVIEW
             API: GET /api/batches/{teacher_id}
             Batch model: code (PK, 6 chars), name, year, schedule, teacher_id
             Rendered into #batchPreview by the API layer
         -->
-        <div class="card">
-            <div class="ch">
-                <div class="ctitle">My Batches</div>
-                <a href="teacher-batches.html" class="see-all">View all →</a>
-            </div>
-            <div class="cbody" id="batchPreview">
-                <div class="empty">
-                    <div class="empty-icon">☕</div>
-                    <p>No batches yet.<br>
-                        <a href="teacher-batches.html">Create your first batch</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- RIGHT COLUMN -->
-        <div style="display:flex;flex-direction:column;gap:18px">
-
-            <!-- QUICK ACTIONS -->
-            <div class="card">
-                <div class="ch"><div class="ctitle">Quick Actions</div></div>
-                <div class="cbody">
-                    <div class="qa-grid">
-                        <a href="teacher-batches.html" class="qa-btn">
-                            <div class="qa-icon" style="background:rgba(62,39,35,.08)">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="var(--coffee)" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
-                            </div>
-                            <span class="qa-label">New Batch</span>
-                        </a>
-                        <a href="teacher-results.html" class="qa-btn">
-                            <div class="qa-icon" style="background:rgba(46,125,50,.1)">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                            </div>
-                            <span class="qa-label">Upload Result</span>
-                        </a>
-                        <a href="teacher-notices.html" class="qa-btn">
-                            <div class="qa-icon" style="background:rgba(198,134,66,.12)">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="var(--caramel)" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                            </div>
-                            <span class="qa-label">Post Notice</span>
-                        </a>
-                        <a href="teacher-students.html" class="qa-btn">
-                            <div class="qa-icon" style="background:rgba(21,101,192,.1)">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                            </div>
-                            <span class="qa-label">Students</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CURRENT PLAN STRIP -->
-            <div class="card">
-                <div class="plan-strip">
-                    <div>
-                        <div style="font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px">Current Plan</div>
-                        <div class="plan-name" id="planName">Starter</div>
-                        <div class="plan-detail" id="planDetail">Free · Up to 10 students</div>
-                    </div>
-                    <a href="teacher-profile.html" class="btn-upgrade">Upgrade ⬆</a>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!--
+<div class="card">
+<div class="ch">
+<div class="ctitle">My Batches</div>
+<a class="see-all" href="teacher-batches.html">View all →</a>
+</div>
+<div class="cbody" id="batchPreview">
+<div class="empty">
+<div class="empty-icon">☕</div>
+<p>No batches yet.<br/>
+<a href="teacher-batches.html">Create your first batch</a>
+</p>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN -->
+<div style="display:flex;flex-direction:column;gap:18px">
+<!-- QUICK ACTIONS -->
+<div class="card">
+<div class="ch"><div class="ctitle">Quick Actions</div></div>
+<div class="cbody">
+<div class="qa-grid">
+<a class="qa-btn" href="teacher-batches.html">
+<div class="qa-icon" style="background:rgba(62,39,35,.08)">
+<svg fill="none" stroke="var(--coffee)" stroke-linecap="round" stroke-width="2" viewbox="0 0 24 24"><rect height="14" rx="2" width="20" x="2" y="7"></rect><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path><line x1="12" x2="12" y1="12" y2="16"></line><line x1="10" x2="14" y1="14" y2="14"></line></svg>
+</div>
+<span class="qa-label">New Batch</span>
+</a>
+<a class="qa-btn" href="teacher-results.html">
+<div class="qa-icon" style="background:rgba(46,125,50,.1)">
+<svg fill="none" stroke="#2E7D32" stroke-linecap="round" stroke-width="2" viewbox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" x2="12" y1="3" y2="15"></line></svg>
+</div>
+<span class="qa-label">Upload Result</span>
+</a>
+<a class="qa-btn" href="teacher-notices.html">
+<div class="qa-icon" style="background:rgba(198,134,66,.12)">
+<svg fill="none" stroke="var(--caramel)" stroke-linecap="round" stroke-width="2" viewbox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+</div>
+<span class="qa-label">Post Notice</span>
+</a>
+<a class="qa-btn" href="teacher-students.html">
+<div class="qa-icon" style="background:rgba(21,101,192,.1)">
+<svg fill="none" stroke="#1565C0" stroke-linecap="round" stroke-width="2" viewbox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+</div>
+<span class="qa-label">Students</span>
+</a>
+</div>
+</div>
+</div>
+<!-- CURRENT PLAN STRIP -->
+<div class="card">
+<div class="plan-strip">
+<div>
+<div style="font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px">Current Plan</div>
+<div class="plan-name" id="planName">Starter</div>
+<div class="plan-detail" id="planDetail">Free · Up to 10 students</div>
+</div>
+<a class="btn-upgrade" href="teacher-profile.html">Upgrade ⬆</a>
+</div>
+</div>
+</div>
+</div>
+<!--
         RECENT NOTICES
         API: GET /api/my_notices/{teacher_id}
         Notice model: text, teacher_id, batch_codes[], created_at
         Rendered into #noticePreview by the API layer
     -->
-    <div class="card ani d3">
-        <div class="ch">
-            <div class="ctitle">Recent Notices</div>
-            <a href="teacher-notices.html" class="see-all">View all →</a>
-        </div>
-        <div class="cbody" id="noticePreview">
-            <div class="empty">
-                <div class="empty-icon" style="font-size:1.8rem">🔔</div>
-                <p>No notices sent yet.<br>
-                    <a href="teacher-notices.html">Post your first notice</a>
-                </p>
-            </div>
-        </div>
-    </div>
-
+<div class="card ani d3">
+<div class="ch">
+<div class="ctitle">Recent Notices</div>
+<a class="see-all" href="teacher-notices.html">View all →</a>
+</div>
+<div class="cbody" id="noticePreview">
+<div class="empty">
+<div class="empty-icon" style="font-size:1.8rem">🔔</div>
+<p>No notices sent yet.<br/>
+<a href="teacher-notices.html">Post your first notice</a>
+</p>
+</div>
+</div>
+</div>
 </main>
-
 <!-- FAB (mobile) -->
-<a href="teacher-batches.html" class="fab" title="New Batch">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-</a>
-
 <!-- BOTTOM NAV -->
-<nav class="bnav">
-    <div class="bni">
-        <a href="teacher-dashboard.html" class="bna active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            Home
-        </a>
-        <a href="teacher-batches.html" class="bna">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-            Batches
-        </a>
-        <a href="teacher-notices.html" class="bna">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            Notices
-        </a>
-        <a href="teacher-results.html" class="bna">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Results
-        </a>
-        <a href="teacher-profile.html" class="bna">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            Profile
-        </a>
-    </div>
-</nav>
-
-<script>
+<script src="/shared_shell.js"></script><script>
     (function INIT(){
-        if (!localStorage.getItem('current_userid')) {
-            window.location.href = 'index.html'
+        const session = getCurrentSession();
+        if (!session || session.role !== 'teacher') {
+            window.location.href = 'auth.html';
+            return;
         }
     })()
 /* Sidebar toggle + logout only — no data logic here */
@@ -448,9 +351,7 @@ function closeSB() {
 }
 function doLogout() {
     if (confirm('Log out?')) {
-        alert('removed current_userid')
-        localStorage.removeItem('current_userid');
-        window.location.href = 'index.html';
+        logout('auth.html');
     }
 }
 </script>

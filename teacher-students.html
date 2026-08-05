@@ -1,36 +1,30 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Students | EduCoffee Teacher</title>
-    <meta name="robots" content="noindex">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Students | EduCoffee Teacher</title>
+<meta content="noindex" name="robots"/>
 
-    <!-- Progressive Web App Meta tags & Links -->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, 		maximum-scale=1.0, user-scalable=no">
-	<link rel="manifest" href="/manifest.json">
-	<meta name="theme-color" content="#3E2723">
-
-	<!-- iOS Web App Capability & Standard Styles -->
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="default">
-	<meta name="apple-mobile-web-app-title" content="EduCoffee">
-	<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
-
-	<!-- Custom PWA Installation Interceptor & Service Worker -->
-	<script src="/pwa-installer.js" defer></script>
+<!-- Progressive Web App Meta tags & Links -->
 
 
-	<!-- Favicon -->
-	<link rel="icon" href="/assets/icons/favicon.ico" type="image/x-icon">
-	<link rel="icon" type="image/png" href="/assets/icons/favicon-32x32.png">
-	<!-- Apple Touch Icon -->
-	<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
+<!-- iOS Web App Capability & Standard Styles -->
+
+
+
+
+<!-- Custom PWA Installation Interceptor & Service Worker -->
+<script defer="" src="/pwa-installer.js"></script>
+<!-- Favicon -->
+
+
+<!-- Apple Touch Icon -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
         :root{
             --bg:#FDFBF7;--coffee:#3E2723;--caramel:#C68642;
             --cl:rgba(198,134,66,.10);--text:#2D241E;--muted:#7D6E64;
@@ -283,330 +277,263 @@
         }
         @media(max-width:480px){.stats-row{grid-template-columns:1fr 1fr}}
     </style>
-</head>
-<body>
-
+<script defer="True" src="/shared_head.js"></script></head>
+<body data-ec-layout="teacher" data-ec-page="teacher-students">
 <!-- ── SIDEBAR ── -->
-<aside class="sidebar" id="sidebar">
-    <a href="teacher-dashboard.html" class="sl">Edu<span>Coffee.</span></a>
-    <nav class="snav">
-        <div class="nsec">Dashboard</div>
-        <a href="teacher-dashboard.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Overview
-        </a>
-        <div class="nsec">Manage</div>
-        <a href="teacher-batches.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Batches
-        </a>
-        <a href="teacher-students.html" class="nl active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Students
-        </a>
-        <a href="teacher-notices.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notices
-        </a>
-        <a href="teacher-results.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Results
-        </a>
-        <div class="nsec">Account</div>
-        <a href="teacher-profile.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile & Settings
-        </a>
-    </nav>
-    <div class="sfooter">
-        <div class="uc" onclick="location.href='teacher-profile.html'">
-            <div class="uav">T</div>
-            <div style="flex:1;min-width:0"><div class="un">Teacher</div><div class="ur">Teacher Account</div></div>
-            <button class="lob" onclick="event.stopPropagation();doLogout()" title="Logout">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            </button>
-        </div>
-    </div>
-</aside>
-<div class="mov" id="mov" onclick="closeSB()"></div>
-
-<header class="mhdr">
-    <a href="teacher-dashboard.html" class="mlogo">Edu<span>Coffee.</span></a>
-    <button class="ham" onclick="toggleSB()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-</header>
-
-<main class="main">
-
-    <!-- PAGE HEADER -->
-    <div class="ph">
-        <div class="ph-left">
-            <h1>Students</h1>
-            <p>All students across your batches. View performance, send messages, and track progress.</p>
-        </div>
-        <div class="ph-actions">
-            <button class="btn-o" onclick="exportCSV()" title="Export student list as CSV">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+<div data-ec-layout="teacher" data-ec-page="teacher-students" id="ec-shell"></div><main class="main">
+<!-- PAGE HEADER -->
+<div class="ph">
+<div class="ph-left">
+<h1>Students</h1>
+<p>All students across your batches. View performance, send messages, and track progress.</p>
+</div>
+<div class="ph-actions">
+<button class="btn-o" onclick="exportCSV()" title="Export student list as CSV">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewbox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
                 Export CSV
             </button>
-            <button class="btn-o" onclick="openBroadcast()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.19 18a19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.1 3.18 2 2 0 0 1 4.11 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+<button class="btn-o" onclick="openBroadcast()">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewbox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.19 18a19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.1 3.18 2 2 0 0 1 4.11 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                 Broadcast
             </button>
-            <button class="btn-p" onclick="openAddModal()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+<button class="btn-p" onclick="openAddModal()">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19"></line><line x1="5" x2="19" y1="12" y2="12"></line></svg>
                 Add Student
             </button>
-        </div>
-    </div>
-
-    <!--
+</div>
+</div>
+<!--
         STATS — populated after API:
         GET /api/my_students/{teacher_id}  → User[]
         GET /api/results                   → Result[] (for score computation)
     -->
-    <div class="stats-row">
-        <div class="sc">
-            <div class="sc-ic si1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
-            <div><div class="sc-num" id="stTotal">—</div><div class="sc-lbl">Total Students</div></div>
-        </div>
-        <div class="sc">
-            <div class="sc-ic si2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-            <div><div class="sc-num" id="stImproving">—</div><div class="sc-lbl">↑ Improving</div></div>
-        </div>
-        <div class="sc">
-            <div class="sc-ic si3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 3 9 21 6 12 2 12"/></svg></div>
-            <div><div class="sc-num" id="stDeclining">—</div><div class="sc-lbl">↓ Declining</div></div>
-        </div>
-        <div class="sc">
-            <div class="sc-ic si5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
-            <div><div class="sc-num" id="stAtRisk">—</div><div class="sc-lbl">⚠ At Risk (&lt;40%)</div></div>
-        </div>
-        <div class="sc">
-            <div class="sc-ic si4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-            <div><div class="sc-num" id="stAvg">—</div><div class="sc-lbl">Class Average</div></div>
-        </div>
-    </div>
-
-    <!-- TOOLBAR -->
-    <div class="toolbar">
-        <div class="search-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="search-inp" id="searchInp" placeholder="Search by name, email or phone..." oninput="applyFilters()">
-        </div>
-        <!-- Batch filter — populated by API layer from GET /api/batches/{teacher_id} -->
-        <select class="tb-sel" id="batchFilter" onchange="applyFilters()">
-            <option value="all">All Batches</option>
-        </select>
-        <select class="tb-sel" id="perfFilter" onchange="applyFilters()">
-            <option value="all">All Performance</option>
-            <option value="improving">↑ Improving</option>
-            <option value="declining">↓ Declining</option>
-            <option value="stable">→ Stable</option>
-            <option value="risk">⚠ At Risk</option>
-        </select>
-        <select class="tb-sel" id="sortBy" onchange="applyFilters()">
-            <option value="name">Sort: Name</option>
-            <option value="avg_desc">Sort: Top Scorers</option>
-            <option value="avg_asc">Sort: Lowest First</option>
-            <option value="batch">Sort: Batch</option>
-        </select>
-        <div class="view-toggle">
-            <button class="vt-btn active" id="gridBtn" onclick="setView('grid')" title="Grid">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-            </button>
-            <button class="vt-btn" id="tableBtn" onclick="setView('table')" title="Table">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-            </button>
-        </div>
-    </div>
-
-    <!-- GRID VIEW
+<div class="stats-row">
+<div class="sc">
+<div class="sc-ic si1"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></div>
+<div><div class="sc-num" id="stTotal">—</div><div class="sc-lbl">Total Students</div></div>
+</div>
+<div class="sc">
+<div class="sc-ic si2"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
+<div><div class="sc-num" id="stImproving">—</div><div class="sc-lbl">↑ Improving</div></div>
+</div>
+<div class="sc">
+<div class="sc-ic si3"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><polyline points="22 12 18 12 15 3 9 21 6 12 2 12"></polyline></svg></div>
+<div><div class="sc-num" id="stDeclining">—</div><div class="sc-lbl">↓ Declining</div></div>
+</div>
+<div class="sc">
+<div class="sc-ic si5"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg></div>
+<div><div class="sc-num" id="stAtRisk">—</div><div class="sc-lbl">⚠ At Risk (&lt;40%)</div></div>
+</div>
+<div class="sc">
+<div class="sc-ic si4"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+<div><div class="sc-num" id="stAvg">—</div><div class="sc-lbl">Class Average</div></div>
+</div>
+</div>
+<!-- TOOLBAR -->
+<div class="toolbar">
+<div class="search-wrap">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewbox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+<input class="search-inp" id="searchInp" oninput="applyFilters()" placeholder="Search by name, email or phone..." type="text"/>
+</div>
+<!-- Batch filter — populated by API layer from GET /api/batches/{teacher_id} -->
+<select class="tb-sel" id="batchFilter" onchange="applyFilters()">
+<option value="all">All Batches</option>
+</select>
+<select class="tb-sel" id="perfFilter" onchange="applyFilters()">
+<option value="all">All Performance</option>
+<option value="improving">↑ Improving</option>
+<option value="declining">↓ Declining</option>
+<option value="stable">→ Stable</option>
+<option value="risk">⚠ At Risk</option>
+</select>
+<select class="tb-sel" id="sortBy" onchange="applyFilters()">
+<option value="name">Sort: Name</option>
+<option value="avg_desc">Sort: Top Scorers</option>
+<option value="avg_asc">Sort: Lowest First</option>
+<option value="batch">Sort: Batch</option>
+</select>
+<div class="view-toggle">
+<button class="vt-btn active" id="gridBtn" onclick="setView('grid')" title="Grid">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="7" width="7" x="3" y="3"></rect><rect height="7" width="7" x="14" y="3"></rect><rect height="7" width="7" x="3" y="14"></rect><rect height="7" width="7" x="14" y="14"></rect></svg>
+</button>
+<button class="vt-btn" id="tableBtn" onclick="setView('table')" title="Table">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="8" x2="21" y1="6" y2="6"></line><line x1="8" x2="21" y1="12" y2="12"></line><line x1="8" x2="21" y1="18" y2="18"></line><line x1="3" x2="3.01" y1="6" y2="6"></line><line x1="3" x2="3.01" y1="12" y2="12"></line><line x1="3" x2="3.01" y1="18" y2="18"></line></svg>
+</button>
+</div>
+</div>
+<!-- GRID VIEW
          User model: id, name, email, phone, role, batch_codes[]
          Scores from StudentScore: marks, remarks, absent (computed: avg, trend)
     -->
-    <div class="student-grid" id="gridView"></div>
-
-    <!-- TABLE VIEW -->
-    <div class="table-wrap" id="tableWrap">
-        <div class="tbl-scroll">
-            <table class="stu-table">
-                <thead><tr>
-                    <th onclick="toggleSort('name')">Student <span class="sort-icon" id="sort-name">↕</span></th>
-                    <th>Batch</th>
-                    <th>Phone</th>
-                    <th onclick="toggleSort('avg_desc')">Avg Score <span class="sort-icon" id="sort-avg">↕</span></th>
-                    <th>Rank</th>
-                    <th>Trend</th>
-                    <th>Absent</th>
-                    <th>Actions</th>
-                </tr></thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-    </div>
-
+<div class="student-grid" id="gridView"></div>
+<!-- TABLE VIEW -->
+<div class="table-wrap" id="tableWrap">
+<div class="tbl-scroll">
+<table class="stu-table">
+<thead><tr>
+<th onclick="toggleSort('name')">Student <span class="sort-icon" id="sort-name">↕</span></th>
+<th>Batch</th>
+<th>Phone</th>
+<th onclick="toggleSort('avg_desc')">Avg Score <span class="sort-icon" id="sort-avg">↕</span></th>
+<th>Rank</th>
+<th>Trend</th>
+<th>Absent</th>
+<th>Actions</th>
+</tr></thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+</div>
 </main>
-
 <!-- BOTTOM NAV -->
-<nav class="bnav">
-    <div class="bni">
-        <a href="teacher-dashboard.html" class="bna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
-        <a href="teacher-batches.html" class="bna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Batches</a>
-        <a href="teacher-notices.html" class="bna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notices</a>
-        <a href="teacher-results.html" class="bna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Results</a>
-        <a href="teacher-profile.html" class="bna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</a>
-    </div>
-</nav>
-
 <!-- ── DETAIL PANEL ── -->
 <div class="detail-panel" id="detailPanel">
-    <div class="dp-bg" onclick="closeDetail()"></div>
-    <div class="dp-sheet">
-        <div class="dp-hdr">
-            <button class="dp-close" onclick="closeDetail()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+<div class="dp-bg" onclick="closeDetail()"></div>
+<div class="dp-sheet">
+<div class="dp-hdr">
+<button class="dp-close" onclick="closeDetail()">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 Back
             </button>
-            <div class="dp-av-row">
-                <div class="dp-av" id="dpAv">S</div>
-                <div>
-                    <div class="dp-name" id="dpName">Student</div>
-                    <div class="dp-sub" id="dpSub">Batch · Email</div>
-                </div>
-            </div>
-        </div>
-        <div class="dp-body">
-            <!-- Stats strip: avg, exams taken, absent count, class rank -->
-            <div class="dp-stat-grid">
-                <div class="dp-stat"><div class="dp-snum" id="dpAvg">—</div><div class="dp-slbl">Avg Score</div></div>
-                <div class="dp-stat"><div class="dp-snum" id="dpExams">—</div><div class="dp-slbl">Exams</div></div>
-                <div class="dp-stat"><div class="dp-snum" id="dpAbsent">—</div><div class="dp-slbl">Absences</div></div>
-                <div class="dp-stat"><div class="dp-snum" id="dpRank">—</div><div class="dp-slbl">Rank</div></div>
-            </div>
-            <div class="dp-tabs">
-                <button class="dp-tab active" onclick="switchDpTab('overview',this)">Overview</button>
-                <button class="dp-tab" onclick="switchDpTab('results',this)">Results</button>
-                <button class="dp-tab" onclick="switchDpTab('contact',this)">Contact</button>
-            </div>
-            <!-- OVERVIEW TAB -->
-            <div class="dp-content active" id="dp-overview">
-                <!-- Chart.js performance trend chart -->
-                <div class="dp-chart-wrap"><canvas id="dpChart"></canvas></div>
-                <div id="dpInfoRows"></div>
-            </div>
-            <!-- RESULTS TAB — from GET /api/results/student/{student_id} -->
-            <div class="dp-content" id="dp-results">
-                <div id="dpResultsList">
-                    <p style="font-size:.85rem;color:var(--muted)">No results yet.</p>
-                </div>
-            </div>
-            <!-- CONTACT TAB -->
-            <div class="dp-content" id="dp-contact">
-                <div id="dpContactInfo"></div>
-                <div style="margin-top:18px">
-                    <button class="contact-action-btn cab-email" id="dpEmailBtn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+<div class="dp-av-row">
+<div class="dp-av" id="dpAv">S</div>
+<div>
+<div class="dp-name" id="dpName">Student</div>
+<div class="dp-sub" id="dpSub">Batch · Email</div>
+</div>
+</div>
+</div>
+<div class="dp-body">
+<!-- Stats strip: avg, exams taken, absent count, class rank -->
+<div class="dp-stat-grid">
+<div class="dp-stat"><div class="dp-snum" id="dpAvg">—</div><div class="dp-slbl">Avg Score</div></div>
+<div class="dp-stat"><div class="dp-snum" id="dpExams">—</div><div class="dp-slbl">Exams</div></div>
+<div class="dp-stat"><div class="dp-snum" id="dpAbsent">—</div><div class="dp-slbl">Absences</div></div>
+<div class="dp-stat"><div class="dp-snum" id="dpRank">—</div><div class="dp-slbl">Rank</div></div>
+</div>
+<div class="dp-tabs">
+<button class="dp-tab active" onclick="switchDpTab('overview',this)">Overview</button>
+<button class="dp-tab" onclick="switchDpTab('results',this)">Results</button>
+<button class="dp-tab" onclick="switchDpTab('contact',this)">Contact</button>
+</div>
+<!-- OVERVIEW TAB -->
+<div class="dp-content active" id="dp-overview">
+<!-- Chart.js performance trend chart -->
+<div class="dp-chart-wrap"><canvas id="dpChart"></canvas></div>
+<div id="dpInfoRows"></div>
+</div>
+<!-- RESULTS TAB — from GET /api/results/student/{student_id} -->
+<div class="dp-content" id="dp-results">
+<div id="dpResultsList">
+<p style="font-size:.85rem;color:var(--muted)">No results yet.</p>
+</div>
+</div>
+<!-- CONTACT TAB -->
+<div class="dp-content" id="dp-contact">
+<div id="dpContactInfo"></div>
+<div style="margin-top:18px">
+<button class="contact-action-btn cab-email" id="dpEmailBtn">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                         Message Parent
                     </button>
-                    <button class="contact-action-btn cab-remove" id="dpRemoveBtn">
+<button class="contact-action-btn cab-remove" id="dpRemoveBtn">
                         🗑️ Remove from Batch
                     </button>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
-
+</div>
+</div>
+</div>
+</div>
 <!-- ── MESSAGE MODAL ── -->
 <div class="modal-overlay" id="msgModal">
-    <div class="modal-box">
-        <div class="mh">
-            <h2>Message Parent</h2>
-            <button class="mcl" onclick="closeMsgModal()">✕</button>
-        </div>
-        <div class="mbody">
-            <div id="msgTarget" style="font-size:.82rem;color:var(--muted);margin-bottom:14px;padding:8px 12px;background:var(--bg);border-radius:8px"></div>
-            <div class="fg">
-                <label>Subject</label>
-                <input type="text" id="msgSubject" placeholder="e.g. Regarding exam results">
-            </div>
-            <div class="fg">
-                <label>Message *</label>
-                <textarea id="msgBody" placeholder="Write your message to the parent..."></textarea>
-            </div>
-            <button class="btn-modal" onclick="sendMessage()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+<div class="modal-box">
+<div class="mh">
+<h2>Message Parent</h2>
+<button class="mcl" onclick="closeMsgModal()">✕</button>
+</div>
+<div class="mbody">
+<div id="msgTarget" style="font-size:.82rem;color:var(--muted);margin-bottom:14px;padding:8px 12px;background:var(--bg);border-radius:8px"></div>
+<div class="fg">
+<label>Subject</label>
+<input id="msgSubject" placeholder="e.g. Regarding exam results" type="text"/>
+</div>
+<div class="fg">
+<label>Message *</label>
+<textarea id="msgBody" placeholder="Write your message to the parent..."></textarea>
+</div>
+<button class="btn-modal" onclick="sendMessage()">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><line x1="22" x2="11" y1="2" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 Send Message
             </button>
-        </div>
-    </div>
 </div>
-
+</div>
+</div>
 <!-- ── BROADCAST MODAL ── -->
 <div class="modal-overlay" id="broadcastModal">
-    <div class="modal-box">
-        <div class="mh">
-            <h2>Broadcast to Parents</h2>
-            <button class="mcl" onclick="document.getElementById('broadcastModal').classList.remove('open')">✕</button>
-        </div>
-        <div class="mbody">
-            <div class="fg">
-                <label>Target Batches</label>
-                <div class="batch-pills" id="broadcastBatches"></div>
-                <p class="fg-info">Select batches. Leave all unselected to broadcast to everyone.</p>
-            </div>
-            <div class="fg">
-                <label>Subject</label>
-                <input type="text" id="bcSubject" placeholder="e.g. Schedule change notice">
-            </div>
-            <div class="fg">
-                <label>Message *</label>
-                <textarea id="bcBody" placeholder="Message to all selected parents..."></textarea>
-            </div>
-            <button class="btn-modal" onclick="sendBroadcast()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+<div class="modal-box">
+<div class="mh">
+<h2>Broadcast to Parents</h2>
+<button class="mcl" onclick="document.getElementById('broadcastModal').classList.remove('open')">✕</button>
+</div>
+<div class="mbody">
+<div class="fg">
+<label>Target Batches</label>
+<div class="batch-pills" id="broadcastBatches"></div>
+<p class="fg-info">Select batches. Leave all unselected to broadcast to everyone.</p>
+</div>
+<div class="fg">
+<label>Subject</label>
+<input id="bcSubject" placeholder="e.g. Schedule change notice" type="text"/>
+</div>
+<div class="fg">
+<label>Message *</label>
+<textarea id="bcBody" placeholder="Message to all selected parents..."></textarea>
+</div>
+<button class="btn-modal" onclick="sendBroadcast()">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><line x1="22" x2="11" y1="2" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 Send to All
             </button>
-        </div>
-    </div>
 </div>
-
+</div>
+</div>
 <!-- ── ADD STUDENT MODAL
      Note: The backend registers students via POST /api/register.
      Teachers cannot create student accounts directly.
      This form shows the batch code so the teacher can share it with the student.
 ── -->
 <div class="modal-overlay" id="addModal">
-    <div class="modal-box">
-        <div class="mh">
-            <h2>Add Student to Batch</h2>
-            <button class="mcl" onclick="document.getElementById('addModal').classList.remove('open')">✕</button>
-        </div>
-        <div class="mbody">
-            <div style="background:rgba(198,134,66,.07);border:1px solid rgba(198,134,66,.25);border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:.83rem;color:var(--muted);line-height:1.6">
-                <strong style="color:var(--caramel)">How students join:</strong> Share the <strong>Batch Code</strong> below with your student. They register at <strong>auth.html</strong> and enter the code to join automatically.<br><br>
+<div class="modal-box">
+<div class="mh">
+<h2>Add Student to Batch</h2>
+<button class="mcl" onclick="document.getElementById('addModal').classList.remove('open')">✕</button>
+</div>
+<div class="mbody">
+<div style="background:rgba(198,134,66,.07);border:1px solid rgba(198,134,66,.25);border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:.83rem;color:var(--muted);line-height:1.6">
+<strong style="color:var(--caramel)">How students join:</strong> Share the <strong>Batch Code</strong> below with your student. They register at <strong>auth.html</strong> and enter the code to join automatically.<br/><br/>
                 If the student already has an account, they can enroll via <code style="background:var(--bg);padding:2px 6px;border-radius:5px">PUT /api/enroll/{batch_code}</code>.
             </div>
-            <div class="fg">
-                <label>Select Batch</label>
-                <select id="addBatchSel" onchange="showBatchCode()">
-                    <option value="">Choose a batch...</option>
-                    <!-- Populated by API layer from GET /api/batches/{teacher_id} -->
-                </select>
-            </div>
-            <div id="batchCodeDisplay" style="display:none;text-align:center;margin-bottom:14px">
-                <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px">Share this Batch Code with the student</div>
-                <div style="font-family:monospace;font-size:2rem;font-weight:700;letter-spacing:6px;color:var(--coffee);background:var(--cl);padding:14px;border-radius:12px;border:1.5px dashed var(--caramel);cursor:pointer" id="batchCodeText" onclick="copyBatchCode()" title="Click to copy">——</div>
-                <div style="font-size:.72rem;color:var(--muted);margin-top:6px">Click to copy</div>
-            </div>
-            <button class="btn-modal" onclick="copyBatchCode()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+<div class="fg">
+<label>Select Batch</label>
+<select id="addBatchSel" onchange="showBatchCode()">
+<option value="">Choose a batch...</option>
+<!-- Populated by API layer from GET /api/batches/{teacher_id} -->
+</select>
+</div>
+<div id="batchCodeDisplay" style="display:none;text-align:center;margin-bottom:14px">
+<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px">Share this Batch Code with the student</div>
+<div id="batchCodeText" onclick="copyBatchCode()" style="font-family:monospace;font-size:2rem;font-weight:700;letter-spacing:6px;color:var(--coffee);background:var(--cl);padding:14px;border-radius:12px;border:1.5px dashed var(--caramel);cursor:pointer" title="Click to copy">——</div>
+<div style="font-size:.72rem;color:var(--muted);margin-top:6px">Click to copy</div>
+</div>
+<button class="btn-modal" onclick="copyBatchCode()">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewbox="0 0 24 24"><rect height="13" rx="2" width="13" x="9" y="9"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                 Copy Batch Code
             </button>
-        </div>
-    </div>
 </div>
-
+</div>
+</div>
 <div class="toast" id="toast"></div>
-
 <script src="api.js"></script>
-<script>
+<script src="/shared_shell.js"></script><script>
 /*
  * JS — required for UI only:
  *   1. Sidebar toggle
@@ -1123,8 +1050,7 @@ function closeSB() {
 }
 function doLogout() {
     if (!confirm('Log out?')) return;
-    localStorage.removeItem('isLoggedIn');
-    window.location.href = 'index.html';
+    logout('auth.html');
 }
 
 /* Close modals on backdrop click */
@@ -1147,8 +1073,13 @@ async function init() {
     try {
 
         /* logged in teacher */
-        const userid = localStorage.getItem("current_userid")
-        const user = await GetUserByID(userid)
+        const session = getCurrentSession();
+        if (!session || session.role !== 'teacher') {
+            showToast("Please login first.");
+            return;
+        }
+
+        const user = await GetUserByID();
 
         if (!user || !user.id) {
             showToast("Please login first.");
@@ -1158,10 +1089,10 @@ async function init() {
         const teacherId = user.id;
 
         /* batches */
-        batches = await GetBatchesByTID(teacherId);
+        batches = await GetBatchesByTID();
 
         /* students */
-        const students = await GetMyStudents(teacherId);
+        const students = await GetMyStudents();
 
         /* attach scores + batch names */
         allStudents = await Promise.all(

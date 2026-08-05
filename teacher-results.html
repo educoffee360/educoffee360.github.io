@@ -1,34 +1,29 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Results | EduCoffee Teacher</title>
-    <meta name="robots" content="noindex">
-
-    <!-- Progressive Web App Meta tags & Links -->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, 		maximum-scale=1.0, user-scalable=no">
-	<link rel="manifest" href="/manifest.json">
-	<meta name="theme-color" content="#3E2723">
-
-	<!-- iOS Web App Capability & Standard Styles -->
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="default">
-	<meta name="apple-mobile-web-app-title" content="EduCoffee">
-	<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
-
-	<!-- Custom PWA Installation Interceptor & Service Worker -->
-	<script src="/pwa-installer.js" defer></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Results | EduCoffee Teacher</title>
+<meta content="noindex" name="robots"/>
+<!-- Progressive Web App Meta tags & Links -->
 
 
-	<!-- Favicon -->
-	<link rel="icon" href="/assets/icons/favicon.ico" type="image/x-icon">
-	<link rel="icon" type="image/png" href="/assets/icons/favicon-32x32.png">
-	<!-- Apple Touch Icon -->
-	<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
-    
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
+
+<!-- iOS Web App Capability & Standard Styles -->
+
+
+
+
+<!-- Custom PWA Installation Interceptor & Service Worker -->
+<script defer="" src="/pwa-installer.js"></script>
+<!-- Favicon -->
+
+
+<!-- Apple Touch Icon -->
+
+
+<style>
         :root{
             --bg:#FDFBF7;--coffee:#3E2723;--caramel:#C68642;
             --cl:rgba(198,134,66,.10);--text:#2D241E;--muted:#7D6E64;
@@ -263,229 +258,154 @@
             .summary-strip{grid-template-columns:1fr}
         }
     </style>
-</head>
-<body>
-
+<script defer="True" src="/shared_head.js"></script></head>
+<body data-ec-layout="teacher" data-ec-page="teacher-results">
 <!-- ── SIDEBAR ── -->
-<aside class="sidebar" id="sidebar">
-    <a href="teacher-dashboard.html" class="sl">Edu<span>Coffee.</span></a>
-    <nav class="snav">
-        <div class="nsec">Dashboard</div>
-        <a href="teacher-dashboard.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Overview
-        </a>
-        <div class="nsec">Manage</div>
-        <a href="teacher-batches.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Batches
-        </a>
-        <a href="teacher-students.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Students
-        </a>
-        <a href="teacher-notices.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notices
-        </a>
-        <a href="teacher-results.html" class="nl active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Results
-        </a>
-        <div class="nsec">Account</div>
-        <a href="teacher-profile.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile & Settings
-        </a>
-    </nav>
-    <div class="sfooter">
-        <div class="uc" onclick="location.href='teacher-profile.html'">
-            <div class="uav" id="sidebarAvatar">T</div>
-            <div style="flex:1;min-width:0">
-                <div class="un" id="sidebarName">Teacher</div>
-                <div class="ur">Teacher Account</div>
-            </div>
-            <button class="lob" onclick="event.stopPropagation();doLogout()" title="Logout">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            </button>
-        </div>
-    </div>
-</aside>
-<div class="mov" id="mov" onclick="closeSB()"></div>
-
-<header class="mhdr">
-    <a href="teacher-dashboard.html" class="mlogo">Edu<span>Coffee.</span></a>
-    <button class="ham" onclick="toggleSB()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-</header>
-
-<main class="main">
-
-    <!-- ── FOLDER VIEW ── -->
-    <div id="folderView">
-        <div class="ph">
-            <div class="ph-left">
-                <h1>Result Folders</h1>
-                <p>Each batch has its own result folder. Click to view or upload.</p>
-            </div>
-            <button class="btn-primary" onclick="openUploadModal()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+<div data-ec-layout="teacher" data-ec-page="teacher-results" id="ec-shell"></div><main class="main">
+<!-- ── FOLDER VIEW ── -->
+<div id="folderView">
+<div class="ph">
+<div class="ph-left">
+<h1>Result Folders</h1>
+<p>Each batch has its own result folder. Click to view or upload.</p>
+</div>
+<button class="btn-primary" onclick="openUploadModal()">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" x2="12" y1="3" y2="15"></line></svg>
                 Upload Result
             </button>
-        </div>
-
-        <div class="err-banner" id="errBanner">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span id="errMsg">Could not load data.</span>
-            <button onclick="loadAll()">Retry</button>
-        </div>
-
-        <div class="folder-grid" id="folderGrid">
-            <!-- skeleton -->
-            <div class="sk-folder"><div class="skeleton sk-icon"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div></div>
-            <div class="sk-folder"><div class="skeleton sk-icon"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div></div>
-            <div class="sk-folder"><div class="skeleton sk-icon"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div></div>
-        </div>
-    </div>
-
-    <!-- ── BATCH RESULTS VIEW ── -->
-    <div class="results-view" id="batchView">
-        <div class="breadcrumb">
-            <span class="bc-item" onclick="showFolderView()">📁 All Batches</span>
-            <span class="bc-sep">›</span>
-            <span class="bc-item active" id="bcBatchName">Batch</span>
-        </div>
-        <div class="batch-header" id="batchHeader"></div>
-        <div class="ph" style="margin-bottom:16px">
-            <div style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--coffee)">All Results</div>
-            <button class="btn-primary" onclick="openUploadModal()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</div>
+<div class="err-banner" id="errBanner">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>
+<span id="errMsg">Could not load data.</span>
+<button onclick="loadAll()">Retry</button>
+</div>
+<div class="folder-grid" id="folderGrid">
+<!-- skeleton -->
+<div class="sk-folder"><div class="skeleton sk-icon"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div></div>
+<div class="sk-folder"><div class="skeleton sk-icon"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div></div>
+<div class="sk-folder"><div class="skeleton sk-icon"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div></div>
+</div>
+</div>
+<!-- ── BATCH RESULTS VIEW ── -->
+<div class="results-view" id="batchView">
+<div class="breadcrumb">
+<span class="bc-item" onclick="showFolderView()">📁 All Batches</span>
+<span class="bc-sep">›</span>
+<span class="bc-item active" id="bcBatchName">Batch</span>
+</div>
+<div class="batch-header" id="batchHeader"></div>
+<div class="ph" style="margin-bottom:16px">
+<div style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--coffee)">All Results</div>
+<button class="btn-primary" onclick="openUploadModal()">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19"></line><line x1="5" x2="19" y1="12" y2="12"></line></svg>
                 New Result
             </button>
-        </div>
-        <div class="exam-grid" id="examGrid"></div>
-    </div>
-
+</div>
+<div class="exam-grid" id="examGrid"></div>
+</div>
 </main>
-
 <!-- BOTTOM NAV -->
-<nav class="bnav">
-    <div class="bni">
-        <a href="teacher-dashboard.html" class="bna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
-        <a href="teacher-batches.html" class="bna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Batches</a>
-        <a href="teacher-notices.html" class="bna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notices</a>
-        <a href="teacher-results.html" class="bna active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Results</a>
-        <a href="teacher-profile.html" class="bna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</a>
-    </div>
-</nav>
-
 <!-- ══════════════════════════════════════════
      UPLOAD RESULT MODAL
      POST /api/new_result
      ══════════════════════════════════════════ -->
 <div class="modal-overlay" id="uploadModal">
-    <div class="modal-box">
-        <div class="mh">
-            <h2 id="modalTitle">Upload New Result</h2>
-            <button class="mcl" onclick="closeUploadModal()">✕</button>
-        </div>
-        <div class="mbody">
-
-            <!-- Batch select — value = batch.code (FK) -->
-            <div class="fg">
-                <label>Select Batch *</label>
-                <select id="uBatch" onchange="onBatchChange(this.value)">
-                    <option value="">Choose a batch...</option>
-                </select>
-            </div>
-
-            <!-- Result.title -->
-            <div class="fg">
-                <label>Exam Title *</label>
-                <input type="text" id="uTitle" placeholder="e.g. Chapter 4 Weekly Test — Week 5">
-            </div>
-
-            <!-- Exam type (front-end label only; appended to title if chosen) -->
-            <div class="fg">
-                <label>Exam Type <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.7rem">(optional)</span></label>
-                <div class="type-row">
-                    <select id="uTypePreset" onchange="onTypePresetChange(this.value)">
-                        <option value="">Select a type...</option>
-                        <option value="Weekly Test">Weekly Test</option>
-                        <option value="Monthly Exam">Monthly Exam</option>
-                        <option value="Chapter Test">Chapter Test</option>
-                        <option value="Mid-Term">Mid-Term</option>
-                        <option value="Final Exam">Final Exam</option>
-                        <option value="Quiz">Quiz</option>
-                        <option value="custom">✏️ Custom...</option>
-                    </select>
-                    <div class="type-custom" id="typeCustomWrap" style="display:none">
-                        <input type="text" id="uTypeCustom" placeholder="Type your exam type...">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Result.total_marks + pass marks + date -->
-            <div class="fg-3">
-                <div class="fg" style="margin-bottom:0">
-                    <label>Total Marks *</label>
-                    <input type="number" id="uTotal" placeholder="e.g. 100" min="1" oninput="autoCalcPass()">
-                    <div class="fg-info">Pass auto-calculates at 40%.</div>
-                </div>
-                <div class="fg" style="margin-bottom:0">
-                    <label>Pass Marks <span style="font-size:.65rem;font-weight:400;text-transform:none;letter-spacing:0">(auto / editable)</span></label>
-                    <input type="number" id="uPass" placeholder="—" min="0">
-                    <div class="pass-preview" id="passPreview" style="display:none">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        <span id="passPreviewText"></span>
-                    </div>
-                </div>
-                <div class="fg" style="margin-bottom:0">
-                    <label>Exam Date</label>
-                    <input type="date" id="uDate">
-                </div>
-            </div>
-
-            <!-- Result.description -->
-            <div class="fg">
-                <label>Description <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.7rem">(optional)</span></label>
-                <textarea id="uDesc" placeholder="Syllabus covered, special instructions, topics..."></textarea>
-            </div>
-
-            <!-- Student Scores -->
-            <div class="score-section-label">
+<div class="modal-box">
+<div class="mh">
+<h2 id="modalTitle">Upload New Result</h2>
+<button class="mcl" onclick="closeUploadModal()">✕</button>
+</div>
+<div class="mbody">
+<!-- Batch select — value = batch.code (FK) -->
+<div class="fg">
+<label>Select Batch *</label>
+<select id="uBatch" onchange="onBatchChange(this.value)">
+<option value="">Choose a batch...</option>
+</select>
+</div>
+<!-- Result.title -->
+<div class="fg">
+<label>Exam Title *</label>
+<input id="uTitle" placeholder="e.g. Chapter 4 Weekly Test — Week 5" type="text"/>
+</div>
+<!-- Exam type (front-end label only; appended to title if chosen) -->
+<div class="fg">
+<label>Exam Type <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.7rem">(optional)</span></label>
+<div class="type-row">
+<select id="uTypePreset" onchange="onTypePresetChange(this.value)">
+<option value="">Select a type...</option>
+<option value="Weekly Test">Weekly Test</option>
+<option value="Monthly Exam">Monthly Exam</option>
+<option value="Chapter Test">Chapter Test</option>
+<option value="Mid-Term">Mid-Term</option>
+<option value="Final Exam">Final Exam</option>
+<option value="Quiz">Quiz</option>
+<option value="custom">✏️ Custom...</option>
+</select>
+<div class="type-custom" id="typeCustomWrap" style="display:none">
+<input id="uTypeCustom" placeholder="Type your exam type..." type="text"/>
+</div>
+</div>
+</div>
+<!-- Result.total_marks + pass marks + date -->
+<div class="fg-3">
+<div class="fg" style="margin-bottom:0">
+<label>Total Marks *</label>
+<input id="uTotal" min="1" oninput="autoCalcPass()" placeholder="e.g. 100" type="number"/>
+<div class="fg-info">Pass auto-calculates at 40%.</div>
+</div>
+<div class="fg" style="margin-bottom:0">
+<label>Pass Marks <span style="font-size:.65rem;font-weight:400;text-transform:none;letter-spacing:0">(auto / editable)</span></label>
+<input id="uPass" min="0" placeholder="—" type="number"/>
+<div class="pass-preview" id="passPreview" style="display:none">
+<svg fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+<span id="passPreviewText"></span>
+</div>
+</div>
+<div class="fg" style="margin-bottom:0">
+<label>Exam Date</label>
+<input id="uDate" type="date"/>
+</div>
+</div>
+<!-- Result.description -->
+<div class="fg">
+<label>Description <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.7rem">(optional)</span></label>
+<textarea id="uDesc" placeholder="Syllabus covered, special instructions, topics..."></textarea>
+</div>
+<!-- Student Scores -->
+<div class="score-section-label">
                 Student Scores
                 <span></span>
-                <small id="scoreCount" style="text-transform:none;letter-spacing:0;font-size:.7rem;color:var(--muted);font-weight:400"></small>
-            </div>
-            <div id="scoreCards">
-                <div class="empty" style="padding:28px 0">
-                    <div class="empty-icon" style="font-size:2rem">👥</div>
-                    <p style="font-size:.82rem">Select a batch to load students.</p>
-                </div>
-            </div>
-
-            <div class="pub-row">
-                <button class="btn-pub-base btn-publish" id="publishBtn" onclick="saveResult()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                    <span id="publishBtnLabel">Publish Result</span>
-                </button>
-            </div>
-
-        </div>
-    </div>
+<small id="scoreCount" style="text-transform:none;letter-spacing:0;font-size:.7rem;color:var(--muted);font-weight:400"></small>
 </div>
-
+<div id="scoreCards">
+<div class="empty" style="padding:28px 0">
+<div class="empty-icon" style="font-size:2rem">👥</div>
+<p style="font-size:.82rem">Select a batch to load students.</p>
+</div>
+</div>
+<div class="pub-row">
+<button class="btn-pub-base btn-publish" id="publishBtn" onclick="saveResult()">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><line x1="22" x2="11" y1="2" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+<span id="publishBtnLabel">Publish Result</span>
+</button>
+</div>
+</div>
+</div>
+</div>
 <!-- ── VIEW RESULT MODAL ── -->
 <div class="modal-overlay" id="viewModal">
-    <div class="modal-box" style="max-width:680px">
-        <div class="mh">
-            <h2 id="vmTitle">Result Details</h2>
-            <button class="mcl" onclick="closeViewModal()">✕</button>
-        </div>
-        <div class="mbody" id="vmBody"></div>
-    </div>
+<div class="modal-box" style="max-width:680px">
+<div class="mh">
+<h2 id="vmTitle">Result Details</h2>
+<button class="mcl" onclick="closeViewModal()">✕</button>
 </div>
-
+<div class="mbody" id="vmBody"></div>
+</div>
+</div>
 <div class="toast" id="toast"></div>
-
 <script src="api.js"></script>
-<script>
+<script src="/shared_shell.js"></script><script>
 /* ─────────────────────────────────────────
    STATE
 ───────────────────────────────────────── */
@@ -501,12 +421,11 @@ let loadingStudents  = false;
    INIT
 ───────────────────────────────────────── */
 (async function init() {
-    const raw = localStorage.getItem('current_userid');
-    if (!raw) { window.location.href = 'index.html'; return; }
+    const session = getCurrentSession();
+    if (!session || session.role !== 'teacher') { window.location.href = 'auth.html'; return; }
 
-    let user;
-    user = await GetUserByID(raw)
-    if (!user.id || user.role !== 'teacher') { window.location.href = 'index.html'; return; }
+    const user = await GetUserByID();
+    if (!user?.id || user.role !== 'teacher') { window.location.href = 'auth.html'; return; }
 
     currentTeacherId = user.id;
     const name = user.name || 'Teacher';
@@ -530,7 +449,7 @@ async function loadAll() {
     showFolderSkeletons(true);
 
     try {
-        batches = await GetBatchesByTID(currentTeacherId);
+        batches = await GetBatchesByTID();
         if (!Array.isArray(batches)) batches = [];
 
         // Populate batch <select> in upload modal
@@ -1019,9 +938,7 @@ function closeSB() {
 }
 function doLogout() {
     if (!confirm('Log out?')) return;
-    localStorage.removeItem('user');
-    localStorage.removeItem('isLoggedIn');
-    window.location.href = 'index.html';
+    logout('auth.html');
 }
 
 /* Close modals on backdrop click */

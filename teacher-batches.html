@@ -1,35 +1,29 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Batches | EduCoffee Teacher</title>
-    <meta name="robots" content="noindex">
-
-    <!-- Progressive Web App Meta tags & Links -->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, 		maximum-scale=1.0, user-scalable=no">
-	<link rel="manifest" href="/manifest.json">
-	<meta name="theme-color" content="#3E2723">
-
-	<!-- iOS Web App Capability & Standard Styles -->
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="default">
-	<meta name="apple-mobile-web-app-title" content="EduCoffee">
-	<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
-
-	<!-- Custom PWA Installation Interceptor & Service Worker -->
-	<script src="/pwa-installer.js" defer></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Batches | EduCoffee Teacher</title>
+<meta content="noindex" name="robots"/>
+<!-- Progressive Web App Meta tags & Links -->
 
 
-	<!-- Favicon -->
-	<link rel="icon" href="/assets/icons/favicon.ico" type="image/x-icon">
-	<link rel="icon" type="image/png" href="/assets/icons/favicon-32x32.png">
-	<!-- Apple Touch Icon -->
-	<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 
-    
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
+<!-- iOS Web App Capability & Standard Styles -->
+
+
+
+
+<!-- Custom PWA Installation Interceptor & Service Worker -->
+<script defer="" src="/pwa-installer.js"></script>
+<!-- Favicon -->
+
+
+<!-- Apple Touch Icon -->
+
+
+<style>
         :root{
             --bg:#FDFBF7;--coffee:#3E2723;--caramel:#C68642;
             --cl:rgba(198,134,66,.10);--text:#2D241E;--muted:#7D6E64;
@@ -210,199 +204,119 @@
         }
         @media(max-width:480px){.code-big{font-size:1.4rem;letter-spacing:3px}}
     </style>
-</head>
-<body>
-
+<script defer="True" src="/shared_head.js"></script></head>
+<body data-ec-layout="teacher" data-ec-page="teacher-batches">
 <!-- ── SIDEBAR ── -->
-<aside class="sidebar" id="sidebar">
-    <a href="teacher-dashboard.html" class="sl">Edu<span>Coffee.</span></a>
-    <nav class="snav">
-        <div class="nsec">Dashboard</div>
-        <a href="teacher-dashboard.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Overview
-        </a>
-        <div class="nsec">Manage</div>
-        <a href="teacher-batches.html" class="nl active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Batches
-        </a>
-        <a href="teacher-students.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Students
-        </a>
-        <a href="teacher-notices.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notices
-        </a>
-        <a href="teacher-results.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Results
-        </a>
-        <div class="nsec">Account</div>
-        <a href="teacher-profile.html" class="nl">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile & Settings
-        </a>
-    </nav>
-    <div class="sfooter">
-        <div class="uc" onclick="location.href='teacher-profile.html'">
-            <div class="uav" id="sidebarAvatar">T</div>
-            <div style="flex:1;min-width:0">
-                <div class="un" id="sidebarName">Teacher</div>
-                <div class="ur">Teacher Account</div>
-            </div>
-            <button class="lob" onclick="event.stopPropagation();doLogout()" title="Logout">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            </button>
-        </div>
-    </div>
-</aside>
-<div class="mov" id="mov" onclick="closeSB()"></div>
-
-<header class="mhdr">
-    <a href="teacher-dashboard.html" class="mlogo">Edu<span>Coffee.</span></a>
-    <button class="ham" onclick="toggleSB()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-</header>
-
-<main class="main">
-
-    <div class="ph">
-        <div class="ph-left">
-            <h1>My Batches</h1>
-            <p>Create and manage batches. One class can have multiple batches with different schedules.</p>
-        </div>
-        <button class="btn-primary" id="newBatchBtn" onclick="openModal()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+<div data-ec-layout="teacher" data-ec-page="teacher-batches" id="ec-shell"></div><main class="main">
+<div class="ph">
+<div class="ph-left">
+<h1>My Batches</h1>
+<p>Create and manage batches. One class can have multiple batches with different schedules.</p>
+</div>
+<button class="btn-primary" id="newBatchBtn" onclick="openModal()">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19"></line><line x1="5" x2="19" y1="12" y2="12"></line></svg>
             New Batch
         </button>
-    </div>
-
-    <!-- Error banner -->
-    <div class="err-banner" id="errBanner">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span id="errMsg">Could not load batches.</span>
-        <button onclick="loadBatches()">Retry</button>
-    </div>
-
-    <div id="batchContainer">
-        <!-- Loading skeleton -->
-        <div class="batch-grid" id="skeletonGrid">
-            ${[1,2,3].map(() => `
+</div>
+<!-- Error banner -->
+<div class="err-banner" id="errBanner">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>
+<span id="errMsg">Could not load batches.</span>
+<button onclick="loadBatches()">Retry</button>
+</div>
+<div id="batchContainer">
+<!-- Loading skeleton -->
+<div class="batch-grid" id="skeletonGrid">
+            ${[1,2,3].map(() =&gt; `
             <div class="sk-card">
-                <div class="skeleton sk-top"></div>
-                <div class="sk-body">
-                    <div class="skeleton sk-line short"></div>
-                    <div class="skeleton sk-line"></div>
-                    <div class="skeleton sk-line short"></div>
-                </div>
-            </div>`).join('')}
+<div class="skeleton sk-top"></div>
+<div class="sk-body">
+<div class="skeleton sk-line short"></div>
+<div class="skeleton sk-line"></div>
+<div class="skeleton sk-line short"></div>
+</div>
+</div>`).join('')}
         </div>
-    </div>
-
+</div>
 </main>
-
 <!-- BOTTOM NAV -->
-<nav class="bnav">
-    <div class="bni">
-        <a href="teacher-dashboard.html" class="bna">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
-        </a>
-        <a href="teacher-batches.html" class="bna active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Batches
-        </a>
-        <a href="teacher-notices.html" class="bna">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notices
-        </a>
-        <a href="teacher-results.html" class="bna">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Results
-        </a>
-        <a href="teacher-profile.html" class="bna">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile
-        </a>
-    </div>
-</nav>
-
 <!-- ══════════════════════════════════════════
      CREATE / EDIT BATCH MODAL
      ══════════════════════════════════════════ -->
 <div class="modal-overlay" id="batchModal">
-    <div class="modal-box">
-        <div class="mh">
-            <h2 id="modalTitle">Create New Batch</h2>
-            <button class="mcl" onclick="closeModal()">✕</button>
-        </div>
-        <div class="mbody">
-
-            <div class="class-note">
-                <strong>Multiple batches per class:</strong> A single class (e.g. Class 9) can have several batches with different schedules and times. Give each batch a distinct label and schedule.
-            </div>
-
-            <div class="fg-row">
-                <div class="fg">
-                    <label>Class / Grade *</label>
-                    <select id="bClass" onchange="onClassChange()">
-                        <option value="">Select class...</option>
-                        <option value="Class 1">Class 1</option>
-                        <option value="Class 2">Class 2</option>
-                        <option value="Class 3">Class 3</option>
-                        <option value="Class 4">Class 4</option>
-                        <option value="Class 5">Class 5</option>
-                        <option value="Class 6">Class 6</option>
-                        <option value="Class 7">Class 7</option>
-                        <option value="Class 8">Class 8</option>
-                        <option value="Class 9">Class 9</option>
-                        <option value="Class 10">Class 10</option>
-                        <option value="SSC">SSC</option>
-                        <option value="HSC 1st Year">HSC 1st Year</option>
-                        <option value="HSC 2nd Year">HSC 2nd Year</option>
-                        <option value="Degree">Degree</option>
-                        <option value="custom">✏️ Custom class...</option>
-                    </select>
-                </div>
-                <div class="fg" id="customClassWrap" style="display:none">
-                    <label>Custom Class Name</label>
-                    <input type="text" id="bClassCustom" placeholder="e.g. A Levels, Grade 7B...">
-                </div>
-            </div>
-
-            <div class="fg">
-                <label>Batch Label *
-                    <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.7rem">— distinguishes multiple batches of the same class</span>
-                </label>
-                <input type="text" id="bLabel" placeholder='e.g. Morning Batch, Evening Batch, Batch A, Group 2...'>
-                <p class="fg-info" id="namePreview" style="color:var(--caramel);font-weight:600"></p>
-            </div>
-
-            <div class="fg-row">
-                <div class="fg">
-                    <label>Academic Year</label>
-                    <input type="text" id="bYear" placeholder="e.g. 2025-26">
-                </div>
-                <div class="fg">
-                    <label>Schedule & Time *</label>
-                    <input type="text" id="bSchedule" placeholder="e.g. Sat-Mon 4PM, Sun-Tue 6PM">
-                    <p class="fg-info">Each batch can have a different day & time.</p>
-                </div>
-            </div>
-
-            <div class="code-box" id="codeBox">
-                <label>Batch Code (students use this to join)</label>
-                <span class="code-big" id="codeDisplay">XXXXXX</span>
-                <div class="code-actions">
-                    <button class="code-btn code-btn-regen" onclick="regenCode()">🔄 Regenerate</button>
-                    <button class="code-btn code-btn-custom" onclick="customCode()">✏️ Custom</button>
-                </div>
-                <p class="code-info">Students enter this code to join the batch.</p>
-            </div>
-
-            <button class="btn-save" id="saveBtn" onclick="saveBatch()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                <span id="saveBtnLabel">Create Batch</span>
-            </button>
-        </div>
-    </div>
+<div class="modal-box">
+<div class="mh">
+<h2 id="modalTitle">Create New Batch</h2>
+<button class="mcl" onclick="closeModal()">✕</button>
 </div>
-
+<div class="mbody">
+<div class="class-note">
+<strong>Multiple batches per class:</strong> A single class (e.g. Class 9) can have several batches with different schedules and times. Give each batch a distinct label and schedule.
+            </div>
+<div class="fg-row">
+<div class="fg">
+<label>Class / Grade *</label>
+<select id="bClass" onchange="onClassChange()">
+<option value="">Select class...</option>
+<option value="Class 1">Class 1</option>
+<option value="Class 2">Class 2</option>
+<option value="Class 3">Class 3</option>
+<option value="Class 4">Class 4</option>
+<option value="Class 5">Class 5</option>
+<option value="Class 6">Class 6</option>
+<option value="Class 7">Class 7</option>
+<option value="Class 8">Class 8</option>
+<option value="Class 9">Class 9</option>
+<option value="Class 10">Class 10</option>
+<option value="SSC">SSC</option>
+<option value="HSC 1st Year">HSC 1st Year</option>
+<option value="HSC 2nd Year">HSC 2nd Year</option>
+<option value="Degree">Degree</option>
+<option value="custom">✏️ Custom class...</option>
+</select>
+</div>
+<div class="fg" id="customClassWrap" style="display:none">
+<label>Custom Class Name</label>
+<input id="bClassCustom" placeholder="e.g. A Levels, Grade 7B..." type="text"/>
+</div>
+</div>
+<div class="fg">
+<label>Batch Label *
+                    <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.7rem">— distinguishes multiple batches of the same class</span>
+</label>
+<input id="bLabel" placeholder="e.g. Morning Batch, Evening Batch, Batch A, Group 2..." type="text"/>
+<p class="fg-info" id="namePreview" style="color:var(--caramel);font-weight:600"></p>
+</div>
+<div class="fg-row">
+<div class="fg">
+<label>Academic Year</label>
+<input id="bYear" placeholder="e.g. 2025-26" type="text"/>
+</div>
+<div class="fg">
+<label>Schedule &amp; Time *</label>
+<input id="bSchedule" placeholder="e.g. Sat-Mon 4PM, Sun-Tue 6PM" type="text"/>
+<p class="fg-info">Each batch can have a different day &amp; time.</p>
+</div>
+</div>
+<div class="code-box" id="codeBox">
+<label>Batch Code (students use this to join)</label>
+<span class="code-big" id="codeDisplay">XXXXXX</span>
+<div class="code-actions">
+<button class="code-btn code-btn-regen" onclick="regenCode()">🔄 Regenerate</button>
+<button class="code-btn code-btn-custom" onclick="customCode()">✏️ Custom</button>
+</div>
+<p class="code-info">Students enter this code to join the batch.</p>
+</div>
+<button class="btn-save" id="saveBtn" onclick="saveBatch()">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+<span id="saveBtnLabel">Create Batch</span>
+</button>
+</div>
+</div>
+</div>
 <div class="toast" id="toast"></div>
 <script src="api.js"></script>
-<script>
+<script src="/shared_shell.js"></script><script>
 /* ─────────────────────────────────────────
    STATE
 ───────────────────────────────────────── */
@@ -417,19 +331,16 @@ let currentTeacherName = '';
 (async function init() {
     // Expect localStorage to have the logged-in user stored as JSON
     // e.g. { id, name, email, role } saved at login time
-    const raw = localStorage.getItem('current_userid');
-    if (!raw) {
-        alert(raw)
-        window.location.href = 'index.html';
+    const session = getCurrentSession();
+    if (!session || session.role !== 'teacher') {
+        window.location.href = 'auth.html';
         return;
     }
 
-    let user;
-    user = await GetUserByID(raw)
+    const user = await GetUserByID(session.id);
 
-    if (!user.id || user.role !== 'teacher') {
-        alert(user)
-        window.location.href = 'index.html';
+    if (!user?.id || user.role !== 'teacher') {
+        window.location.href = 'auth.html';
         return;
     }
 

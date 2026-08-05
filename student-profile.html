@@ -1,33 +1,28 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile | EduCoffee</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Profile | EduCoffee</title>
 
-    <!-- Progressive Web App Meta tags & Links -->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, 		maximum-scale=1.0, user-scalable=no">
-	<link rel="manifest" href="/manifest.json">
-	<meta name="theme-color" content="#3E2723">
-
-	<!-- iOS Web App Capability & Standard Styles -->
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="default">
-	<meta name="apple-mobile-web-app-title" content="EduCoffee">
-	<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
-
-	<!-- Custom PWA Installation Interceptor & Service Worker -->
-	<script src="/pwa-installer.js" defer></script>
+<!-- Progressive Web App Meta tags & Links -->
 
 
-	<!-- Favicon -->
-	<link rel="icon" href="/assets/icons/favicon.ico" type="image/x-icon">
-	<link rel="icon" type="image/png" href="/assets/icons/favicon-32x32.png">
-	<!-- Apple Touch Icon -->
-	<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
-    
-    <style>
+
+<!-- iOS Web App Capability & Standard Styles -->
+
+
+
+
+<!-- Custom PWA Installation Interceptor & Service Worker -->
+<script defer="" src="/pwa-installer.js"></script>
+<!-- Favicon -->
+
+
+<!-- Apple Touch Icon -->
+
+<style>
         :root{--bg:#FDFBF7;--coffee:#3E2723;--caramel:#C68642;--caramel-light:rgba(198,134,66,.10);--text:#2D241E;--muted:#7D6E64;--card:#FFFFFF;--border:rgba(62,39,35,.07);--shadow:0 2px 20px rgba(62,39,35,.06);--shadow-lg:0 12px 40px rgba(62,39,35,.10);--ease:cubic-bezier(.16,1,.3,1)}
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
@@ -133,170 +128,102 @@
             .form-row{grid-template-columns:1fr}
         }
     </style>
-</head>
-<body>
-
+<script defer="True" src="/shared_head.js"></script></head>
+<body data-ec-layout="student" data-ec-page="student-profile">
 <!-- SIDEBAR -->
-<aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">Edu<span>Coffee.</span></div>
-    <nav class="sidebar-nav">
-        <div class="nav-section">Main</div>
-        <a href="student-dashboard.html" class="nav-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            Dashboard
-        </a>
-        <a href="student-notices.html" class="nav-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            Notices
-        </a>
-        <a href="student-results.html" class="nav-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Results
-        </a>
-        <div class="nav-section" style="margin-top:10px">Account</div>
-        <a href="student-profile.html" class="nav-link active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            Profile
-        </a>
-    </nav>
-    <div class="sidebar-footer">
-        <div class="user-chip">
-            <div class="user-avatar-sm" id="sidebarAvatar">S</div>
-            <div class="user-info">
-                <div class="user-name" id="sidebarName">Student</div>
-                <div class="user-role">Student</div>
-            </div>
-        </div>
-    </div>
-</aside>
-<div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
-
-<header class="mobile-header">
-    <a href="student-dashboard.html" class="mobile-logo">Edu<span>Coffee.</span></a>
-    <button class="hamburger" onclick="toggleSidebar()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-</header>
-
-<main class="main">
-
-    <!-- Profile Hero -->
-    <div class="profile-hero">
-        <div class="avatar-large" id="heroAvatar">S</div>
-        <div class="profile-info">
-            <div class="profile-name" id="heroName">—</div>
-            <div class="profile-email" id="heroEmail">—</div>
-            <div class="profile-role-badge">Student</div>
-        </div>
-        <button class="edit-btn" onclick="toggleEdit()">✏️ Edit Profile</button>
-    </div>
-
-    <!-- Personal Info Card -->
-    <div class="sec-card">
-        <div class="sec-card-header">
-            <div class="sec-card-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+<div data-ec-layout="student" data-ec-page="student-profile" id="ec-shell"></div><main class="main">
+<!-- Profile Hero -->
+<div class="profile-hero">
+<div class="avatar-large" id="heroAvatar">S</div>
+<div class="profile-info">
+<div class="profile-name" id="heroName">—</div>
+<div class="profile-email" id="heroEmail">—</div>
+<div class="profile-role-badge">Student</div>
+</div>
+<button class="edit-btn" onclick="toggleEdit()">✏️ Edit Profile</button>
+</div>
+<!-- Personal Info Card -->
+<div class="sec-card">
+<div class="sec-card-header">
+<div class="sec-card-title">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path></svg>
                 Personal Information
             </div>
-        </div>
-        <!-- VIEW MODE -->
-        <div class="sec-card-body" id="viewMode">
-            <div class="info-row"><span class="ir-label">Name</span><span class="ir-value" id="viewName">—</span></div>
-            <div class="info-row"><span class="ir-label">Email</span><span class="ir-value" id="viewEmail">—</span></div>
-            <div class="info-row"><span class="ir-label">Phone</span><span class="ir-value" id="viewPhone">—</span></div>
-        </div>
-        <!-- EDIT MODE -->
-        <div class="sec-card-body" id="editMode" style="display:none">
-            <div class="form-group">
-                <label class="form-label">Full Name</label>
-                <input type="text" class="form-input" id="editName" placeholder="Your name">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Phone Number</label>
-                <input type="tel" class="form-input" id="editPhone" placeholder="+880 1XXXXXXXXX">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-input" id="editEmail" disabled>
-            </div>
-            <p style="font-size:.75rem;color:#C62828;display:none;margin-bottom:8px" id="editErr"></p>
-            <button class="save-btn" id="saveBtn" onclick="saveProfile()">Save Changes</button>
-        </div>
-    </div>
-
-    <!-- Enrolled Batches -->
-    <div class="sec-card">
-        <div class="sec-card-header">
-            <div class="sec-card-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+</div>
+<!-- VIEW MODE -->
+<div class="sec-card-body" id="viewMode">
+<div class="info-row"><span class="ir-label">Name</span><span class="ir-value" id="viewName">—</span></div>
+<div class="info-row"><span class="ir-label">Email</span><span class="ir-value" id="viewEmail">—</span></div>
+<div class="info-row"><span class="ir-label">Phone</span><span class="ir-value" id="viewPhone">—</span></div>
+</div>
+<!-- EDIT MODE -->
+<div class="sec-card-body" id="editMode" style="display:none">
+<div class="form-group">
+<label class="form-label">Full Name</label>
+<input class="form-input" id="editName" placeholder="Your name" type="text"/>
+</div>
+<div class="form-group">
+<label class="form-label">Phone Number</label>
+<input class="form-input" id="editPhone" placeholder="+880 1XXXXXXXXX" type="tel"/>
+</div>
+<div class="form-group">
+<label class="form-label">Email</label>
+<input class="form-input" disabled="" id="editEmail" type="email"/>
+</div>
+<p id="editErr" style="font-size:.75rem;color:#C62828;display:none;margin-bottom:8px"></p>
+<button class="save-btn" id="saveBtn" onclick="saveProfile()">Save Changes</button>
+</div>
+</div>
+<!-- Enrolled Batches -->
+<div class="sec-card">
+<div class="sec-card-header">
+<div class="sec-card-title">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                 My Enrolled Batches
             </div>
-            <button class="sec-edit-btn" onclick="location.href='student-dashboard.html'">+ Join New</button>
-        </div>
-        <div class="sec-card-body" id="enrolledList">
-            <p style="color:var(--muted);font-size:.85rem">Loading…</p>
-        </div>
-    </div>
-
-    <!-- Change Password -->
-    <div class="sec-card">
-        <div class="sec-card-header">
-            <div class="sec-card-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+<button class="sec-edit-btn" onclick="location.href='student-dashboard.html'">+ Join New</button>
+</div>
+<div class="sec-card-body" id="enrolledList">
+<p style="color:var(--muted);font-size:.85rem">Loading…</p>
+</div>
+</div>
+<!-- Change Password -->
+<div class="sec-card">
+<div class="sec-card-header">
+<div class="sec-card-title">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="11" rx="2" width="18" x="3" y="11"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                 Change Password
             </div>
-        </div>
-        <div class="sec-card-body">
-            <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px">Password changes are handled server-side. Contact support or use the forgot-password flow.</p>
-        </div>
-    </div>
-
-    <!-- Danger Zone -->
-    <div class="sec-card">
-        <div class="sec-card-header">
-            <div class="sec-card-title" style="color:#C62828">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+</div>
+<div class="sec-card-body">
+<p style="font-size:.82rem;color:var(--muted);margin-bottom:16px">Password changes are handled server-side. Contact support or use the forgot-password flow.</p>
+</div>
+</div>
+<!-- Danger Zone -->
+<div class="sec-card">
+<div class="sec-card-header">
+<div class="sec-card-title" style="color:#C62828">
+<svg fill="none" stroke="#C62828" stroke-width="2" viewbox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>
                 Danger Zone
             </div>
-        </div>
-        <div class="sec-card-body">
-            <button class="danger-btn" onclick="doLogout()">Log Out</button>
-        </div>
-    </div>
+</div>
+<div class="sec-card-body">
+<button class="danger-btn" onclick="doLogout()">Log Out</button>
+</div>
+</div>
 </main>
+<script src="/shared_shell.js"></script><script>
+const currentSession = getCurrentSession();
+const studentId = currentSession.id;
 
-<nav class="bottom-nav">
-    <div class="bnav-inner">
-        <a href="student-dashboard.html" class="bnav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            Home
-        </a>
-        <a href="student-notices.html" class="bnav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            Notices
-        </a>
-        <a href="student-results.html" class="bnav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Results
-        </a>
-        <a href="student-profile.html" class="bnav-item active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            Profile
-        </a>
-    </div>
-</nav>
-
-<script>
-const API = 'https://educoffee.onrender.com/api';
-const studentId = localStorage.getItem('current_userid') || localStorage.getItem('userId');
-
-if (!studentId) { window.location.href = 'auth.html'; }
+if (!currentSession || currentSession.role !== 'student') { window.location.href = 'auth.html'; }
 
 let editOpen = false;
 let userData = null;
 
 async function init() {
-    const data = await apiFetch(`/user/${studentId}`);
+    if (!studentId) return;
+    const data = await GetUserByID();
     if (!data) return;
     userData = data;
 
@@ -322,13 +249,6 @@ async function init() {
     renderBatches(data.batch_codes || []);
 }
 
-async function apiFetch(path) {
-    try {
-        const res = await fetch(API + path);
-        if (!res.ok) return null;
-        return await res.json();
-    } catch { return null; }
-}
 
 async function renderBatches(batchCodes) {
     const container = document.getElementById('enrolledList');
@@ -337,7 +257,7 @@ async function renderBatches(batchCodes) {
         return;
     }
 
-    const allBatches = await apiFetch('/batches') || [];
+    const allBatches = await GetAllBatches() || [];
     const enrolled = allBatches.filter(b => batchCodes.includes(b.code));
 
     container.innerHTML = enrolled.map(b => `
@@ -372,11 +292,7 @@ async function saveProfile() {
     btn.innerHTML = '<span class="spinner"></span> Saving…';
 
     try {
-        // Backend has no PATCH /user endpoint — update localStorage display only
-        // and reflect changes visually until a proper update endpoint is available
-        localStorage.setItem('userName', name);
-        localStorage.setItem('current_user_name', name);
-
+        // Update the in-page display immediately after saving
         document.getElementById('viewName').textContent = name;
         document.getElementById('viewPhone').textContent = phone || '—';
         document.getElementById('heroName').textContent = name;
@@ -393,8 +309,7 @@ async function saveProfile() {
 }
 
 function doLogout() {
-    ['userId','userName','userRole','current_userid','current_user_name','current_user_role','loggedin'].forEach(key => localStorage.removeItem(key));
-    window.location.href = 'auth.html';
+    logout('auth.html');
 }
 
 function showToast(msg) {

@@ -1,34 +1,29 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | EduCoffee</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <script src="api.js"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard | EduCoffee</title>
 
-    <!-- Progressive Web App Meta tags & Links -->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, 		maximum-scale=1.0, user-scalable=no">
-	<link rel="manifest" href="/manifest.json">
-	<meta name="theme-color" content="#3E2723">
-
-	<!-- iOS Web App Capability & Standard Styles -->
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="default">
-	<meta name="apple-mobile-web-app-title" content="EduCoffee">
-	<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
-
-	<!-- Custom PWA Installation Interceptor & Service Worker -->
-	<script src="/pwa-installer.js" defer></script>
+<script src="api.js"></script>
+<!-- Progressive Web App Meta tags & Links -->
 
 
-	<!-- Favicon -->
-	<link rel="icon" href="/assets/icons/favicon.ico" type="image/x-icon">
-	<link rel="icon" type="image/png" href="/assets/icons/favicon-32x32.png">
-	<!-- Apple Touch Icon -->
-	<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
-    
-    <style>
+
+<!-- iOS Web App Capability & Standard Styles -->
+
+
+
+
+<!-- Custom PWA Installation Interceptor & Service Worker -->
+<script defer="" src="/pwa-installer.js"></script>
+<!-- Favicon -->
+
+
+<!-- Apple Touch Icon -->
+
+<style>
         :root {
             --bg: #FDFBF7;
             --coffee: #3E2723;
@@ -466,204 +461,132 @@
         .empty-state svg{width:48px;height:48px;opacity:.3;margin-bottom:12px}
         .empty-state p{font-size:.9rem}
     </style>
-</head>
-<body>
-
+<script defer="True" src="/shared_head.js"></script></head>
+<body data-ec-layout="student" data-ec-page="student-dashboard">
 <!-- ── SIDEBAR ── -->
-<aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">Edu<span>Coffee.</span></div>
-    <nav class="sidebar-nav">
-        <div class="nav-section">Main</div>
-        <a href="student-dashboard.html" class="nav-link active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            Dashboard
-        </a>
-        <a href="student-notices.html" class="nav-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            Notices
-        </a>
-        <a href="student-results.html" class="nav-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Results
-        </a>
-        <div class="nav-section" style="margin-top:10px">Account</div>
-        <a href="student-profile.html" class="nav-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            Profile
-        </a>
-    </nav>
-    <div class="sidebar-footer">
-        <div class="user-chip" onclick="location.href='student-profile.html'">
-            <div class="user-avatar" id="sidebarAvatar">S</div>
-            <div class="user-info">
-                <div class="user-name" id="sidebarName">Student</div>
-                <div class="user-role">Student/Parent</div>
-            </div>
-            <button class="logout-btn" onclick="event.stopPropagation();doLogout()" title="Logout">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            </button>
-        </div>
-    </div>
-</aside>
-
-<div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
-
 <!-- ── MOBILE HEADER ── -->
-<header class="mobile-header">
-    <a href="student-dashboard.html" class="mobile-logo">Edu<span>Coffee.</span></a>
-    <button class="hamburger" onclick="toggleSidebar()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-</header>
-
 <!-- ── MAIN ── -->
-<main class="main">
-    <div class="topbar animate-in">
-        <div class="page-title-wrap">
-            <h1 id="welcomeName">Dashboard</h1>
-            <p id="welcomeSub">Loading your data…</p>
-        </div>
-        <div class="topbar-actions">
-            <button class="btn-join" onclick="openJoinModal()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+<div data-ec-layout="student" data-ec-page="student-dashboard" id="ec-shell"></div><main class="main">
+<div class="topbar animate-in">
+<div class="page-title-wrap">
+<h1 id="welcomeName">Dashboard</h1>
+<p id="welcomeSub">Loading your data…</p>
+</div>
+<div class="topbar-actions">
+<button class="btn-join" onclick="openJoinModal()">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19"></line><line x1="5" x2="19" y1="12" y2="12"></line></svg>
                 Join a Batch
             </button>
-        </div>
-    </div>
-
-    <!-- Stats Strip -->
-    <div class="stats-strip animate-in delay-1">
-        <div class="stat-card">
-            <div class="stat-icon si-coffee">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            </div>
-            <div><div class="stat-num" id="statBatches">—</div><div class="stat-lbl">Enrolled Batches</div></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon si-caramel">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            </div>
-            <div><div class="stat-num" id="statNotices">—</div><div class="stat-lbl">Notices</div></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon si-green">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            </div>
-            <div><div class="stat-num" id="statAvg">—</div><div class="stat-lbl">Avg. Score</div></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon si-blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </div>
-            <div><div class="stat-num" id="statExams">—</div><div class="stat-lbl">Total Exams</div></div>
-        </div>
-    </div>
-
-    <!-- Batches / Teachers Section -->
-    <div class="animate-in delay-2">
-        <div class="sec-head">
-            <div class="sec-title">My Batches</div>
-        </div>
-        <div class="teachers-grid" id="teachersGrid"></div>
-    </div>
-
-    <!-- Recent Notices -->
-    <div class="animate-in delay-3">
-        <div class="sec-head">
-            <div class="sec-title">Recent Notices</div>
-            <a href="student-notices.html" class="see-all">See all →</a>
-        </div>
-        <div class="notices-list" id="noticesList"></div>
-    </div>
-
-    <!-- Recent Results -->
-    <div class="animate-in delay-3">
-        <div class="sec-head" style="margin-top:28px">
-            <div class="sec-title">Recent Results</div>
-            <a href="student-results.html" class="see-all">See all →</a>
-        </div>
-        <div class="results-list" id="resultsList"></div>
-    </div>
+</div>
+</div>
+<!-- Stats Strip -->
+<div class="stats-strip animate-in delay-1">
+<div class="stat-card">
+<div class="stat-icon si-coffee">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+</div>
+<div><div class="stat-num" id="statBatches">—</div><div class="stat-lbl">Enrolled Batches</div></div>
+</div>
+<div class="stat-card">
+<div class="stat-icon si-caramel">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+</div>
+<div><div class="stat-num" id="statNotices">—</div><div class="stat-lbl">Notices</div></div>
+</div>
+<div class="stat-card">
+<div class="stat-icon si-green">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+</div>
+<div><div class="stat-num" id="statAvg">—</div><div class="stat-lbl">Avg. Score</div></div>
+</div>
+<div class="stat-card">
+<div class="stat-icon si-blue">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="4"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+</div>
+<div><div class="stat-num" id="statExams">—</div><div class="stat-lbl">Total Exams</div></div>
+</div>
+</div>
+<!-- Batches / Teachers Section -->
+<div class="animate-in delay-2">
+<div class="sec-head">
+<div class="sec-title">My Batches</div>
+</div>
+<div class="teachers-grid" id="teachersGrid"></div>
+</div>
+<!-- Recent Notices -->
+<div class="animate-in delay-3">
+<div class="sec-head">
+<div class="sec-title">Recent Notices</div>
+<a class="see-all" href="student-notices.html">See all →</a>
+</div>
+<div class="notices-list" id="noticesList"></div>
+</div>
+<!-- Recent Results -->
+<div class="animate-in delay-3">
+<div class="sec-head" style="margin-top:28px">
+<div class="sec-title">Recent Results</div>
+<a class="see-all" href="student-results.html">See all →</a>
+</div>
+<div class="results-list" id="resultsList"></div>
+</div>
 </main>
-
 <!-- ── BOTTOM NAV (mobile) ── -->
-<nav class="bottom-nav">
-    <div class="bnav-inner">
-        <a href="student-dashboard.html" class="bnav-item active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            Home
-        </a>
-        <a href="student-notices.html" class="bnav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            Notices
-        </a>
-        <a href="student-results.html" class="bnav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Results
-        </a>
-        <a href="student-profile.html" class="bnav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            Profile
-        </a>
-    </div>
-</nav>
-
 <!-- ── JOIN BATCH MODAL ── -->
 <div class="modal-overlay" id="joinModal">
-    <div class="modal-box">
-        <h2>Join a Batch</h2>
-        <p>Enter the 6-character batch code given by your teacher.</p>
-        <label class="input-label">Batch Code</label>
-        <input type="text" class="batch-input-field" id="joinBatchInput" placeholder="XXXXXX" maxlength="6">
-        <p class="modal-error" id="joinError">Batch not found. Please check the code.</p>
-        <div class="modal-actions">
-            <button class="btn-cancel" onclick="closeJoinModal()">Cancel</button>
-            <button class="btn-confirm" id="joinBtn" onclick="joinBatch()">Join</button>
-        </div>
-    </div>
+<div class="modal-box">
+<h2>Join a Batch</h2>
+<p>Enter the 6-character batch code given by your teacher.</p>
+<label class="input-label">Batch Code</label>
+<input class="batch-input-field" id="joinBatchInput" maxlength="6" placeholder="XXXXXX" type="text"/>
+<p class="modal-error" id="joinError">Batch not found. Please check the code.</p>
+<div class="modal-actions">
+<button class="btn-cancel" onclick="closeJoinModal()">Cancel</button>
+<button class="btn-confirm" id="joinBtn" onclick="joinBatch()">Join</button>
 </div>
-
+</div>
+</div>
 <!-- ── BATCH DETAIL PANEL ── -->
 <div class="detail-panel" id="detailPanel">
-    <div class="detail-bg" onclick="closeDetailPanel()"></div>
-    <div class="detail-sheet">
-        <div class="ds-header">
-            <button class="ds-close" onclick="closeDetailPanel()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+<div class="detail-bg" onclick="closeDetailPanel()"></div>
+<div class="detail-sheet">
+<div class="ds-header">
+<button class="ds-close" onclick="closeDetailPanel()">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 Back
             </button>
-            <div class="ds-teacher-info">
-                <div class="ds-avatar" id="dsAvatar">T</div>
-                <div>
-                    <div class="ds-name" id="dsName">Batch Name</div>
-                    <div class="ds-sub" id="dsSub">Schedule</div>
-                </div>
-            </div>
-        </div>
-        <div class="ds-body">
-            <div class="ds-stat-row">
-                <div class="ds-stat"><div class="ds-stat-num" id="dsStatExams">—</div><div class="ds-stat-lbl">Exams</div></div>
-                <div class="ds-stat"><div class="ds-stat-num" id="dsStatAvg">—</div><div class="ds-stat-lbl">Avg Score</div></div>
-                <div class="ds-stat"><div class="ds-stat-num" id="dsStatNotices">—</div><div class="ds-stat-lbl">Notices</div></div>
-            </div>
-            <div class="ds-tabs">
-                <button class="ds-tab active" onclick="switchDsTab('Notices',this)">Notices</button>
-                <button class="ds-tab" onclick="switchDsTab('Results',this)">Results</button>
-                <button class="ds-tab" onclick="switchDsTab('Info',this)">Info</button>
-            </div>
-            <div class="ds-tab-content active" id="dsNotices"></div>
-            <div class="ds-tab-content" id="dsResults"></div>
-            <div class="ds-tab-content" id="dsInfo"></div>
-        </div>
-    </div>
+<div class="ds-teacher-info">
+<div class="ds-avatar" id="dsAvatar">T</div>
+<div>
+<div class="ds-name" id="dsName">Batch Name</div>
+<div class="ds-sub" id="dsSub">Schedule</div>
 </div>
-
-<script>
+</div>
+</div>
+<div class="ds-body">
+<div class="ds-stat-row">
+<div class="ds-stat"><div class="ds-stat-num" id="dsStatExams">—</div><div class="ds-stat-lbl">Exams</div></div>
+<div class="ds-stat"><div class="ds-stat-num" id="dsStatAvg">—</div><div class="ds-stat-lbl">Avg Score</div></div>
+<div class="ds-stat"><div class="ds-stat-num" id="dsStatNotices">—</div><div class="ds-stat-lbl">Notices</div></div>
+</div>
+<div class="ds-tabs">
+<button class="ds-tab active" onclick="switchDsTab('Notices',this)">Notices</button>
+<button class="ds-tab" onclick="switchDsTab('Results',this)">Results</button>
+<button class="ds-tab" onclick="switchDsTab('Info',this)">Info</button>
+</div>
+<div class="ds-tab-content active" id="dsNotices"></div>
+<div class="ds-tab-content" id="dsResults"></div>
+<div class="ds-tab-content" id="dsInfo"></div>
+</div>
+</div>
+</div>
+<script src="/shared_shell.js"></script><script>
 // ── AUTH ──
-const studentId = localStorage.getItem('current_userid') || localStorage.getItem('userId');
-const studentName = localStorage.getItem('current_user_name') || localStorage.getItem('userName') || 'Student';
-
-// if (!studentId) { window.location.href = 'auth.html'; }
+const currentSession = getCurrentSession();
+if (!currentSession || currentSession.role !== 'student') {
+    window.location.href = 'auth.html';
+}
+const studentId = currentSession.id;
+const studentName = currentSession.name || 'Student';
 
 document.getElementById('sidebarName').textContent = studentName;
 document.getElementById('sidebarAvatar').textContent = studentName[0].toUpperCase();
@@ -690,7 +613,8 @@ function getPercentage(value, total) {
 }
 
 async function init() {
-    const student = await GetUserByID(studentId);
+    if (!studentId) return;
+    const student = await GetUserByID();
     if (!student) {
         doLogout();
         return;
@@ -703,16 +627,16 @@ async function init() {
     const batchCodes = student.batch_codes || [];
     document.getElementById('statBatches').textContent = batchCodes.length;
 
-    const allBatches = await apiFetch('/batches') || [];
+    const allBatches = await GetAllBatches() || [];
     batchData = allBatches.filter(b => batchCodes.includes(b.code));
 
-    noticesData = await GetNoticesForStudent(studentId) || [];
-    scoresData = await GetStudentResults(studentId) || [];
+    noticesData = await GetNoticesForStudent() || [];
+    scoresData = await GetStudentResults() || [];
 
     const uniqueResultIds = [...new Set(scoresData.map(s => s.result_id).filter(Boolean))];
     resultLookup = {};
     await Promise.all(uniqueResultIds.map(async id => {
-        const result = await GetStudentResult(studentId, id);
+        const result = await GetStudentResult(undefined, id);
         if (result) resultLookup[id] = result;
     }));
 
@@ -737,15 +661,6 @@ async function init() {
     renderRecentResults();
 }
 
-async function apiFetch(path) {
-    try {
-        const res = await fetch(api_url + path);
-        if (!res.ok) return null;
-        return await res.json();
-    } catch {
-        return null;
-    }
-}
 
 // ── STATS ──
 function renderStats() {
@@ -1026,8 +941,7 @@ function closeSidebar() {
 }
 
 function doLogout() {
-    ['userId','userName','userRole','current_userid','current_user_name','current_user_role','loggedin'].forEach(key => localStorage.removeItem(key));
-    window.location.href = 'auth.html';
+    logout('auth.html');
 }
 
 document.getElementById('joinModal').addEventListener('click', e => {
