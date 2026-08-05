@@ -669,71 +669,124 @@
 
     // OTP
     function setupOtpAutoFocus(containerSelector) {
-        const container = document.querySelector(containerSelector);
-        if (!container) return;
-        const fields = container.querySelectorAll('.otp-field');
-        fields.forEach((field, i) => {
-            field.addEventListener('input', () => {
-                field.value = field.value.replace(/\D/g, '').slice(-1);
-                if (field.value && fields[i + 1]) fields[i + 1].focus();
-    async function sendForgotOTP() {
-        const email = document.getElementById('forgotEmail').value.trim();
-        const errEl = document.getElementById('forgotError');
-        errEl.style.display = 'none';
-        if (!email) { errEl.textContent = 'Please enter your email.'; errEl.style.display = 'block'; return; }
-
-        try {
-            // Ask backend to send OTP for reset
-            await requestJson('/send_otp', { method: 'POST', body: { email, purpose: 'reset' } });
-            document.getElementById('forgotEmailShow').textContent = email;
-            document.getElementById('forgotStep1').style.display = 'none';
-            document.getElementById('forgotStep2').style.display = 'block';
-            document.querySelectorAll('#forgotOtpInputs .otp-field').forEach(f => { f.value = ''; f.classList.remove('filled'); });
-            setupOtpAutoFocus('#forgotOtpInputs');
-        } catch (err) {
-            errEl.textContent = err?.message || 'Unable to send OTP.';
-            errEl.style.display = 'block';
-        }
-    }
-    async function resetPassword() {
-        const otp = getOTPValue('#forgotOtpInputs');
-        const newPw = document.getElementById('newPassword').value;
-        if (!otp || otp.length < 4) { alert('Please enter the 4-digit OTP.'); return; }
-        if (!newPw || newPw.length < 6) { alert('Password must be at least 6 characters.'); return; }
-        const email = document.getElementById('forgotEmailShow').textContent;
-        try {
-            const res = await requestJson('/verify_otp', { method: 'POST', body: { email, purpose: 'reset', code: otp, new_password: newPw } });
-            if (res && res.verified) {
-                document.getElementById('forgotModal').classList.remove('open');
-                showSuccess('Password Reset', 'Your password has been updated. Please login.');
-            } else {
-                alert('OTP verification failed.');
+    const container = document.querySelector(containerSelector);
+    if (!container) return;
+    const fields = container.querySelectorAll('.otp-field');
+    fields.forEach((field, i) => {
+        field.addEventListener('input', () => {
+            field.value = field.value.replace(/\D/g, '').slice(-1);
+            if (field.value && fields[i + 1]) fields[i + 1].focus();
+        });
+        field.addEventListener('keydown', e => {
+            if (e.key === 'Backspace' && !field.value && fields[i - 1]) {
+                fields[i - 1].focus();
             }
-        } catch (err) {
-            alert('Unable to reset password: ' + (err?.message || 'Please try again.'));
-        }
+        });
+    });
+}
+
+function openForgotModal() {
+    document.getElementById('forgotModal').classList.add('open');
+    document.getElementById('forgotStep1').style.display = 'block';
+    document.getElementById('forgotStep2').style.display = 'none';
+    document.getElementById('forgotError').style.display = 'none';
+    document.getElementById('forgotEmail').value = '';
+}
+
+function closeForgotModal() {
+    document.getElementById('forgotModal').classList.remove('open');
+}
+
+async function sendForgotOTP() {
+    const email = document.getElementById('forgotEmail').value.trim();
+    const errEl = document.getElementById('forgotError');
+    errEl.style.display = 'none';
+
+    if (!email) {
+        errEl.textContent = 'Please enter your email.';
+        errEl.style.display = 'block';
+        return;
     }
-        setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', true);
 
-        try {
-            const loginRes = await Login(email, password);
-            if (!loginRes || !loginRes.id || !loginRes.access_token) {
-                throw new Error('Login failed. Please try again.');
-            }
+    try {
+        await requestJson('/send_otp', { method: 'POST', body: { email, purpose: 'reset' } });
+        document.getElementById('forgotEmailShow').textContent = email;
+        document.getElementById('forgotStep1').style.display = 'none';
+        document.getElementById('forgotStep2').style.display = 'block';
+        document.querySelectorAll('#forgotOtpInputs .otp-field').forEach(f => { f.value = ''; f.classList.remove('filled'); });
+        setupOtpAutoFocus('#forgotOtpInputs');
+    } catch (err) {
+        errEl.textContent = err?.message || 'Unable to send OTP.';
+        errEl.style.display = 'block';
+    }
+}
 
-            saveToken(loginRes.access_token);
+async function resetPassword() {
+    const otp = getOTPValue('#forgotOtpInputs');
+    const newPw = document.getElementById('newPassword').value;
+    const email = document.getElementById('forgotEmailShow').textContent.trim();
 
-
-            setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', false);
-            const dashUrl = loginRes.role === 'teacher' ? 'teacher-dashboard.html' : 'student-dashboard.html';
-            window.location.href = dashUrl;
-        } catch (err) {
-            setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', false);
-            errorEl.textContent = err?.message || 'Login failed. Please try again.';
-            errorEl.style.display = 'block';
-        }
+    if (otp.length < 4) {
+        alert('Please enter the 4-digit OTP.');
+        return;
+    }
+    if (!newPw || newPw.length < 6) {
+        alert('Password must be at least 6 characters.');
+        return;
     }
 
+    try {
+        const res = await requestJson('/verify_otp', {
+            method: 'POST',
+            body: { email, purpose: 'reset', code: otp, new_password: newPw },
+        });
+
+        if (!res || !res.verified) {
+            throw new Error('OTP verification failed.');
+        }
+
+        closeForgotModal();
+        alert('Password reset successful! Please login with your new password.');
+    } catch (err) {
+        alert(err?.message || 'Unable to reset password. Please try again.');
+    }
+}
+
+async function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errorEl = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+
+    errorEl.style.display = 'none';
+    if (!email || !password) {
+        errorEl.textContent = 'Please enter your email and password.';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', true);
+
+    try {
+        const loginRes = await Login(email, password);
+        if (!loginRes || !loginRes.id || !loginRes.access_token) {
+            throw new Error('Login failed. Please try again.');
+        }
+
+        saveToken(loginRes.access_token);
+        localStorage.setItem('loggedin', 'true');
+        localStorage.setItem('userRole', loginRes.role || '');
+        localStorage.setItem('userEmail', email.toLowerCase());
+
+        setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', false);
+        const dashUrl = loginRes.role === 'teacher' ? 'teacher-dashboard.html' : 'student-dashboard.html';
+        window.location.href = dashUrl;
+    } catch (err) {
+        setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', false);
+        errorEl.textContent = err?.message || 'Login failed. Please try again.';
+        errorEl.style.display = 'block';
+    }
+}
     // TEACHER REGISTER
     async function handleTeacherRegister() {
         const name     = document.getElementById('tName').value.trim();
@@ -761,23 +814,7 @@
         }
 
         pendingRegData = { name, email, phone: '+880' + phone, center_name: center, password, role: 'teacher', plan: selectedPlan };
-        // openOTPModal(email);
-        try {
-            const responseRegData = await Register(pendingRegData);
-            if (!responseRegData || !responseRegData.id) {
-                throw new Error('Registration failed. Please try again.');
-            }
-
-            const loginRes = await Login(email, password);
-            if (!loginRes || !loginRes.id || !loginRes.access_token) {
-                throw new Error('Registration succeeded but login failed. Please try logging in manually.');
-            }
-
-            saveToken(loginRes.access_token);
-            showSuccess('teacher', responseRegData.name);
-        } catch (err) {
-            alert('Registration failed: ' + (err?.message || 'Please try again.'));
-        }
+        openOTPModal(email, 'register');
     }
 
     // STUDENT REGISTER
@@ -795,23 +832,7 @@
         if (password !== confirm) { pwErr.style.display = 'block'; return; }
         if (password.length < 6) { pwErr.textContent = 'Password must be at least 6 characters.'; pwErr.style.display = 'block'; return; }
         pendingRegData = { name, email, phone: '+880' + phone, batch_codes: [batch], password, role: 'student' };
-        try {
-            const resData = await Register(pendingRegData);
-            if (!resData || !resData.id) {
-                throw new Error('Registration failed. Please try again.');
-            }
-
-            const loginRes = await Login(email, password);
-            if (!loginRes || !loginRes.id || !loginRes.access_token) {
-                throw new Error('Registration succeeded but login failed. Please try logging in manually.');
-            }
-
-            saveToken(loginRes.access_token);
-            showSuccess('student', resData.name);
-        } catch (err) {
-            alert('Registration failed: ' + (err?.message || 'Please try again.'));
-        }
-        // openOTPModal(email);
+        openOTPModal(email, 'register');
     }
 
     // OTP MODAL (integrated with backend)
@@ -861,59 +882,53 @@
             alert('Unable to resend OTP. Please try again.');
         }
     }
-    async function verifyOTP() {
-        const entered = getOTPValue('#otpModal .otp-inputs');
-        const errEl = document.getElementById('otpError');
-        errEl.style.display = 'none';
-        if (entered.length < 4) { errEl.textContent = 'Please enter all 4 digits.'; errEl.style.display = 'block'; return; }
-        const btn = document.getElementById('verifyBtn');
-        btn.disabled = true;
-        document.getElementById('otpSpinner').style.display = 'block';
-        try {
-            const res = await requestJson('/verify_otp', { method: 'POST', body: { email: otpEmail, purpose: otpPurpose, code: entered } });
-            btn.disabled = false;
-            document.getElementById('otpSpinner').style.display = 'none';
-            if (entered !== generatedOTP) { errEl.style.display = 'block'; return; }
-            const users = JSON.parse(localStorage.getItem('users') || '{}');
-            const key = pendingRegData.email.toLowerCase();
-            if (pendingRegData.role === 'student') {
-                if (users[key] && users[key].role === 'student') {
-                    if (!users[key].batches.includes(pendingRegData.batchCode)) users[key].batches.push(pendingRegData.batchCode);
-                } else {
-                    users[key] = { ...pendingRegData, batches: [pendingRegData.batchCode] };
-                    delete users[key].batchCode;
-                }
-            } else {
-                users[key] = pendingRegData;
-            }
-            localStorage.setItem('users', JSON.stringify(users));
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('userRole', pendingRegData.role);
-            localStorage.setItem('userName', pendingRegData.name);
-            localStorage.setItem('userEmail', key);
-            document.getElementById('otpModal').classList.remove('open');
-            clearInterval(otpTimerInterval);
 
-            // If we have pendingRegData, continue registration flow
-            if (pendingRegData) {
-                try {
-                    const responseRegData = await Register(pendingRegData);
-                    if (!responseRegData || !responseRegData.id) throw new Error('Registration failed.');
-                    const loginRes = await Login(pendingRegData.email, pendingRegData.password);
-                    saveToken(loginRes.access_token);
-                    showSuccess(pendingRegData.role, responseRegData.name);
-                } catch (err) {
-                    alert('Registration failed after OTP: ' + (err?.message || 'Please try again.'));
-                }
-                pendingRegData = null;
-            }
-        } catch (err) {
-            btn.disabled = false;
-            document.getElementById('otpSpinner').style.display = 'none';
-            errEl.textContent = err?.message || 'OTP verification failed.';
-            errEl.style.display = 'block';
+async function verifyOTP() {
+    const entered = getOTPValue('#otpModal .otp-inputs');
+    const errEl = document.getElementById('otpError');
+    errEl.style.display = 'none';
+    if (entered.length < 4) { errEl.textContent = 'Please enter all 4 digits.'; errEl.style.display = 'block'; return; }
+    const btn = document.getElementById('verifyBtn');
+    btn.disabled = true;
+    document.getElementById('otpSpinner').style.display = 'block';
+    try {
+        const res = await requestJson('/verify_otp', { method: 'POST', body: { email: otpEmail, purpose: otpPurpose, code: entered } });
+        if (!res || !res.verified) {
+            throw new Error('OTP verification failed.');
         }
+
+        if (!pendingRegData) {
+            throw new Error('Registration data missing. Please try again.');
+        }
+
+        const responseRegData = await Register(pendingRegData);
+        if (!responseRegData || !responseRegData.id) {
+            throw new Error('Registration failed.');
+        }
+
+        const loginRes = await Login(pendingRegData.email, pendingRegData.password);
+        if (!loginRes || !loginRes.access_token) {
+            throw new Error('Login failed after verification.');
+        }
+
+        saveToken(loginRes.access_token);
+        localStorage.setItem('loggedin', 'true');
+        localStorage.setItem('userRole', pendingRegData.role);
+        localStorage.setItem('userName', pendingRegData.name);
+        localStorage.setItem('userEmail', pendingRegData.email.toLowerCase());
+
+        document.getElementById('otpModal').classList.remove('open');
+        clearInterval(otpTimerInterval);
+        showSuccess(pendingRegData.role, responseRegData.name);
+        pendingRegData = null;
+    } catch (err) {
+        errEl.textContent = err?.message || 'OTP verification failed.';
+        errEl.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        document.getElementById('otpSpinner').style.display = 'none';
     }
+}
 
     // FORGOT PASSWORD
     function openForgotModal() {
@@ -931,24 +946,33 @@
         if (!email) { errEl.textContent = 'Please enter your email.'; errEl.style.display = 'block'; return; }
         const users = JSON.parse(localStorage.getItem('users') || '{}');
         if (!users[email.toLowerCase()]) { errEl.style.display = 'block'; return; }
-        generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
-        console.log(`[EduCoffee Forgot OTP for ${email}]: ${generatedOTP}`);
         document.getElementById('forgotEmailShow').textContent = email;
         document.getElementById('forgotStep1').style.display = 'none';
         document.getElementById('forgotStep2').style.display = 'block';
         document.querySelectorAll('#forgotOtpInputs .otp-field').forEach(f => { f.value = ''; f.classList.remove('filled'); });
         setupOtpAutoFocus('#forgotOtpInputs');
+        requestJson('/send_otp', { method: 'POST', body: { email, purpose: 'reset' } })
+            .catch(err => {
+                errEl.textContent = err?.message || 'Unable to send OTP.';
+                errEl.style.display = 'block';
+            });
     }
-    function resetPassword() {
+    async function resetPassword() {
         const otp = getOTPValue('#forgotOtpInputs');
         const newPw = document.getElementById('newPassword').value;
-        if (otp !== generatedOTP) { alert('Incorrect OTP.'); return; }
+        if (otp.length < 4) { alert('Please enter the 4-digit OTP.'); return; }
         if (newPw.length < 6) { alert('Password must be at least 6 characters.'); return; }
         const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
-        if (users[email]) { users[email].password = newPw; localStorage.setItem('users', JSON.stringify(users)); }
-        closeForgotModal();
-        alert('Password reset successful! Please login with your new password.');
+        try {
+            const res = await requestJson('/verify_otp', { method: 'POST', body: { email, purpose: 'reset', code: otp, new_password: newPw } });
+            if (!res || !res.verified) {
+                throw new Error('OTP verification failed.');
+            }
+            closeForgotModal();
+            alert('Password reset successful! Please login with your new password.');
+        } catch (err) {
+            alert(err?.message || 'Unable to reset password. Please try again.');
+        }
     }
 
     // CLOSE MODALS OUTSIDE CLICK

@@ -740,8 +740,12 @@ function closeSB() {
 }
 function doLogout() {
     if (!confirm('Log out?')) return;
-    // localStorage.removeItem('user');
+    clearToken();
     localStorage.removeItem('current_userid');
+    localStorage.removeItem('current_user_name');
+    localStorage.removeItem('current_user_role');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
     window.location.href = 'index.html';
 }
 
