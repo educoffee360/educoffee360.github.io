@@ -10,7 +10,7 @@ class User(BaseModel):
     center_name: Optional[str] = None
     phone: str
     password: str
-    role: Literal['teacher', 'student']
+    role: Literal['teacher', 'student', 'admin']
     batch_codes: Optional[List] = None
     plan: Optional[Literal['Starter', 'Professional', 'Elite']] = None
 
@@ -52,7 +52,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     center_name: Optional[str] = None
     phone: str
-    role: Literal['teacher', 'student']
+    role: Literal['teacher', 'student', 'admin']
     batch_codes: Optional[List] = None
 
     class Config:

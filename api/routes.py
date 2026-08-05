@@ -6,18 +6,97 @@ import schemas
 import models
 from database import get_db
 
-from security import hash_password, verify_password, needs_rehash
+from security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError
 
 router = APIRouter(prefix="/api")
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = decode_access_token(token)
+        user_id = payload.get("sub")
+        role = payload.get("role")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid Token")
+        return {"user_id": user_id, "role": role}
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid Token")
+
+def require_role(*allowed_roles):
+    def checker(current_user = Depends(get_current_user)):
+        if current_user["role"] not in allowed_roles:
+            raise HTTPException(status_code=403, detail="Forbidden")
+        return current_user
+    return checker
+
+
+def require_self_or_admin(user_id: str, current_user = Depends(get_current_user)):
+    if current_user["role"] == "admin":
+        return current_user
+    if current_user["user_id"] != str(user_id):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return current_user
+
+
+def require_teacher_self_or_admin(teacher_id: str, current_user = Depends(get_current_user)):
+    if current_user["role"] == "admin":
+        return current_user
+    if current_user["role"] != "teacher" or current_user["user_id"] != str(teacher_id):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return current_user
+
+
+def require_student_self_or_admin(student_id: str, current_user = Depends(get_current_user)):
+    if current_user["role"] == "admin":
+        return current_user
+    if current_user["role"] != "student" or current_user["user_id"] != str(student_id):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return current_user
+
+
+def require_teacher_or_admin(current_user = Depends(get_current_user)):
+    if current_user["role"] not in ("teacher", "admin"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return current_user
+
+
+def require_student(current_user = Depends(get_current_user)):
+    if current_user["role"] != "student":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return current_user
+
+
+def require_batch_teacher_or_admin(batch_code: str, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    batch = db.query(models.Batch).filter(models.Batch.code == batch_code).first()
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    if current_user["role"] == "admin":
+        return current_user
+    if current_user["role"] != "teacher" or current_user["user_id"] != batch.teacher_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return current_user
+
+
+def require_notice_owner_or_admin(notice_id: str, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    notice = db.query(models.Notice).filter(models.Notice.id == notice_id).first()
+    if not notice:
+        raise HTTPException(status_code=404, detail="Notice Not Found")
+    if current_user["role"] == "admin":
+        return current_user
+    if current_user["role"] != "teacher" or current_user["user_id"] != notice.teacher_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return current_user
 
 @router.get("/users", response_model=List[schemas.UserResponse], status_code=200)
-def get_all_users(db: Session = Depends(get_db)):
+def get_all_users(db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
     return db.query(models.User).all()
 
 
 @router.get("/user/{user_id}", response_model=schemas.UserResponse, status_code=200)
-def get_user_by_id(user_id, db: Session = Depends(get_db)):
+def get_user_by_id(user_id, db: Session = Depends(get_db), current_user = Depends(require_self_or_admin)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(404, "User Not Found, make sure to register first")
@@ -66,19 +145,35 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(db_user)
 
-    return {"message": "Login successful", "role": db_user.role, "id": db_user.id}
+    token_data = {
+        "sub": str(db_user.id),
+        "role": db_user.role,
+        "name": db_user.name
+    }
+
+    access_token = create_access_token(token_data)
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "role": db_user.role,
+        "id": db_user.id,
+    }
 
 
 @router.get("/batches", response_model=List[schemas.Batch], status_code=200)
-def get_all_batches(db: Session = Depends(get_db)):
+def get_all_batches(db: Session = Depends(get_db), current_user = Depends(require_role("teacher", "admin"))):
     return db.query(models.Batch).all()
 
 
 @router.post("/new_batch/", response_model=schemas.Batch, status_code=201)
-def create_new_batch(batch: schemas.Batch, db: Session = Depends(get_db)):
-    db_teacher = (
-        db.query(models.User).filter(models.User.id == batch.teacher_id).first()
-    )
+def create_new_batch(batch: schemas.Batch, db: Session = Depends(get_db), current_user = Depends(require_role("teacher", "admin"))):
+    if current_user["role"] == "teacher":
+        teacher_id = current_user["user_id"]
+    else:
+        teacher_id = batch.teacher_id
+
+    db_teacher = db.query(models.User).filter(models.User.id == teacher_id).first()
     if not db_teacher:
         raise HTTPException(404, "Teacher Not Found")
     if db_teacher.role != "teacher":
@@ -89,7 +184,7 @@ def create_new_batch(batch: schemas.Batch, db: Session = Depends(get_db)):
         name=batch.name,
         year=batch.year,
         schedule=batch.schedule,
-        teacher_id=batch.teacher_id,
+        teacher_id=teacher_id,
     )
 
     db.add(new_batch)
@@ -101,7 +196,7 @@ def create_new_batch(batch: schemas.Batch, db: Session = Depends(get_db)):
 @router.get(
     "/batches/{teacher_id}", response_model=List[schemas.Batch], status_code=200
 )
-def get_batches_by_teacher_id(teacher_id, db: Session = Depends(get_db)):
+def get_batches_by_teacher_id(teacher_id, db: Session = Depends(get_db), current_user = Depends(require_teacher_self_or_admin)):
     batches = db.query(models.Batch).filter(models.Batch.teacher_id == teacher_id)
     return batches
 
@@ -109,10 +204,10 @@ def get_batches_by_teacher_id(teacher_id, db: Session = Depends(get_db)):
 @router.put(
     "/enroll/{batch_code}", response_model=schemas.UserResponse, status_code=200
 )
-def enroll_in_batch(batch_code, student_id, db: Session = Depends(get_db)):
-    student = db.query(models.User).filter(models.User.id == student_id).first()
+def enroll_in_batch(batch_code, db: Session = Depends(get_db), current_user = Depends(require_student)):
+    student = db.query(models.User).filter(models.User.id == current_user["user_id"]).first()
     if not student:
-        raise HTTPException(404, "Student NOt Found")
+        raise HTTPException(404, "Student Not Found")
     if student.role != "student":
         raise HTTPException(
             403, "This is for students to enroll in batches that teachers created."
@@ -138,7 +233,7 @@ def enroll_in_batch(batch_code, student_id, db: Session = Depends(get_db)):
     return student
 
 @router.get('/students_in_batch/{batch_code}', response_model=List[schemas.User], status_code=200)
-def get_students_in_batch(batch_code, db: Session = Depends(get_db)):
+def get_students_in_batch(batch_code, db: Session = Depends(get_db), current_user = Depends(require_batch_teacher_or_admin)):
     batch = db.query(models.Batch).filter(models.Batch.code == batch_code).first()
     if not batch:
         raise HTTPException(404, 'Batch not found')
@@ -152,7 +247,7 @@ def get_students_in_batch(batch_code, db: Session = Depends(get_db)):
     return students_in_batch
 
 @router.get('/my_students/{teacher_id}', response_model=List[schemas.User], status_code=200)
-def get_my_students(teacher_id, db: Session = Depends(get_db)):
+def get_my_students(teacher_id, db: Session = Depends(get_db), current_user = Depends(require_teacher_self_or_admin)):
     my_batches = db.query(models.Batch).filter(models.Batch.teacher_id == teacher_id)
     my_batches_codes = []
     for batch in my_batches:
@@ -168,11 +263,11 @@ def get_my_students(teacher_id, db: Session = Depends(get_db)):
     return my_students
 
 @router.get("/results", response_model=List[schemas.Result], status_code=200)
-def get_all_results(db: Session = Depends(get_db)):
+def get_all_results(db: Session = Depends(get_db), current_user = Depends(require_role("teacher", "admin"))):
     return db.query(models.Result).all()
 
 @router.post('/new_result', status_code=201)
-def create_result(result: schemas.Result, db: Session = Depends(get_db)):
+def create_result(result: schemas.Result, db: Session = Depends(get_db), current_user = Depends(require_teacher_or_admin)):
     batch = db.query(models.Batch).filter(models.Batch.code == result.batch_code).first()
     if not batch:
         raise HTTPException(404, 'Batch not found')
@@ -200,7 +295,9 @@ def create_result(result: schemas.Result, db: Session = Depends(get_db)):
     return {'message': 'Results published successfully'}
 
 @router.get('/results/student/{student_id}/{result_id}', status_code=200)
-def get_student_result(student_id: str, result_id: str, db: Session = Depends(get_db)):
+def get_student_result(student_id: str, result_id: str, db: Session = Depends(get_db), current_user = Depends(require_student_self_or_admin)):
+    if current_user["role"] == "student":
+        student_id = current_user["user_id"]
     score = db.query(models.StudentScore).filter(
         models.StudentScore.student_id == student_id,
         models.StudentScore.result_id == result_id
@@ -225,7 +322,9 @@ def get_student_result(student_id: str, result_id: str, db: Session = Depends(ge
     }
 
 @router.get('/results/student/{student_id}', status_code=200)
-def get_student_results(student_id: str, db: Session = Depends(get_db)):
+def get_student_results(student_id: str, db: Session = Depends(get_db), current_user = Depends(require_student_self_or_admin)):
+    if current_user["role"] == "student":
+        student_id = current_user["user_id"]
     scores = db.query(models.StudentScore).filter(
         models.StudentScore.student_id == student_id
     ).all()
@@ -251,14 +350,16 @@ def get_student_results(student_id: str, db: Session = Depends(get_db)):
     return result
 
 @router.get("/notices", response_model=List[schemas.Notice], status_code=200)
-def get_all_notices(db: Session = Depends(get_db)):
+def get_all_notices(db: Session = Depends(get_db), current_user = Depends(require_role("teacher", "admin"))):
     return db.query(models.Notice).all()
 
 
 @router.get(
     "/notices/{student_id}", response_model=List[schemas.Notice], status_code=200
 )
-def get_notices_for_student(student_id, db: Session = Depends(get_db)):
+def get_notices_for_student(student_id, db: Session = Depends(get_db), current_user = Depends(require_student_self_or_admin)):
+    if current_user["role"] == "student":
+        student_id = current_user["user_id"]
     student = db.query(models.User).filter(models.User.id == student_id).first()
     if not student:
         raise HTTPException(404, "Student Not Found")
@@ -276,7 +377,7 @@ def get_notices_for_student(student_id, db: Session = Depends(get_db)):
 
 
 @router.post("/new_notice", response_model=schemas.Notice, status_code=201)
-def create_new_notice(notice: schemas.Notice, db: Session = Depends(get_db)):
+def create_new_notice(notice: schemas.Notice, db: Session = Depends(get_db), current_user = Depends(require_teacher_or_admin)):
     new_notice = models.Notice(
         text=notice.text,
         teacher_id=notice.teacher_id,
@@ -290,7 +391,7 @@ def create_new_notice(notice: schemas.Notice, db: Session = Depends(get_db)):
     return new_notice
 
 @router.put("/notice/{notice_id}", response_model=schemas.Notice, status_code=200)
-def update_notice(notice_id: str, notice: schemas.Notice, db: Session = Depends(get_db)):
+def update_notice(notice_id: str, notice: schemas.Notice, db: Session = Depends(get_db), current_user = Depends(require_notice_owner_or_admin)):
     db_notice = db.query(models.Notice).filter(models.Notice.id == notice_id).first()
     if not db_notice:
         raise HTTPException(404, "Notice Not Found")
@@ -305,7 +406,7 @@ def update_notice(notice_id: str, notice: schemas.Notice, db: Session = Depends(
     return db_notice
 
 @router.delete("/notice/{notice_id}", status_code=204)
-def delete_notice(notice_id: str, db: Session = Depends(get_db)):
+def delete_notice(notice_id: str, db: Session = Depends(get_db), current_user = Depends(require_notice_owner_or_admin)):
     db_notice = db.query(models.Notice).filter(models.Notice.id == notice_id).first()
     if not db_notice:
         raise HTTPException(404, "Notice Not Found")
@@ -315,7 +416,7 @@ def delete_notice(notice_id: str, db: Session = Depends(get_db)):
     return None
 
 @router.get('/my_notices/{teacher_id}', response_model=List[schemas.Notice], status_code=200)
-def get_my_notices(teacher_id, db: Session = Depends(get_db)):
+def get_my_notices(teacher_id, db: Session = Depends(get_db), current_user = Depends(require_teacher_self_or_admin)):
     teacher = db.query(models.User).filter(models.User.id == teacher_id).first()
     if not teacher:
         raise HTTPException(404, "Teacher Not Found")
