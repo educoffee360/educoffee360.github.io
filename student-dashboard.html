@@ -588,9 +588,9 @@ if (!currentSession || currentSession.role !== 'student') {
 const studentId = currentSession.id;
 const studentName = currentSession.name || 'Student';
 
-document.getElementById('sidebarName').textContent = studentName;
-document.getElementById('sidebarAvatar').textContent = studentName[0].toUpperCase();
-document.getElementById('welcomeName').textContent = `Hello, ${studentName}!`;
+const __sidebarName = document.getElementById('sidebarName'); if (__sidebarName) __sidebarName.textContent = studentName;
+const __sidebarAvatar = document.getElementById('sidebarAvatar'); if (__sidebarAvatar) __sidebarAvatar.textContent = studentName[0].toUpperCase();
+const __welcomeName = document.getElementById('welcomeName'); if (__welcomeName) __welcomeName.textContent = `Hello, ${studentName}!`;
 
 const hour = new Date().getHours();
 document.getElementById('welcomeSub').textContent =
@@ -614,15 +614,15 @@ function getPercentage(value, total) {
 
 async function init() {
     if (!studentId) return;
-    const student = await GetUserByID();
+    const student = await GetUserByID(studentId);
     if (!student) {
         doLogout();
         return;
     }
 
-    document.getElementById('sidebarName').textContent = student.name;
-    document.getElementById('sidebarAvatar').textContent = student.name[0].toUpperCase();
-    document.getElementById('welcomeName').textContent = `Hello, ${student.name}!`;
+    const __sidebarName = document.getElementById('sidebarName'); if (__sidebarName) __sidebarName.textContent = student.name;
+    const __sidebarAvatar = document.getElementById('sidebarAvatar'); if (__sidebarAvatar) __sidebarAvatar.textContent = student.name[0].toUpperCase();
+    const __welcomeName = document.getElementById('welcomeName'); if (__welcomeName) __welcomeName.textContent = `Hello, ${student.name}!`;
 
     const batchCodes = student.batch_codes || [];
     document.getElementById('statBatches').textContent = batchCodes.length;
@@ -630,7 +630,7 @@ async function init() {
     const allBatches = await GetAllBatches() || [];
     batchData = allBatches.filter(b => batchCodes.includes(b.code));
 
-    noticesData = await GetNoticesForStudent() || [];
+    noticesData = await GetNoticesForStudent(studentId) || [];
     scoresData = await GetStudentResults() || [];
 
     const uniqueResultIds = [...new Set(scoresData.map(s => s.result_id).filter(Boolean))];

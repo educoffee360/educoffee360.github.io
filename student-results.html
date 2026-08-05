@@ -188,15 +188,14 @@
 </main>
 <script src="/shared_shell.js"></script><script>
 const currentSession = getCurrentSession();
-const studentId = currentSession?.id;
-
 if (!currentSession || currentSession.role !== 'student') {
     window.location.href = 'auth.html';
 }
+const studentId = currentSession.id;
 
 const studentName = currentSession?.name || 'Student';
-document.getElementById('sidebarName').textContent = studentName;
-document.getElementById('sidebarAvatar').textContent = studentName[0].toUpperCase();
+const __sidebarName = document.getElementById('sidebarName'); if (__sidebarName) __sidebarName.textContent = studentName;
+const __sidebarAvatar = document.getElementById('sidebarAvatar'); if (__sidebarAvatar) __sidebarAvatar.textContent = studentName[0].toUpperCase();
 
 let allScores = [];
 let currentBatch = 'all';
@@ -212,7 +211,7 @@ function getPercentage(value, total) {
 }
 
 function showLoadError() {
-    document.querySelector('.page-header p').textContent = 'Could not load data. Please refresh.';
+    const __pageHeaderP = document.querySelector('.page-header p'); if (__pageHeaderP) __pageHeaderP.textContent = 'Could not load data. Please refresh.';
 }
 
 async function init() {

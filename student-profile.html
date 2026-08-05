@@ -214,22 +214,21 @@
 </main>
 <script src="/shared_shell.js"></script><script>
 const currentSession = getCurrentSession();
-const studentId = currentSession.id;
-
 if (!currentSession || currentSession.role !== 'student') { window.location.href = 'auth.html'; }
+const studentId = currentSession.id;
 
 let editOpen = false;
 let userData = null;
 
 async function init() {
     if (!studentId) return;
-    const data = await GetUserByID();
+    const data = await GetUserByID(studentId);
     if (!data) return;
     userData = data;
 
     // Sidebar
-    document.getElementById('sidebarName').textContent = data.name;
-    document.getElementById('sidebarAvatar').textContent = data.name[0].toUpperCase();
+    const __sidebarName = document.getElementById('sidebarName'); if (__sidebarName) __sidebarName.textContent = data.name;
+    const __sidebarAvatar = document.getElementById('sidebarAvatar'); if (__sidebarAvatar) __sidebarAvatar.textContent = data.name[0].toUpperCase();
 
     // Hero
     document.getElementById('heroAvatar').textContent = data.name[0].toUpperCase();
@@ -297,8 +296,8 @@ async function saveProfile() {
         document.getElementById('viewPhone').textContent = phone || '—';
         document.getElementById('heroName').textContent = name;
         document.getElementById('heroAvatar').textContent = name[0].toUpperCase();
-        document.getElementById('sidebarName').textContent = name;
-        document.getElementById('sidebarAvatar').textContent = name[0].toUpperCase();
+        const __sidebarName = document.getElementById('sidebarName'); if (__sidebarName) __sidebarName.textContent = name;
+        const __sidebarAvatar = document.getElementById('sidebarAvatar'); if (__sidebarAvatar) __sidebarAvatar.textContent = name[0].toUpperCase();
 
         toggleEdit();
         showToast('Profile updated ✓');

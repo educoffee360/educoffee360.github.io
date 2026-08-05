@@ -155,13 +155,12 @@
 <!-- BOTTOM NAV -->
 <script src="/shared_shell.js"></script><script>
 const currentSession = getCurrentSession();
+if (!currentSession || currentSession.role !== 'student') { window.location.href = 'auth.html'; }
 const studentId = currentSession.id;
 
-if (!currentSession || currentSession.role !== 'student') { window.location.href = 'auth.html'; }
-
 const studentName = currentSession.name || 'Student';
-document.getElementById('sidebarName').textContent = studentName;
-document.getElementById('sidebarAvatar').textContent = studentName[0].toUpperCase();
+const __sidebarName = document.getElementById('sidebarName'); if (__sidebarName) __sidebarName.textContent = studentName;
+const __sidebarAvatar = document.getElementById('sidebarAvatar'); if (__sidebarAvatar) __sidebarAvatar.textContent = studentName[0].toUpperCase();
 
 // ── STATE ──
 let allNotices = [];       // raw from API: [{id, text, teacher_id, created_at, batch_codes}]
@@ -175,12 +174,12 @@ let studentBatchCodes = [];
 async function init() {
     if (!studentId) return;
     // Get student's batch codes
-    const student = await GetUserByID();
+    const student = await GetUserByID(studentId);
     if (!student) return;
     studentBatchCodes = student.batch_codes || [];
 
     // Fetch notices for this student
-    allNotices = await GetNoticesForStudent() || [];
+    allNotices = await GetNoticesForStudent(studentId) || [];
 
     // Build batch filter pills from student's enrolled batches
     buildBatchFilters();
