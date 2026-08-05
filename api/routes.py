@@ -6,7 +6,8 @@ import schemas
 import models
 from database import get_db
 
-from security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
+from security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token, generate_otp_code, hash_otp, verify_otp_hash, OTP_EXPIRE_MINUTES, send_email
+from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 
@@ -159,6 +160,69 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         "role": db_user.role,
         "id": db_user.id,
     }
+
+
+@router.post("/send_otp", status_code=200)
+def send_otp(payload: dict, db: Session = Depends(get_db)):
+    email = payload.get('email') if isinstance(payload, dict) else None
+    purpose = payload.get('purpose') if isinstance(payload, dict) else 'register'
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+
+    code = generate_otp_code()
+    hashed = hash_otp(code)
+    expires_at = datetime.utcnow() + timedelta(minutes=OTP_EXPIRE_MINUTES)
+
+    new_otp = models.OTP(email=email.lower(), purpose=purpose, code_hash=hashed, expires_at=expires_at)
+    db.add(new_otp)
+    db.commit()
+
+    subject = f"Your EduCoffee OTP for {purpose}"
+    body = f"Your verification code is: {code}\nThis code will expire in {OTP_EXPIRE_MINUTES} minutes."
+
+    sent = send_email(email, subject, body)
+    if not sent:
+        # fallback to console logging if email not configured
+        print(f"[OTP] purpose={purpose} email={email} code={code}")
+
+    return {"detail": "OTP sent"}
+
+
+@router.post("/verify_otp", status_code=200)
+def verify_otp(payload: dict, db: Session = Depends(get_db)):
+    email = payload.get('email') if isinstance(payload, dict) else None
+    purpose = payload.get('purpose') if isinstance(payload, dict) else None
+    code = payload.get('code') if isinstance(payload, dict) else None
+    new_password = payload.get('new_password') if isinstance(payload, dict) else None
+    if not email or not purpose or not code:
+        raise HTTPException(status_code=400, detail="email, purpose and code are required")
+
+    otp = (
+        db.query(models.OTP)
+        .filter(models.OTP.email == email.lower(), models.OTP.purpose == purpose)
+        .order_by(models.OTP.created_at.desc())
+        .first()
+    )
+    if not otp:
+        raise HTTPException(status_code=404, detail="OTP not found")
+    if otp.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="OTP expired")
+    if not verify_otp_hash(otp.code_hash, str(code)):
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+
+    # consume all OTPs for this email+purpose
+    db.query(models.OTP).filter(models.OTP.email == email.lower(), models.OTP.purpose == purpose).delete()
+    db.commit()
+
+    # If caller provided a new password for reset flows, update user's password
+    if new_password:
+        user = db.query(models.User).filter(models.User.email == email.lower()).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        user.password = hash_password(new_password)
+        db.commit()
+
+    return {"verified": True}
 
 
 @router.get("/batches", response_model=List[schemas.Batch], status_code=200)

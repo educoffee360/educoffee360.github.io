@@ -65,3 +65,14 @@ class StudentScore(Base):
     seen_by_guardian = Column(Boolean, default=False)
 
     result = relationship("Result", back_populates="scores")
+
+
+class OTP(Base):
+    __tablename__ = 'otps'
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    email = Column(String, nullable=False, index=True)
+    purpose = Column(String, nullable=False)
+    code_hash = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)

@@ -676,34 +676,43 @@
             field.addEventListener('input', () => {
                 field.value = field.value.replace(/\D/g, '').slice(-1);
                 if (field.value && fields[i + 1]) fields[i + 1].focus();
-                field.classList.toggle('filled', !!field.value);
-            });
-            field.addEventListener('keydown', e => { if (e.key === 'Backspace' && !field.value && fields[i - 1]) fields[i - 1].focus(); });
-            field.addEventListener('paste', e => {
-                const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
-                fields.forEach((f, idx) => { f.value = pasted[idx] || ''; f.classList.toggle('filled', !!f.value); });
-                e.preventDefault();
-                if (fields[pasted.length - 1]) fields[pasted.length - 1].focus();
-            });
-        });
-    }
-    function getOTPValue(containerSelector) {
-        return Array.from(document.querySelectorAll(containerSelector + ' .otp-field')).map(f => f.value).join('');
-    }
+    async function sendForgotOTP() {
+        const email = document.getElementById('forgotEmail').value.trim();
+        const errEl = document.getElementById('forgotError');
+        errEl.style.display = 'none';
+        if (!email) { errEl.textContent = 'Please enter your email.'; errEl.style.display = 'block'; return; }
 
-    // LOGIN
-    async function handleLogin() {
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
-        const errorEl = document.getElementById('loginError');
-        errorEl.style.display = 'none';
-        if (!email || !password) {
-            errorEl.textContent = 'Please fill in all fields.';
-            errorEl.style.display = 'block';
-            return;
+        try {
+            // Ask backend to send OTP for reset
+            await requestJson('/send_otp', { method: 'POST', body: { email, purpose: 'reset' } });
+            document.getElementById('forgotEmailShow').textContent = email;
+            document.getElementById('forgotStep1').style.display = 'none';
+            document.getElementById('forgotStep2').style.display = 'block';
+            document.querySelectorAll('#forgotOtpInputs .otp-field').forEach(f => { f.value = ''; f.classList.remove('filled'); });
+            setupOtpAutoFocus('#forgotOtpInputs');
+        } catch (err) {
+            errEl.textContent = err?.message || 'Unable to send OTP.';
+            errEl.style.display = 'block';
         }
-
-        const btn = document.getElementById('loginBtn');
+    }
+    async function resetPassword() {
+        const otp = getOTPValue('#forgotOtpInputs');
+        const newPw = document.getElementById('newPassword').value;
+        if (!otp || otp.length < 4) { alert('Please enter the 4-digit OTP.'); return; }
+        if (!newPw || newPw.length < 6) { alert('Password must be at least 6 characters.'); return; }
+        const email = document.getElementById('forgotEmailShow').textContent;
+        try {
+            const res = await requestJson('/verify_otp', { method: 'POST', body: { email, purpose: 'reset', code: otp, new_password: newPw } });
+            if (res && res.verified) {
+                document.getElementById('forgotModal').classList.remove('open');
+                showSuccess('Password Reset', 'Your password has been updated. Please login.');
+            } else {
+                alert('OTP verification failed.');
+            }
+        } catch (err) {
+            alert('Unable to reset password: ' + (err?.message || 'Please try again.'));
+        }
+    }
         setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', true);
 
         try {
@@ -805,12 +814,22 @@
         // openOTPModal(email);
     }
 
-    // OTP MODAL
+    // OTP MODAL (integrated with backend)
     let otpTimerInterval = null;
-    let generatedOTP = '';
-    function openOTPModal(email) {
-        generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
-        console.log(`[EduCoffee Mock OTP for ${email}]: ${generatedOTP}`);
+    let otpEmail = '';
+    let otpPurpose = '';
+
+    async function openOTPModal(email, purpose = 'register') {
+        otpEmail = email;
+        otpPurpose = purpose;
+        // request backend to send OTP
+        try {
+            await requestJson('/send_otp', { method: 'POST', body: { email, purpose } });
+        } catch (err) {
+            alert('Unable to send OTP. Please try again.');
+            return;
+        }
+
         document.getElementById('otpEmailDisplay').textContent = email;
         document.getElementById('otpModal').classList.add('open');
         document.getElementById('otpError').style.display = 'none';
@@ -834,12 +853,15 @@
             }
         }, 1000);
     }
-    function resendOTP() {
-        generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
-        console.log(`[EduCoffee Resent OTP]: ${generatedOTP}`);
-        startOTPTimer();
+    async function resendOTP() {
+        try {
+            await requestJson('/send_otp', { method: 'POST', body: { email: otpEmail, purpose: otpPurpose } });
+            startOTPTimer();
+        } catch (err) {
+            alert('Unable to resend OTP. Please try again.');
+        }
     }
-    function verifyOTP() {
+    async function verifyOTP() {
         const entered = getOTPValue('#otpModal .otp-inputs');
         const errEl = document.getElementById('otpError');
         errEl.style.display = 'none';
@@ -847,27 +869,34 @@
         const btn = document.getElementById('verifyBtn');
         btn.disabled = true;
         document.getElementById('otpSpinner').style.display = 'block';
-        setTimeout(() => {
+        try {
+            const res = await requestJson('/verify_otp', { method: 'POST', body: { email: otpEmail, purpose: otpPurpose, code: entered } });
             btn.disabled = false;
             document.getElementById('otpSpinner').style.display = 'none';
-            if (entered !== generatedOTP) { errEl.style.display = 'block'; return; }
-            const users = JSON.parse(localStorage.getItem('users') || '{}');
-            const key = pendingRegData.email.toLowerCase();
-            if (pendingRegData.role === 'student') {
-                if (users[key] && users[key].role === 'student') {
-                    if (!users[key].batches.includes(pendingRegData.batchCode)) users[key].batches.push(pendingRegData.batchCode);
-                } else {
-                    users[key] = { ...pendingRegData, batches: [pendingRegData.batchCode] };
-                    delete users[key].batchCode;
-                }
-            } else {
-                users[key] = pendingRegData;
-            }
-            localStorage.setItem('users', JSON.stringify(users));
+            if (!res || !res.verified) { errEl.style.display = 'block'; return; }
+
             document.getElementById('otpModal').classList.remove('open');
             clearInterval(otpTimerInterval);
-            showSuccess(pendingRegData.role, pendingRegData.name);
-        }, 800);
+
+            // If we have pendingRegData, continue registration flow
+            if (pendingRegData) {
+                try {
+                    const responseRegData = await Register(pendingRegData);
+                    if (!responseRegData || !responseRegData.id) throw new Error('Registration failed.');
+                    const loginRes = await Login(pendingRegData.email, pendingRegData.password);
+                    saveToken(loginRes.access_token);
+                    showSuccess(pendingRegData.role, responseRegData.name);
+                } catch (err) {
+                    alert('Registration failed after OTP: ' + (err?.message || 'Please try again.'));
+                }
+                pendingRegData = null;
+            }
+        } catch (err) {
+            btn.disabled = false;
+            document.getElementById('otpSpinner').style.display = 'none';
+            errEl.textContent = err?.message || 'OTP verification failed.';
+            errEl.style.display = 'block';
+        }
     }
 
     // FORGOT PASSWORD

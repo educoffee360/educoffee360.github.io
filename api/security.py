@@ -4,10 +4,14 @@ from argon2.exceptions import VerificationError, VerifyMismatchError
 import os
 from datetime import datetime, timedelta, timezone
 from jose import jwt
+import secrets
+import smtplib
+from email.message import EmailMessage
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
+OTP_EXPIRE_MINUTES = 10
 
 def create_access_token(data: dict, expires_minutes: int = ACCESS_TOKEN_EXPIRE_MINUTES):
     to_encode = data.copy()
@@ -33,3 +37,56 @@ def verify_password(hashed_password: str, plain_password: str) -> bool:
 
 def needs_rehash(hashed_password: str) -> bool:
     return ph.check_needs_rehash(hashed_password)
+
+
+def generate_otp_code(length: int = 4) -> str:
+    """Generate a numeric OTP code of given length (zero-padded)."""
+    if length <= 0:
+        length = 4
+    max_val = 10 ** length
+    return str(secrets.randbelow(max_val)).zfill(length)
+
+
+def hash_otp(code: str) -> str:
+    return ph.hash(str(code))
+
+
+def verify_otp_hash(hashed: str, code: str) -> bool:
+    try:
+        return ph.verify(hashed, code)
+    except (VerifyMismatchError, VerificationError):
+        return False
+
+
+def send_email(to_email: str, subject: str, body: str) -> bool:
+    """Send an email using SMTP settings from environment. Returns True on success."""
+    host = os.getenv('SMTP_HOST')
+    port = int(os.getenv('SMTP_PORT', '0'))
+    user = os.getenv('SMTP_USER')
+    password = os.getenv('SMTP_PASS')
+    sender = os.getenv('SENDER_EMAIL') or user
+
+    if not host or not port or not sender:
+        return False
+
+    msg = EmailMessage()
+    msg['Subject'] = subject
+    msg['From'] = sender
+    msg['To'] = to_email
+    msg.set_content(body)
+
+    try:
+        if port == 465:
+            with smtplib.SMTP_SSL(host, port) as server:
+                if user and password:
+                    server.login(user, password)
+                server.send_message(msg)
+        else:
+            with smtplib.SMTP(host, port) as server:
+                server.starttls()
+                if user and password:
+                    server.login(user, password)
+                server.send_message(msg)
+        return True
+    except Exception:
+        return False
