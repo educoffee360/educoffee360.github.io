@@ -660,10 +660,12 @@
 
 <script>
 // ── AUTH ──
-const studentId = localStorage.getItem('current_userid') || localStorage.getItem('userId');
-const studentName = localStorage.getItem('current_user_name') || localStorage.getItem('userName') || 'Student';
-
-// if (!studentId) { window.location.href = 'auth.html'; }
+const currentSession = getCurrentSession();
+if (!currentSession || currentSession.role !== 'student') {
+    window.location.href = 'auth.html';
+}
+const studentId = currentSession.id;
+const studentName = currentSession.name || 'Student';
 
 document.getElementById('sidebarName').textContent = studentName;
 document.getElementById('sidebarAvatar').textContent = studentName[0].toUpperCase();
@@ -690,7 +692,8 @@ function getPercentage(value, total) {
 }
 
 async function init() {
-    const student = await GetUserByID(studentId);
+    if (!studentId) return;
+    const student = await GetUserByID();
     if (!student) {
         doLogout();
         return;
@@ -703,16 +706,16 @@ async function init() {
     const batchCodes = student.batch_codes || [];
     document.getElementById('statBatches').textContent = batchCodes.length;
 
-    const allBatches = await apiFetch('/batches') || [];
+    const allBatches = await GetAllBatches() || [];
     batchData = allBatches.filter(b => batchCodes.includes(b.code));
 
-    noticesData = await GetNoticesForStudent(studentId) || [];
-    scoresData = await GetStudentResults(studentId) || [];
+    noticesData = await GetNoticesForStudent() || [];
+    scoresData = await GetStudentResults() || [];
 
     const uniqueResultIds = [...new Set(scoresData.map(s => s.result_id).filter(Boolean))];
     resultLookup = {};
     await Promise.all(uniqueResultIds.map(async id => {
-        const result = await GetStudentResult(studentId, id);
+        const result = await GetStudentResult(undefined, id);
         if (result) resultLookup[id] = result;
     }));
 
@@ -737,15 +740,6 @@ async function init() {
     renderRecentResults();
 }
 
-async function apiFetch(path) {
-    try {
-        const res = await fetch(api_url + path);
-        if (!res.ok) return null;
-        return await res.json();
-    } catch {
-        return null;
-    }
-}
 
 // ── STATS ──
 function renderStats() {
@@ -1026,8 +1020,7 @@ function closeSidebar() {
 }
 
 function doLogout() {
-    ['userId','userName','userRole','current_userid','current_user_name','current_user_role','loggedin'].forEach(key => localStorage.removeItem(key));
-    window.location.href = 'auth.html';
+    logout('auth.html');
 }
 
 document.getElementById('joinModal').addEventListener('click', e => {

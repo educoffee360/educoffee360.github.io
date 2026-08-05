@@ -417,19 +417,16 @@ let currentTeacherName = '';
 (async function init() {
     // Expect localStorage to have the logged-in user stored as JSON
     // e.g. { id, name, email, role } saved at login time
-    const raw = localStorage.getItem('current_userid');
-    if (!raw) {
-        alert(raw)
-        window.location.href = 'index.html';
+    const session = getCurrentSession();
+    if (!session || session.role !== 'teacher') {
+        window.location.href = 'auth.html';
         return;
     }
 
-    let user;
-    user = await GetUserByID(raw)
+    const user = await GetUserByID(session.id);
 
-    if (!user.id || user.role !== 'teacher') {
-        alert(user)
-        window.location.href = 'index.html';
+    if (!user?.id || user.role !== 'teacher') {
+        window.location.href = 'auth.html';
         return;
     }
 

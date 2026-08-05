@@ -260,13 +260,14 @@
 </nav>
 
 <script>
-const studentId = localStorage.getItem('current_userid');
+const currentSession = getCurrentSession();
+const studentId = currentSession?.id;
 
-if (!studentId) {
+if (!currentSession || currentSession.role !== 'student') {
     window.location.href = 'auth.html';
 }
 
-const studentName = localStorage.getItem('current_user_name') || localStorage.getItem('userName') || 'Student';
+const studentName = currentSession?.name || 'Student';
 document.getElementById('sidebarName').textContent = studentName;
 document.getElementById('sidebarAvatar').textContent = studentName[0].toUpperCase();
 
@@ -288,6 +289,7 @@ function showLoadError() {
 }
 
 async function init() {
+    if (!studentId) return;
     const student = await GetUserByID(studentId);
     if (!student) {
         showLoadError();

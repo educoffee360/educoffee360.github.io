@@ -600,10 +600,16 @@
         batchInput.addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/\s/g, ''); });
         setupOtpAutoFocus('#otpModal .otp-inputs');
         setupOtpAutoFocus('#forgotOtpInputs');
-        if (localStorage.getItem('loggedin')) {
-            const user = await GetUserByID(localStorage.getItem('current_userid'))
-            if (user.role == 'teacher') window.location.href = 'teacher-dashboard.html'
-            else window.location.href = 'student-dashboard.html'
+        const session = getCurrentSession();
+        if (session) {
+            const user = await GetUserByID(session.id);
+            if (user?.role === 'teacher') {
+                window.location.href = 'teacher-dashboard.html';
+                return;
+            } else if (user?.role === 'student') {
+                window.location.href = 'student-dashboard.html';
+                return;
+            }
         }
     })();
 
@@ -726,19 +732,12 @@
 
         try {
             const loginRes = await Login(email, password);
-            if (!loginRes || !loginRes.id) {
+            if (!loginRes || !loginRes.id || !loginRes.access_token) {
                 throw new Error('Login failed. Please try again.');
             }
 
-            localStorage.setItem('loggedin', 'true');
-            localStorage.setItem('current_userid', loginRes.id);
-            localStorage.setItem('current_user_role', loginRes.role);
+            saveToken(loginRes.access_token);
 
-            const user = await GetUserByID(loginRes.id);
-            if (user?.name) {
-                localStorage.setItem('current_user_name', user.name);
-                localStorage.setItem('userName', user.name);
-            }
 
             setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', false);
             const dashUrl = loginRes.role === 'teacher' ? 'teacher-dashboard.html' : 'student-dashboard.html';
@@ -784,11 +783,12 @@
                 throw new Error('Registration failed. Please try again.');
             }
 
-            localStorage.setItem('loggedin', 'true');
-            localStorage.setItem('current_userid', responseRegData.id);
-            localStorage.setItem('current_user_role', responseRegData.role);
-            localStorage.setItem('current_user_name', responseRegData.name);
-            localStorage.setItem('userName', responseRegData.name);
+            const loginRes = await Login(email, password);
+            if (!loginRes || !loginRes.id || !loginRes.access_token) {
+                throw new Error('Registration succeeded but login failed. Please try logging in manually.');
+            }
+
+            saveToken(loginRes.access_token);
             showSuccess('teacher', responseRegData.name);
         } catch (err) {
             alert('Registration failed: ' + (err?.message || 'Please try again.'));
@@ -816,11 +816,12 @@
                 throw new Error('Registration failed. Please try again.');
             }
 
-            localStorage.setItem('loggedin', 'true');
-            localStorage.setItem('current_userid', resData.id);
-            localStorage.setItem('current_user_role', resData.role);
-            localStorage.setItem('current_user_name', resData.name);
-            localStorage.setItem('userName', resData.name);
+            const loginRes = await Login(email, password);
+            if (!loginRes || !loginRes.id || !loginRes.access_token) {
+                throw new Error('Registration succeeded but login failed. Please try logging in manually.');
+            }
+
+            saveToken(loginRes.access_token);
             showSuccess('student', resData.name);
         } catch (err) {
             alert('Registration failed: ' + (err?.message || 'Please try again.'));
@@ -887,10 +888,6 @@
                 users[key] = pendingRegData;
             }
             localStorage.setItem('users', JSON.stringify(users));
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('userRole', pendingRegData.role);
-            localStorage.setItem('userName', pendingRegData.name);
-            localStorage.setItem('userEmail', key);
             document.getElementById('otpModal').classList.remove('open');
             clearInterval(otpTimerInterval);
             showSuccess(pendingRegData.role, pendingRegData.name);

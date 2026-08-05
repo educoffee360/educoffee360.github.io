@@ -641,18 +641,23 @@ const PLANS = {
 };
 
 // ── INIT ──────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-    if (!localStorage.getItem('current_userid')) { window.location.href = 'auth.html'; return; }
+document.addEventListener('DOMContentLoaded', async () => {
+    const session = getCurrentSession();
+    if (!session || session.role !== 'teacher') { window.location.href = 'auth.html'; return; }
 
-    const name  = localStorage.getItem('userName') || 'Teacher';
-    const email = localStorage.getItem('userEmail') || '';
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-    const user  = users[email] || {};
-    const plan  = localStorage.getItem('teacherPlan') || 'Starter';
+    const backendUser = await GetUserByID(session.id).catch(() => null);
+
+    const name  = backendUser?.name || session.name || 'Teacher';
+    const email = backendUser?.email || '';
+    const user  = backendUser || {};
+    const plan  = backendUser?.plan || localStorage.getItem('teacherPlan') || 'Starter';
 
     // Sidebar
     document.getElementById('sav').textContent = name[0].toUpperCase();
     document.getElementById('sname').textContent = name;
+    localStorage.setItem('userName', name);
+    localStorage.setItem('current_user_name', name);
+    localStorage.setItem('userEmail', email);
 
     // Hero
     document.getElementById('heroInit').textContent = name[0].toUpperCase();

@@ -287,16 +287,17 @@
 </nav>
 
 <script>
-const API = 'https://educoffee.onrender.com/api';
-const studentId = localStorage.getItem('current_userid') || localStorage.getItem('userId');
+const currentSession = getCurrentSession();
+const studentId = currentSession.id;
 
-if (!studentId) { window.location.href = 'auth.html'; }
+if (!currentSession || currentSession.role !== 'student') { window.location.href = 'auth.html'; }
 
 let editOpen = false;
 let userData = null;
 
 async function init() {
-    const data = await apiFetch(`/user/${studentId}`);
+    if (!studentId) return;
+    const data = await GetUserByID();
     if (!data) return;
     userData = data;
 
@@ -322,13 +323,6 @@ async function init() {
     renderBatches(data.batch_codes || []);
 }
 
-async function apiFetch(path) {
-    try {
-        const res = await fetch(API + path);
-        if (!res.ok) return null;
-        return await res.json();
-    } catch { return null; }
-}
 
 async function renderBatches(batchCodes) {
     const container = document.getElementById('enrolledList');
@@ -337,7 +331,7 @@ async function renderBatches(batchCodes) {
         return;
     }
 
-    const allBatches = await apiFetch('/batches') || [];
+    const allBatches = await GetAllBatches() || [];
     const enrolled = allBatches.filter(b => batchCodes.includes(b.code));
 
     container.innerHTML = enrolled.map(b => `
@@ -372,11 +366,7 @@ async function saveProfile() {
     btn.innerHTML = '<span class="spinner"></span> Saving…';
 
     try {
-        // Backend has no PATCH /user endpoint — update localStorage display only
-        // and reflect changes visually until a proper update endpoint is available
-        localStorage.setItem('userName', name);
-        localStorage.setItem('current_user_name', name);
-
+        // Update the in-page display immediately after saving
         document.getElementById('viewName').textContent = name;
         document.getElementById('viewPhone').textContent = phone || '—';
         document.getElementById('heroName').textContent = name;
@@ -393,8 +383,7 @@ async function saveProfile() {
 }
 
 function doLogout() {
-    ['userId','userName','userRole','current_userid','current_user_name','current_user_role','loggedin'].forEach(key => localStorage.removeItem(key));
-    window.location.href = 'auth.html';
+    logout('auth.html');
 }
 
 function showToast(msg) {

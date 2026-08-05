@@ -227,12 +227,12 @@
 </nav>
 
 <script>
-const API = 'https://educoffee.onrender.com/api';
-const studentId = localStorage.getItem('current_userid');
+const currentSession = getCurrentSession();
+const studentId = currentSession.id;
 
-if (!studentId) { window.location.href = 'auth.html'; }
+if (!currentSession || currentSession.role !== 'student') { window.location.href = 'auth.html'; }
 
-const studentName = localStorage.getItem('current_user_name') || 'Student';
+const studentName = currentSession.name || 'Student';
 document.getElementById('sidebarName').textContent = studentName;
 document.getElementById('sidebarAvatar').textContent = studentName[0].toUpperCase();
 
@@ -244,22 +244,16 @@ let currentBatchFilter = 'all';
 let searchQuery = '';
 let studentBatchCodes = [];
 
-async function apiFetch(path) {
-    try {
-        const res = await fetch(API + path);
-        if (!res.ok) return null;
-        return await res.json();
-    } catch { return null; }
-}
 
 async function init() {
+    if (!studentId) return;
     // Get student's batch codes
-    const student = await apiFetch(`/user/${studentId}`);
+    const student = await GetUserByID();
     if (!student) return;
     studentBatchCodes = student.batch_codes || [];
 
     // Fetch notices for this student
-    allNotices = await apiFetch(`/notices/${studentId}`) || [];
+    allNotices = await GetNoticesForStudent() || [];
 
     // Build batch filter pills from student's enrolled batches
     buildBatchFilters();

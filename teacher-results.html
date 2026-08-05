@@ -501,12 +501,11 @@ let loadingStudents  = false;
    INIT
 ───────────────────────────────────────── */
 (async function init() {
-    const raw = localStorage.getItem('current_userid');
-    if (!raw) { window.location.href = 'index.html'; return; }
+    const session = getCurrentSession();
+    if (!session || session.role !== 'teacher') { window.location.href = 'auth.html'; return; }
 
-    let user;
-    user = await GetUserByID(raw)
-    if (!user.id || user.role !== 'teacher') { window.location.href = 'index.html'; return; }
+    const user = await GetUserByID();
+    if (!user?.id || user.role !== 'teacher') { window.location.href = 'auth.html'; return; }
 
     currentTeacherId = user.id;
     const name = user.name || 'Teacher';
@@ -530,7 +529,7 @@ async function loadAll() {
     showFolderSkeletons(true);
 
     try {
-        batches = await GetBatchesByTID(currentTeacherId);
+        batches = await GetBatchesByTID();
         if (!Array.isArray(batches)) batches = [];
 
         // Populate batch <select> in upload modal
@@ -1019,9 +1018,7 @@ function closeSB() {
 }
 function doLogout() {
     if (!confirm('Log out?')) return;
-    localStorage.removeItem('user');
-    localStorage.removeItem('isLoggedIn');
-    window.location.href = 'index.html';
+    logout('auth.html');
 }
 
 /* Close modals on backdrop click */

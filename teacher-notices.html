@@ -365,38 +365,19 @@ let editingId     = null;
 let filterType    = 'all';
 let isSaving      = false;
 
-function getTeacherId() {
-    return localStorage.getItem('current_userid');
-}
+const currentSession = getCurrentSession();
+const teacherId = currentSession?.id;
+const teacherName = currentSession?.name || 'Teacher';
 
-function getTeacherRole() {
-    return localStorage.getItem('current_user_role');
-}
-
-function getTeacherName() {
-    return localStorage.getItem('current_user_name') || localStorage.getItem('userName') || 'Teacher';
+if (!currentSession || currentSession.role !== 'teacher') {
+    window.location.href = 'auth.html';
 }
 
 function INIT() {
-    const teacherId = getTeacherId();
-    const role = getTeacherRole();
-
-    if (!teacherId) {
-        window.location.href = 'index.html';
-        return false;
-    }
-
-    if (role && role !== 'teacher') {
-        window.location.href = 'student-dashboard.html';
-        return false;
-    }
-
-    const userName = getTeacherName();
     const avatar = document.querySelector('.uav');
     const userLabel = document.querySelector('.un');
-    if (avatar) avatar.textContent = userName ? userName[0].toUpperCase() : 'T';
-    if (userLabel) userLabel.textContent = userName;
-
+    if (avatar) avatar.textContent = teacherName ? teacherName[0].toUpperCase() : 'T';
+    if (userLabel) userLabel.textContent = teacherName;
     return true;
 }
 
@@ -651,8 +632,8 @@ async function loadData() {
 
     try {
         const [batchData, noticeData] = await Promise.all([
-            GetBatchesByTID(teacherId),
-            GetMyNotices(teacherId)
+            GetBatchesByTID(),
+            GetMyNotices()
         ]);
 
         batches = Array.isArray(batchData) ? batchData : [];
@@ -701,8 +682,7 @@ function closeSB() {
 
 function doLogout() {
     if (!confirm('Log out?')) return;
-    ['isLoggedIn', 'loggedin', 'current_userid', 'current_user_role', 'current_user_name', 'userName', 'teacherBatches', 'teacherNotices'].forEach(key => localStorage.removeItem(key));
-    window.location.href = 'index.html';
+    logout('auth.html');
 }
 
 if (INIT()) {
