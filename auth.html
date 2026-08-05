@@ -873,8 +873,24 @@
             const res = await requestJson('/verify_otp', { method: 'POST', body: { email: otpEmail, purpose: otpPurpose, code: entered } });
             btn.disabled = false;
             document.getElementById('otpSpinner').style.display = 'none';
-            if (!res || !res.verified) { errEl.style.display = 'block'; return; }
-
+            if (entered !== generatedOTP) { errEl.style.display = 'block'; return; }
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            const key = pendingRegData.email.toLowerCase();
+            if (pendingRegData.role === 'student') {
+                if (users[key] && users[key].role === 'student') {
+                    if (!users[key].batches.includes(pendingRegData.batchCode)) users[key].batches.push(pendingRegData.batchCode);
+                } else {
+                    users[key] = { ...pendingRegData, batches: [pendingRegData.batchCode] };
+                    delete users[key].batchCode;
+                }
+            } else {
+                users[key] = pendingRegData;
+            }
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('userRole', pendingRegData.role);
+            localStorage.setItem('userName', pendingRegData.name);
+            localStorage.setItem('userEmail', key);
             document.getElementById('otpModal').classList.remove('open');
             clearInterval(otpTimerInterval);
 
