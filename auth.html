@@ -753,39 +753,37 @@ async function resetPassword() {
 }
 
 async function handleLogin() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const errorEl = document.getElementById('loginError');
-    const btn = document.getElementById('loginBtn');
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errorEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
 
-    errorEl.style.display = 'none';
-    if (!email || !password) {
-        errorEl.textContent = 'Please enter your email and password.';
-        errorEl.style.display = 'block';
-        return;
-    }
+  errorEl.style.display = 'none';
+  if (!email || !password) {
+    errorEl.textContent = 'Please fill in all fields.';
+    errorEl.style.display = 'block';
+    return;
+  }
 
-    setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', true);
+  setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', true);
 
-    try {
-        const loginRes = await Login(email, password);
-        if (!loginRes || !loginRes.id || !loginRes.access_token) {
-            throw new Error('Login failed. Please try again.');
-        }
+  try {
+    const loginRes = await Login(email, password);
+    if (!loginRes || !loginRes.id) throw new Error('Login failed. Please try again.');
 
-        saveToken(loginRes.access_token);
-        localStorage.setItem('loggedin', 'true');
-        localStorage.setItem('userRole', loginRes.role || '');
-        localStorage.setItem('userEmail', email.toLowerCase());
+    localStorage.setItem('loggedin', 'true');
+    localStorage.setItem('current_userid', loginRes.id);
+    localStorage.setItem('current_user_role', loginRes.role);
 
-        setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', false);
-        const dashUrl = loginRes.role === 'teacher' ? 'teacher-dashboard.html' : 'student-dashboard.html';
-        window.location.href = dashUrl;
-    } catch (err) {
-        setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', false);
-        errorEl.textContent = err?.message || 'Login failed. Please try again.';
-        errorEl.style.display = 'block';
-    }
+    window.location.href = loginRes.role === 'teacher'
+      ? 'teacher-dashboard.html'
+      : 'student-dashboard.html';
+  } catch (err) {
+    errorEl.textContent = err?.message || 'Login failed. Please try again.';
+    errorEl.style.display = 'block';
+  } finally {
+    setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', false);
+  }
 }
     // TEACHER REGISTER
     async function handleTeacherRegister() {
