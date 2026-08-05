@@ -13,6 +13,10 @@ from jose import JWTError
 
 router = APIRouter(prefix="/api")
 
+
+def _looks_like_argon_hash(value: str) -> bool:
+    return isinstance(value, str) and value.startswith("$argon2")
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
@@ -137,14 +141,26 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
 
     if not db_user:
         raise HTTPException(404, "User doesn't exist")
-    if not verify_password(db_user.password, user.password):
-        raise HTTPException(401, "Incorrect password")
-    if needs_rehash(db_user.password):
-        new_hash = hash_password(user.password)
-        db_user.password = new_hash
 
-        db.commit()
-        db.refresh(db_user)
+    try:
+        if verify_password(db_user.password, user.password):
+            pass
+        elif not _looks_like_argon_hash(db_user.password) and db_user.password == user.password:
+            db_user.password = hash_password(user.password)
+            db.commit()
+            db.refresh(db_user)
+        else:
+            raise HTTPException(401, "Incorrect password")
+
+        if _looks_like_argon_hash(db_user.password) and needs_rehash(db_user.password):
+            db_user.password = hash_password(user.password)
+            db.commit()
+            db.refresh(db_user)
+
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(401, "Incorrect password")
 
     token_data = {
         "sub": str(db_user.id),
@@ -182,8 +198,13 @@ def send_otp(payload: dict, db: Session = Depends(get_db)):
 
     sent = send_email(email, subject, body)
     if not sent:
-        # fallback to console logging if email not configured
-        print(f"[OTP] purpose={purpose} email={email} code={code}")
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Email sending is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, "
+                "SMTP_PASS, and SENDER_EMAIL in the backend environment."
+            ),
+        )
 
     return {"detail": "OTP sent"}
 

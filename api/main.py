@@ -5,7 +5,27 @@ import routes
 from database import Base, engine
 import models
 
+from database import SessionLocal
+from security import hash_password
+
 Base.metadata.create_all(bind=engine)
+
+
+def migrate_legacy_plaintext_passwords() -> None:
+    db = SessionLocal()
+    try:
+        users = db.query(models.User).all()
+        changed = False
+        for user in users:
+            if user.password and not str(user.password).startswith("$argon2"):
+                user.password = hash_password(user.password)
+                changed = True
+        if changed:
+            db.commit()
+    finally:
+        db.close()
+
+migrate_legacy_plaintext_passwords()
 
 app = FastAPI()
 

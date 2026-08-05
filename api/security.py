@@ -2,11 +2,14 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError, VerifyMismatchError
 
 import os
+from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 from jose import jwt
 import secrets
 import smtplib
 from email.message import EmailMessage
+
+load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
@@ -60,29 +63,34 @@ def verify_otp_hash(hashed: str, code: str) -> bool:
 
 def send_email(to_email: str, subject: str, body: str) -> bool:
     """Send an email using SMTP settings from environment. Returns True on success."""
-    host = os.getenv('SMTP_HOST')
-    port = int(os.getenv('SMTP_PORT', '0'))
-    user = os.getenv('SMTP_USER')
-    password = os.getenv('SMTP_PASS')
-    sender = os.getenv('SENDER_EMAIL') or user
+    host = os.getenv("SMTP_HOST") or os.getenv("MAIL_HOST")
+    port_raw = os.getenv("SMTP_PORT") or os.getenv("MAIL_PORT") or "0"
+    user = os.getenv("SMTP_USER") or os.getenv("SMTP_USERNAME") or os.getenv("MAIL_USERNAME")
+    password = os.getenv("SMTP_PASS") or os.getenv("SMTP_PASSWORD") or os.getenv("MAIL_PASSWORD")
+    sender = os.getenv("SENDER_EMAIL") or os.getenv("SMTP_FROM") or os.getenv("FROM_EMAIL") or user
+
+    try:
+        port = int(port_raw)
+    except (TypeError, ValueError):
+        return False
 
     if not host or not port or not sender:
         return False
 
     msg = EmailMessage()
-    msg['Subject'] = subject
-    msg['From'] = sender
-    msg['To'] = to_email
+    msg["Subject"] = subject
+    msg["From"] = sender
+    msg["To"] = to_email
     msg.set_content(body)
 
     try:
         if port == 465:
-            with smtplib.SMTP_SSL(host, port) as server:
+            with smtplib.SMTP_SSL(host, port, timeout=30) as server:
                 if user and password:
                     server.login(user, password)
                 server.send_message(msg)
         else:
-            with smtplib.SMTP(host, port) as server:
+            with smtplib.SMTP(host, port, timeout=30) as server:
                 server.starttls()
                 if user and password:
                     server.login(user, password)
