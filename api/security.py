@@ -70,25 +70,27 @@ def verify_otp_hash(hashed: str, code: str) -> bool:
 
 
 def send_email(to_email: str, subject: str, body: str) -> bool:
-    """Send an email through Resend's HTTPS API. Returns True on acceptance."""
-    api_key = os.getenv("RESEND_API_KEY")
-    sender = os.getenv("RESEND_FROM_EMAIL")
+    """Send an email through Brevo's HTTPS API. Returns True on acceptance."""
+    api_key = os.getenv("BREVO_API_KEY")
+    sender = os.getenv("BREVO_FROM_EMAIL")
+    sender_name = os.getenv("BREVO_FROM_NAME", "EduCoffee")
     if not api_key or not sender:
-        logger.error("Resend is not configured: RESEND_API_KEY and RESEND_FROM_EMAIL are required")
+        logger.error("Brevo is not configured: BREVO_API_KEY and BREVO_FROM_EMAIL are required")
         return False
 
     payload = json.dumps({
-        "from": sender,
-        "to": [to_email],
+        "sender": {"name": sender_name, "email": sender},
+        "to": [{"email": to_email}],
         "subject": subject,
-        "text": body,
+        "textContent": body,
     }).encode("utf-8")
     request = Request(
-        "https://api.resend.com/emails",
+        "https://api.brevo.com/v3/smtp/email",
         data=payload,
         method="POST",
         headers={
-            "Authorization": f"Bearer {api_key}",
+            "api-key": api_key,
+            "Accept": "application/json",
             "Content-Type": "application/json",
             "User-Agent": "EduCoffee/1.0",
         },
@@ -99,8 +101,8 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
             return 200 <= response.status < 300
     except HTTPError as exc:
         error_body = exc.read().decode("utf-8", errors="replace")
-        logger.error("Resend rejected email with status %s: %s", exc.code, error_body)
+        logger.error("Brevo rejected email with status %s: %s", exc.code, error_body)
         return False
     except (URLError, TimeoutError, OSError):
-        logger.exception("Resend API request failed")
+        logger.exception("Brevo API request failed")
         return False

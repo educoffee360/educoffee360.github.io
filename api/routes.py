@@ -239,7 +239,7 @@ def send_otp(payload: OTPRequest, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=500,
             detail=(
-                "Email delivery failed. Check RESEND_API_KEY, RESEND_FROM_EMAIL, "
+                "Email delivery failed. Check BREVO_API_KEY, BREVO_FROM_EMAIL, "
                 "and the Render logs."
             ),
         )
