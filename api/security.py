@@ -6,10 +6,10 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 from jose import jwt
 import secrets
-import smtplib
 import logging
-import ssl
-from email.message import EmailMessage
+import json
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 load_dotenv()
 
@@ -70,42 +70,37 @@ def verify_otp_hash(hashed: str, code: str) -> bool:
 
 
 def send_email(to_email: str, subject: str, body: str) -> bool:
-    """Send an email using SMTP settings from environment. Returns True on success."""
-    host = os.getenv("SMTP_HOST") or os.getenv("MAIL_HOST")
-    port_raw = os.getenv("SMTP_PORT") or os.getenv("MAIL_PORT") or "0"
-    user = os.getenv("SMTP_USER") or os.getenv("SMTP_USERNAME") or os.getenv("MAIL_USERNAME")
-    password = os.getenv("SMTP_PASS") or os.getenv("SMTP_PASSWORD") or os.getenv("MAIL_PASSWORD")
-    sender = os.getenv("SENDER_EMAIL") or os.getenv("SMTP_FROM") or os.getenv("FROM_EMAIL") or user
-
-    try:
-        port = int(port_raw)
-    except (TypeError, ValueError):
+    """Send an email through Resend's HTTPS API. Returns True on acceptance."""
+    api_key = os.getenv("RESEND_API_KEY")
+    sender = os.getenv("RESEND_FROM_EMAIL")
+    if not api_key or not sender:
+        logger.error("Resend is not configured: RESEND_API_KEY and RESEND_FROM_EMAIL are required")
         return False
 
-    if not host or not port or not sender:
-        return False
-
-    msg = EmailMessage()
-    msg["Subject"] = subject
-    msg["From"] = sender
-    msg["To"] = to_email
-    msg.set_content(body)
+    payload = json.dumps({
+        "from": sender,
+        "to": [to_email],
+        "subject": subject,
+        "text": body,
+    }).encode("utf-8")
+    request = Request(
+        "https://api.resend.com/emails",
+        data=payload,
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "EduCoffee/1.0",
+        },
+    )
 
     try:
-        if port == 465:
-            with smtplib.SMTP_SSL(host, port, timeout=30) as server:
-                if user and password:
-                    server.login(user, password)
-                server.send_message(msg)
-        else:
-            with smtplib.SMTP(host, port, timeout=30) as server:
-                server.ehlo()
-                server.starttls(context=ssl.create_default_context())
-                server.ehlo()
-                if user and password:
-                    server.login(user, password)
-                server.send_message(msg)
-        return True
-    except Exception:
-        logger.exception("SMTP delivery failed for host=%s port=%s sender=%s", host, port, sender)
+        with urlopen(request, timeout=15) as response:
+            return 200 <= response.status < 300
+    except HTTPError as exc:
+        error_body = exc.read().decode("utf-8", errors="replace")
+        logger.error("Resend rejected email with status %s: %s", exc.code, error_body)
+        return False
+    except (URLError, TimeoutError, OSError):
+        logger.exception("Resend API request failed")
         return False

@@ -239,8 +239,8 @@ def send_otp(payload: OTPRequest, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=500,
             detail=(
-                "Email sending is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, "
-                "SMTP_PASS, and SENDER_EMAIL in the backend environment."
+                "Email delivery failed. Check RESEND_API_KEY, RESEND_FROM_EMAIL, "
+                "and the Render logs."
             ),
         )
 
