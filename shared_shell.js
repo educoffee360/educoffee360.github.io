@@ -23,6 +23,13 @@
   }
 
   function getCurrentSession() {
+    if (typeof window.decodeJwtPayload === "function") {
+      const jwtToken = localStorage.getItem("educoffee_token");
+      const payload = jwtToken && window.decodeJwtPayload(jwtToken);
+      if (payload && payload.sub) {
+        return { id: payload.sub, role: payload.role || "", name: payload.name || "", email: "", token: jwtToken };
+      }
+    }
     const role =
       localStorage.getItem("current_user_role") ||
       localStorage.getItem("userRole") ||
@@ -67,6 +74,7 @@
   }
 
   function doLogout() {
+    if (typeof window.clearToken === "function") window.clearToken();
     [
       "loggedin",
       "current_userid",

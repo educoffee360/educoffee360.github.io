@@ -153,7 +153,7 @@
 </div>
 </main>
 <!-- BOTTOM NAV -->
-<script src="/shared_shell.js"></script><script>
+<script src="api.js"></script><script src="shared_shell.js"></script><script>
 const currentSession = getCurrentSession();
 if (!currentSession || currentSession.role !== 'student') { window.location.href = 'auth.html'; }
 const studentId = currentSession.id;

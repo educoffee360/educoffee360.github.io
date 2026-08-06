@@ -1,17 +1,41 @@
 from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import List
 
-import schemas
-import models
-from database import get_db
-
-from security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token, generate_otp_code, hash_otp, verify_otp_hash, OTP_EXPIRE_MINUTES, send_email
+try:
+    from . import schemas, models
+    from .database import get_db
+    from .security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token, generate_otp_code, hash_otp, verify_otp_hash, OTP_EXPIRE_MINUTES, send_email
+except ImportError:  # Support `uvicorn main:app` when launched inside api/.
+    import schemas
+    import models
+    from database import get_db
+    from security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token, generate_otp_code, hash_otp, verify_otp_hash, OTP_EXPIRE_MINUTES, send_email
 from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 
 router = APIRouter(prefix="/api")
+
+
+class OTPRequest(BaseModel):
+    email: EmailStr
+    purpose: str = "register"
+
+
+class OTPVerification(BaseModel):
+    email: EmailStr
+    purpose: str
+    code: str = Field(min_length=4, max_length=10)
+    new_password: str | None = Field(default=None, min_length=8)
+
+
+class BatchUpdate(BaseModel):
+    name: str
+    year: str
+    schedule: str
 
 
 def _looks_like_argon_hash(value: str) -> bool:
@@ -110,6 +134,8 @@ def get_user_by_id(user_id, db: Session = Depends(get_db), current_user = Depend
 
 @router.post("/register", response_model=schemas.UserResponse, status_code=201)
 def register(user: schemas.User, db: Session = Depends(get_db)):
+    if user.role == "admin":
+        raise HTTPException(403, "Admin accounts cannot be created through public registration")
     existing = db.query(models.User).filter(models.User.email == user.email).first()
     phone_in_use = db.query(models.User).filter(models.User.phone == user.phone).first()
 
@@ -127,6 +153,7 @@ def register(user: schemas.User, db: Session = Depends(get_db)):
         role=user.role,
         batch_codes=user.batch_codes if user.role == "student" else None,
         center_name=user.center_name if user.role == "teacher" else None,
+        plan=user.plan if user.role == "teacher" else None,
     )
 
     db.add(new_user)
@@ -179,17 +206,19 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
 
 
 @router.post("/send_otp", status_code=200)
-def send_otp(payload: dict, db: Session = Depends(get_db)):
-    email = payload.get('email') if isinstance(payload, dict) else None
-    purpose = payload.get('purpose') if isinstance(payload, dict) else 'register'
-    if not email:
-        raise HTTPException(status_code=400, detail="Email is required")
+def send_otp(payload: OTPRequest, db: Session = Depends(get_db)):
+    email = str(payload.email).lower()
+    purpose = payload.purpose
+
+    if purpose == "reset" and not db.query(models.User).filter(models.User.email == email).first():
+        raise HTTPException(status_code=404, detail="User not found")
 
     code = generate_otp_code()
     hashed = hash_otp(code)
     expires_at = datetime.utcnow() + timedelta(minutes=OTP_EXPIRE_MINUTES)
 
-    new_otp = models.OTP(email=email.lower(), purpose=purpose, code_hash=hashed, expires_at=expires_at)
+    db.query(models.OTP).filter(models.OTP.email == email, models.OTP.purpose == purpose).delete()
+    new_otp = models.OTP(email=email, purpose=purpose, code_hash=hashed, expires_at=expires_at)
     db.add(new_otp)
     db.commit()
 
@@ -198,6 +227,8 @@ def send_otp(payload: dict, db: Session = Depends(get_db)):
 
     sent = send_email(email, subject, body)
     if not sent:
+        db.delete(new_otp)
+        db.commit()
         raise HTTPException(
             status_code=500,
             detail=(
@@ -210,17 +241,15 @@ def send_otp(payload: dict, db: Session = Depends(get_db)):
 
 
 @router.post("/verify_otp", status_code=200)
-def verify_otp(payload: dict, db: Session = Depends(get_db)):
-    email = payload.get('email') if isinstance(payload, dict) else None
-    purpose = payload.get('purpose') if isinstance(payload, dict) else None
-    code = payload.get('code') if isinstance(payload, dict) else None
-    new_password = payload.get('new_password') if isinstance(payload, dict) else None
-    if not email or not purpose or not code:
-        raise HTTPException(status_code=400, detail="email, purpose and code are required")
+def verify_otp(payload: OTPVerification, db: Session = Depends(get_db)):
+    email = str(payload.email).lower()
+    purpose = payload.purpose
+    code = payload.code
+    new_password = payload.new_password
 
     otp = (
         db.query(models.OTP)
-        .filter(models.OTP.email == email.lower(), models.OTP.purpose == purpose)
+        .filter(models.OTP.email == email, models.OTP.purpose == purpose)
         .order_by(models.OTP.created_at.desc())
         .first()
     )
@@ -232,22 +261,22 @@ def verify_otp(payload: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid OTP")
 
     # consume all OTPs for this email+purpose
-    db.query(models.OTP).filter(models.OTP.email == email.lower(), models.OTP.purpose == purpose).delete()
-    db.commit()
-
-    # If caller provided a new password for reset flows, update user's password
-    if new_password:
-        user = db.query(models.User).filter(models.User.email == email.lower()).first()
+    if purpose == "reset":
+        if not new_password:
+            raise HTTPException(status_code=400, detail="New password is required")
+        user = db.query(models.User).filter(models.User.email == email).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         user.password = hash_password(new_password)
-        db.commit()
+
+    db.query(models.OTP).filter(models.OTP.email == email, models.OTP.purpose == purpose).delete()
+    db.commit()
 
     return {"verified": True}
 
 
 @router.get("/batches", response_model=List[schemas.Batch], status_code=200)
-def get_all_batches(db: Session = Depends(get_db), current_user = Depends(require_role("teacher", "admin"))):
+def get_all_batches(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     return db.query(models.Batch).all()
 
 
@@ -273,9 +302,39 @@ def create_new_batch(batch: schemas.Batch, db: Session = Depends(get_db), curren
     )
 
     db.add(new_batch)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "Batch code already exists")
     db.refresh(new_batch)
     return new_batch
+
+
+@router.put("/batch/{batch_code}", response_model=schemas.Batch)
+def update_batch(batch_code: str, payload: BatchUpdate, db: Session = Depends(get_db), current_user = Depends(require_batch_teacher_or_admin)):
+    batch = db.query(models.Batch).filter(models.Batch.code == batch_code).first()
+    batch.name = payload.name
+    batch.year = payload.year
+    batch.schedule = payload.schedule
+    db.commit()
+    db.refresh(batch)
+    return batch
+
+
+@router.delete("/batch/{batch_code}", status_code=204)
+def delete_batch(batch_code: str, db: Session = Depends(get_db), current_user = Depends(require_batch_teacher_or_admin)):
+    batch = db.query(models.Batch).filter(models.Batch.code == batch_code).first()
+    result_ids = [row.id for row in db.query(models.Result.id).filter(models.Result.batch_code == batch_code).all()]
+    if result_ids:
+        db.query(models.StudentScore).filter(models.StudentScore.result_id.in_(result_ids)).delete(synchronize_session=False)
+        db.query(models.Result).filter(models.Result.id.in_(result_ids)).delete(synchronize_session=False)
+    for student in db.query(models.User).filter(models.User.role == "student").all():
+        if student.batch_codes and batch_code in student.batch_codes:
+            student.batch_codes = [code for code in student.batch_codes if code != batch_code]
+    db.delete(batch)
+    db.commit()
+    return None
 
 
 @router.get(
@@ -317,7 +376,7 @@ def enroll_in_batch(batch_code, db: Session = Depends(get_db), current_user = De
     db.refresh(student)
     return student
 
-@router.get('/students_in_batch/{batch_code}', response_model=List[schemas.User], status_code=200)
+@router.get('/students_in_batch/{batch_code}', response_model=List[schemas.UserResponse], status_code=200)
 def get_students_in_batch(batch_code, db: Session = Depends(get_db), current_user = Depends(require_batch_teacher_or_admin)):
     batch = db.query(models.Batch).filter(models.Batch.code == batch_code).first()
     if not batch:
@@ -326,12 +385,12 @@ def get_students_in_batch(batch_code, db: Session = Depends(get_db), current_use
     students = db.query(models.User).filter(models.User.role == 'student').all()
     students_in_batch = []
     for student in students:
-        if batch_code in student.batch_codes:
+        if batch_code in (student.batch_codes or []):
             students_in_batch.append(student)
 
     return students_in_batch
 
-@router.get('/my_students/{teacher_id}', response_model=List[schemas.User], status_code=200)
+@router.get('/my_students/{teacher_id}', response_model=List[schemas.UserResponse], status_code=200)
 def get_my_students(teacher_id, db: Session = Depends(get_db), current_user = Depends(require_teacher_self_or_admin)):
     my_batches = db.query(models.Batch).filter(models.Batch.teacher_id == teacher_id)
     my_batches_codes = []
@@ -341,9 +400,10 @@ def get_my_students(teacher_id, db: Session = Depends(get_db), current_user = De
     students = db.query(models.User).filter(models.User.role == 'student').all()
     my_students = []
     for student in students:
-        for bc in student.batch_codes:
+        for bc in (student.batch_codes or []):
             if bc in my_batches_codes:
                 my_students.append(student)
+                break
     
     return my_students
 
@@ -356,6 +416,18 @@ def create_result(result: schemas.Result, db: Session = Depends(get_db), current
     batch = db.query(models.Batch).filter(models.Batch.code == result.batch_code).first()
     if not batch:
         raise HTTPException(404, 'Batch not found')
+    if current_user["role"] == "teacher" and batch.teacher_id != current_user["user_id"]:
+        raise HTTPException(403, "Forbidden")
+
+    enrolled_ids = {
+        student.id for student in db.query(models.User).filter(models.User.role == "student").all()
+        if result.batch_code in (student.batch_codes or [])
+    }
+    score_ids = [score.student_id for score in result.scores]
+    if len(score_ids) != len(set(score_ids)):
+        raise HTTPException(400, "Duplicate student scores")
+    if any(student_id not in enrolled_ids for student_id in score_ids):
+        raise HTTPException(400, "A score contains a student who is not enrolled in this batch")
 
     new_result = models.Result(
         title=result.title,
@@ -378,6 +450,39 @@ def create_result(result: schemas.Result, db: Session = Depends(get_db), current
 
     db.commit()
     return {'message': 'Results published successfully'}
+
+
+@router.get('/results/batch/{batch_code}', status_code=200)
+def get_results_by_batch(batch_code: str, db: Session = Depends(get_db), current_user = Depends(require_batch_teacher_or_admin)):
+    results = db.query(models.Result).filter(models.Result.batch_code == batch_code).all()
+    return [{
+        "id": result.id,
+        "title": result.title,
+        "description": result.description,
+        "total_marks": result.total_marks,
+        "batch_code": result.batch_code,
+        "scores": [{
+            "student_id": score.student_id,
+            "marks": score.marks,
+            "remarks": score.remarks,
+            "absent": score.absent,
+            "seen_by_guardian": score.seen_by_guardian,
+        } for score in result.scores],
+    } for result in results]
+
+
+@router.delete('/result/{result_id}', status_code=204)
+def delete_result(result_id: str, db: Session = Depends(get_db), current_user = Depends(require_teacher_or_admin)):
+    result = db.query(models.Result).filter(models.Result.id == result_id).first()
+    if not result:
+        raise HTTPException(404, "Result not found")
+    batch = db.query(models.Batch).filter(models.Batch.code == result.batch_code).first()
+    if current_user["role"] == "teacher" and (not batch or batch.teacher_id != current_user["user_id"]):
+        raise HTTPException(403, "Forbidden")
+    db.query(models.StudentScore).filter(models.StudentScore.result_id == result_id).delete()
+    db.delete(result)
+    db.commit()
+    return None
 
 @router.get('/results/student/{student_id}/{result_id}', status_code=200)
 def get_student_result(student_id: str, result_id: str, db: Session = Depends(get_db), current_user = Depends(require_student_self_or_admin)):
@@ -455,19 +560,22 @@ def get_notices_for_student(student_id, db: Session = Depends(get_db), current_u
     notices = db.query(models.Notice).all()
     filtered_notices = []
     for notice in notices:
-        for batch_code in student.batch_codes:
-            if batch_code in notice.batch_codes:
-                filtered_notices.append(notice)
+        if any(batch_code in (notice.batch_codes or []) for batch_code in student.batch_codes):
+            filtered_notices.append(notice)
     return filtered_notices
 
 
 @router.post("/new_notice", response_model=schemas.Notice, status_code=201)
 def create_new_notice(notice: schemas.Notice, db: Session = Depends(get_db), current_user = Depends(require_teacher_or_admin)):
+    teacher_id = notice.teacher_id if current_user["role"] == "admin" else current_user["user_id"]
+    owned_codes = {b.code for b in db.query(models.Batch).filter(models.Batch.teacher_id == teacher_id).all()}
+    if current_user["role"] != "admin" and any(code not in owned_codes for code in notice.batch_codes):
+        raise HTTPException(403, "Cannot publish to a batch you do not own")
     new_notice = models.Notice(
         text=notice.text,
-        teacher_id=notice.teacher_id,
+        teacher_id=teacher_id,
         batch_codes=notice.batch_codes,
-        created_at=notice.created_at,
+        created_at=notice.created_at or datetime.utcnow(),
     )
 
     db.add(new_notice)
@@ -482,7 +590,10 @@ def update_notice(notice_id: str, notice: schemas.Notice, db: Session = Depends(
         raise HTTPException(404, "Notice Not Found")
 
     db_notice.text = notice.text
-    db_notice.teacher_id = notice.teacher_id
+    if current_user["role"] == "admin":
+        db_notice.teacher_id = notice.teacher_id
+    elif any(code not in {b.code for b in db.query(models.Batch).filter(models.Batch.teacher_id == current_user["user_id"]).all()} for code in notice.batch_codes):
+        raise HTTPException(403, "Cannot publish to a batch you do not own")
     db_notice.batch_codes = notice.batch_codes
     db_notice.created_at = notice.created_at or db_notice.created_at
 
@@ -512,4 +623,3 @@ def get_my_notices(teacher_id, db: Session = Depends(get_db), current_user = Dep
     notices = db.query(models.Notice).filter(models.Notice.teacher_id == teacher_id).all()
     
     return notices
-

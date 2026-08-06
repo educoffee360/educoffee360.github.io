@@ -29,13 +29,13 @@ class StudentScore(BaseModel):
     student_id: str
     marks: Optional[float] = None
     remarks: Optional[str] = ''
-    absent: bool
-    seen_by_guardian: bool
+    absent: bool = False
+    seen_by_guardian: bool = False
 
 class Result(BaseModel):
     title: str
-    description: Optional[str] 
-    total_marks: int 
+    description: Optional[str] = None
+    total_marks: int = Field(gt=0)
     batch_code: str = Field(min_length=6, max_length=6)
     scores: List[StudentScore]
 
@@ -54,6 +54,7 @@ class UserResponse(BaseModel):
     phone: str
     role: Literal['teacher', 'student', 'admin']
     batch_codes: Optional[List] = None
+    plan: Optional[Literal['Starter', 'Professional', 'Elite']] = None
 
     class Config:
         from_attributes = True

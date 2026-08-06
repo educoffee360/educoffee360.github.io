@@ -1,6 +1,9 @@
 from sqlalchemy import Column, String, Enum, Float, Boolean, DateTime, Integer, ForeignKey, JSON
 from sqlalchemy.orm import relationship
-from database import Base
+try:
+    from .database import Base
+except ImportError:
+    from database import Base
 import uuid
 from datetime import datetime
 # from typing import List

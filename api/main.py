@@ -1,12 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import routes
-from database import Base, engine
-import models
-
-from database import SessionLocal
-from security import hash_password
+try:
+    from . import routes, models
+    from .database import Base, engine, SessionLocal
+    from .security import hash_password
+except ImportError:  # Support `uvicorn main:app` when launched inside api/.
+    import routes
+    import models
+    from database import Base, engine, SessionLocal
+    from security import hash_password
 
 Base.metadata.create_all(bind=engine)
 

@@ -326,6 +326,14 @@ async function GetStudentResult(student_id = getCurrentUserId(), result_id) {
   }
 }
 
+async function GetResultsByBatch(batch_code) {
+  return requestJson(`/results/batch/${requireId(batch_code, "batch code")}`);
+}
+
+async function DeleteResult(result_id) {
+  return requestJson(`/result/${requireId(result_id, "result id", null)}`, { method: "DELETE" });
+}
+
 async function GetMyNotices(teacher_id = getCurrentUserId()) {
   try {
     return await requestJson(`/my_notices/${requireId(teacher_id, "teacher id")}`);
@@ -440,6 +448,8 @@ function bindGlobals() {
     CreateResult,
     GetStudentResults,
     GetStudentResult,
+    GetResultsByBatch,
+    DeleteResult,
     GetMyNotices,
     CreateNotice,
     CreateNewNotice,
