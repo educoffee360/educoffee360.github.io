@@ -7,9 +7,13 @@ from datetime import datetime, timedelta, timezone
 from jose import jwt
 import secrets
 import smtplib
+import logging
+import ssl
 from email.message import EmailMessage
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
@@ -95,10 +99,13 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
                 server.send_message(msg)
         else:
             with smtplib.SMTP(host, port, timeout=30) as server:
-                server.starttls()
+                server.ehlo()
+                server.starttls(context=ssl.create_default_context())
+                server.ehlo()
                 if user and password:
                     server.login(user, password)
                 server.send_message(msg)
         return True
     except Exception:
+        logger.exception("SMTP delivery failed for host=%s port=%s sender=%s", host, port, sender)
         return False
