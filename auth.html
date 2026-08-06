@@ -769,7 +769,9 @@ async function handleLogin() {
 
   try {
     const loginRes = await Login(email, password);
-    if (!loginRes || !loginRes.id) throw new Error('Login failed. Please try again.');
+    if (!loginRes || !loginRes.id || !loginRes.access_token) throw new Error('Login failed. Please try again.');
+
+    saveToken(loginRes.access_token);
 
     localStorage.setItem('loggedin', 'true');
     localStorage.setItem('current_userid', loginRes.id);

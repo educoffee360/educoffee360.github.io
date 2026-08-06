@@ -18,6 +18,18 @@ function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+function clearAuthState() {
+  clearToken();
+  ["userId", "userName", "userRole", "userEmail", "current_userid", "current_user_id", "current_user_name", "current_user_role", "current_user_email", "loggedin", "isLoggedIn", "user", "access_token", "token"].forEach((key) => {
+    try {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    } catch {
+      /* ignore storage failures */
+    }
+  });
+}
+
 function isLoggedIn() {
   return !!getToken();
 }
@@ -65,14 +77,7 @@ function getCurrentUserName() {
 }
 
 function logout(redirectUrl = DEFAULT_AUTH_REDIRECT) {
-  clearToken();
-  ["userId", "userName", "userRole", "current_userid", "current_user_name", "current_user_role", "loggedin", "isLoggedIn", "user"].forEach((key) => {
-    try {
-      localStorage.removeItem(key);
-    } catch {
-      /* ignore storage failures */
-    }
-  });
+  clearAuthState();
 
   if (typeof window !== "undefined" && redirectUrl) {
     window.location.href = redirectUrl;
@@ -134,6 +139,13 @@ async function requestJson(path, options = {}) {
       errorPayload.message ||
       errorPayload.error ||
       `Request failed with status ${response.status}`;
+
+    if (response.status === 401) {
+      clearAuthState();
+      if (typeof window !== "undefined" && !window.location.pathname.endsWith("/auth.html")) {
+        window.location.replace(DEFAULT_AUTH_REDIRECT);
+      }
+    }
     throw new Error(detail);
   }
 
@@ -424,6 +436,7 @@ function bindGlobals() {
     saveToken,
     getToken,
     clearToken,
+    clearAuthState,
     isLoggedIn,
     decodeJwtPayload,
     getCurrentSession,

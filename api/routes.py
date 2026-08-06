@@ -217,9 +217,14 @@ def send_otp(payload: OTPRequest, db: Session = Depends(get_db)):
     hashed = hash_otp(code)
     expires_at = datetime.utcnow() + timedelta(minutes=OTP_EXPIRE_MINUTES)
 
-    db.query(models.OTP).filter(models.OTP.email == email, models.OTP.purpose == purpose).delete()
+    db.query(models.OTP).filter(
+        models.OTP.email == email,
+        models.OTP.purpose == purpose,
+    ).delete(synchronize_session=False)
     new_otp = models.OTP(email=email, purpose=purpose, code_hash=hashed, expires_at=expires_at)
     db.add(new_otp)
+    db.flush()
+    new_otp_id = new_otp.id
     db.commit()
 
     subject = f"Your EduCoffee OTP for {purpose}"
@@ -227,7 +232,9 @@ def send_otp(payload: OTPRequest, db: Session = Depends(get_db)):
 
     sent = send_email(email, subject, body)
     if not sent:
-        db.delete(new_otp)
+        # A concurrent resend may already have removed this row. A bulk delete by
+        # primary key is safe in either case and avoids ObjectDeletedError.
+        db.query(models.OTP).filter(models.OTP.id == new_otp_id).delete(synchronize_session=False)
         db.commit()
         raise HTTPException(
             status_code=500,
