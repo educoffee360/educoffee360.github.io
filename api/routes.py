@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import List
@@ -7,29 +7,17 @@ from typing import List
 try:
     from . import schemas, models
     from .database import get_db
-    from .security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token, generate_otp_code, hash_otp, verify_otp_hash, OTP_EXPIRE_MINUTES, send_email
+    from .security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
 except ImportError:  # Support `uvicorn main:app` when launched inside api/.
     import schemas
     import models
     from database import get_db
-    from security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token, generate_otp_code, hash_otp, verify_otp_hash, OTP_EXPIRE_MINUTES, send_email
-from datetime import datetime, timedelta
+    from security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
+from datetime import datetime
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 
 router = APIRouter(prefix="/api")
-
-
-class OTPRequest(BaseModel):
-    email: EmailStr
-    purpose: str = "register"
-
-
-class OTPVerification(BaseModel):
-    email: EmailStr
-    purpose: str
-    code: str = Field(min_length=4, max_length=10)
-    new_password: str | None = Field(default=None, min_length=8)
 
 
 class BatchUpdate(BaseModel):
@@ -203,83 +191,6 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         "role": db_user.role,
         "id": db_user.id,
     }
-
-
-@router.post("/send_otp", status_code=200)
-def send_otp(payload: OTPRequest, db: Session = Depends(get_db)):
-    email = str(payload.email).lower()
-    purpose = payload.purpose
-
-    if purpose == "reset" and not db.query(models.User).filter(models.User.email == email).first():
-        raise HTTPException(status_code=404, detail="User not found")
-
-    code = generate_otp_code()
-    hashed = hash_otp(code)
-    expires_at = datetime.utcnow() + timedelta(minutes=OTP_EXPIRE_MINUTES)
-
-    db.query(models.OTP).filter(
-        models.OTP.email == email,
-        models.OTP.purpose == purpose,
-    ).delete(synchronize_session=False)
-    new_otp = models.OTP(email=email, purpose=purpose, code_hash=hashed, expires_at=expires_at)
-    db.add(new_otp)
-    db.flush()
-    new_otp_id = new_otp.id
-    db.commit()
-
-    subject = f"Your EduCoffee OTP for {purpose}"
-    body = f"Your verification code is: {code}\nThis code will expire in {OTP_EXPIRE_MINUTES} minutes."
-
-    sent = send_email(email, subject, body)
-    if not sent:
-        # A concurrent resend may already have removed this row. A bulk delete by
-        # primary key is safe in either case and avoids ObjectDeletedError.
-        db.query(models.OTP).filter(models.OTP.id == new_otp_id).delete(synchronize_session=False)
-        db.commit()
-        raise HTTPException(
-            status_code=500,
-            detail=(
-                "Email delivery failed. Check BREVO_API_KEY, BREVO_FROM_EMAIL, "
-                "and the Render logs."
-            ),
-        )
-
-    return {"detail": "OTP sent"}
-
-
-@router.post("/verify_otp", status_code=200)
-def verify_otp(payload: OTPVerification, db: Session = Depends(get_db)):
-    email = str(payload.email).lower()
-    purpose = payload.purpose
-    code = payload.code
-    new_password = payload.new_password
-
-    otp = (
-        db.query(models.OTP)
-        .filter(models.OTP.email == email, models.OTP.purpose == purpose)
-        .order_by(models.OTP.created_at.desc())
-        .first()
-    )
-    if not otp:
-        raise HTTPException(status_code=404, detail="OTP not found")
-    if otp.expires_at < datetime.utcnow():
-        raise HTTPException(status_code=400, detail="OTP expired")
-    if not verify_otp_hash(otp.code_hash, str(code)):
-        raise HTTPException(status_code=400, detail="Invalid OTP")
-
-    # consume all OTPs for this email+purpose
-    if purpose == "reset":
-        if not new_password:
-            raise HTTPException(status_code=400, detail="New password is required")
-        user = db.query(models.User).filter(models.User.email == email).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        user.password = hash_password(new_password)
-
-    db.query(models.OTP).filter(models.OTP.email == email, models.OTP.purpose == purpose).delete()
-    db.commit()
-
-    return {"verified": True}
 
 
 @router.get("/batches", response_model=List[schemas.Batch], status_code=200)

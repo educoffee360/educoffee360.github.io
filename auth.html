@@ -98,8 +98,6 @@
         .field-error { color: var(--error); font-size: 0.75rem; margin-top: 5px; display: none; font-weight: 500; }
         .field-info { color: var(--text-muted); font-size: 0.72rem; margin-top: 5px; }
 
-        .forgot-link { display: block; text-align: right; font-size: 0.8rem; color: var(--accent-caramel); font-weight: 600; text-decoration: none; margin-top: -8px; margin-bottom: 18px; cursor: pointer; }
-        .forgot-link:hover { text-decoration: underline; }
 
         .btn-submit { width: 100%; padding: 15px; border: none; border-radius: 14px; background: var(--primary-coffee); color: white; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.3px; margin-top: 6px; }
         .btn-submit:hover { background: var(--accent-caramel); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(198, 134, 66, 0.25); }
@@ -184,23 +182,6 @@
         .back-home:hover { color: var(--primary-coffee); }
         .back-home svg { width: 14px; height: 14px; }
 
-        /* OTP MODAL */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(45, 36, 30, 0.55); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 999; padding: 20px; }
-        .modal-overlay.open { display: flex; }
-        .modal-box { background: var(--card-bg); padding: 40px 36px; border-radius: 24px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 30px 80px rgba(62, 39, 35, 0.2); animation: slideUp 0.4s ease both; }
-        .modal-icon { width: 60px; height: 60px; background: rgba(198, 134, 66, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 24px; }
-        .modal-box h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--primary-coffee); margin-bottom: 8px; }
-        .modal-box p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; }
-        .modal-email-display { font-weight: 600; color: var(--primary-coffee); }
-        .otp-inputs { display: flex; justify-content: center; gap: 10px; margin: 24px 0; }
-        .otp-field { width: 52px; height: 60px; text-align: center; font-size: 1.6rem; font-weight: 700; font-family: 'Playfair Display', serif; border-radius: 12px; border: 2px solid var(--border-light); background: var(--bg-color); color: var(--primary-coffee); transition: var(--transition); caret-color: var(--accent-caramel); }
-        .otp-field:focus { outline: none; border-color: var(--accent-caramel); box-shadow: 0 0 0 4px rgba(198, 134, 66, 0.1); background: #fff; }
-        .otp-field.filled { border-color: var(--primary-coffee); background: #fff; }
-        .otp-timer { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; }
-        .resend-btn { background: none; border: none; color: var(--accent-caramel); font-size: 0.85rem; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer; display: none; }
-        .resend-btn:hover { text-decoration: underline; }
-        .modal-close { position: absolute; top: 14px; right: 16px; background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted); padding: 4px 8px; border-radius: 6px; }
-        .modal-close:hover { background: var(--bg-color); color: var(--primary-coffee); }
 
         /* SUCCESS */
         .success-overlay { position: fixed; inset: 0; background: rgba(253, 251, 247, 0.97); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; padding: 20px; }
@@ -212,8 +193,6 @@
         @media (max-width: 480px) {
             .form-wrap { padding: 24px 20px 20px; }
             .form-row { grid-template-columns: 1fr; gap: 0; }
-            .otp-field { width: 44px; height: 54px; font-size: 1.4rem; }
-            .modal-box { padding: 30px 22px; }
             .oi-office-grid { grid-template-columns: 1fr; }
             .oi-numbers { flex-direction: column; }
         }
@@ -257,7 +236,6 @@
 </button>
 </div>
 </div>
-<span class="forgot-link" onclick="openForgotModal()">Forgot password?</span>
 <p class="field-error" id="loginError" style="margin-bottom: 12px;">Invalid email or password. Please try again.</p>
 <button class="btn-submit" id="loginBtn" onclick="handleLogin()">
 <span id="loginBtnText">Login</span>
@@ -492,65 +470,6 @@
 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
         Back to Home
     </a>
-<!-- OTP MODAL -->
-<div class="modal-overlay" id="otpModal">
-<div aria-labelledby="otpModalTitle" aria-modal="true" class="modal-box" role="dialog">
-<div class="modal-icon">✉️</div>
-<h2 id="otpModalTitle">Verify Your Email</h2>
-<p>আমরা একটি <strong>4-digit OTP</strong> পাঠিয়েছি<br/>
-<span class="modal-email-display" id="otpEmailDisplay"></span>
-</p>
-<div aria-label="OTP input fields" class="otp-inputs" role="group">
-<input aria-label="OTP digit 1" class="otp-field" inputmode="numeric" maxlength="1" pattern="[0-9]" type="text"/>
-<input aria-label="OTP digit 2" class="otp-field" inputmode="numeric" maxlength="1" pattern="[0-9]" type="text"/>
-<input aria-label="OTP digit 3" class="otp-field" inputmode="numeric" maxlength="1" pattern="[0-9]" type="text"/>
-<input aria-label="OTP digit 4" class="otp-field" inputmode="numeric" maxlength="1" pattern="[0-9]" type="text"/>
-</div>
-<p class="otp-timer" id="otpTimer">Resend in <strong id="otpCountdown">30</strong>s</p>
-<button class="resend-btn" id="resendBtn" onclick="resendOTP()">Resend OTP</button>
-<p class="field-error" id="otpError" style="margin-bottom: 12px;">Incorrect OTP. Please try again.</p>
-<button class="btn-submit" id="verifyBtn" onclick="verifyOTP()">
-<span>Verify &amp; Continue</span>
-<div class="spinner" id="otpSpinner"></div>
-</button>
-</div>
-</div>
-<!-- FORGOT PASSWORD MODAL -->
-<div class="modal-overlay" id="forgotModal">
-<div aria-modal="true" class="modal-box" role="dialog" style="position:relative">
-<button aria-label="Close" class="modal-close" onclick="closeForgotModal()">✕</button>
-<div class="modal-icon">🔑</div>
-<h2>Reset Password</h2>
-<p style="margin-bottom: 20px;">আপনার রেজিস্টার করা email দিন। আমরা OTP পাঠাবো।</p>
-<div id="forgotStep1">
-<div class="form-group" style="text-align:left">
-<label>Email Address</label>
-<input id="forgotEmail" placeholder="your@email.com" type="email"/>
-</div>
-<p class="field-error" id="forgotError" style="margin-bottom: 12px;">Email not found. Please check and try again.</p>
-<button class="btn-submit" onclick="sendForgotOTP()">Send OTP</button>
-</div>
-<div id="forgotStep2" style="display:none">
-<p style="margin-bottom: 4px; font-size: 0.85rem; color: var(--text-muted);">OTP sent to <strong id="forgotEmailShow"></strong></p>
-<div class="otp-inputs" id="forgotOtpInputs">
-<input class="otp-field" inputmode="numeric" maxlength="1" type="text"/>
-<input class="otp-field" inputmode="numeric" maxlength="1" type="text"/>
-<input class="otp-field" inputmode="numeric" maxlength="1" type="text"/>
-<input class="otp-field" inputmode="numeric" maxlength="1" type="text"/>
-</div>
-<div class="form-group" style="text-align:left">
-<label>New Password</label>
-<div class="password-wrapper">
-<input id="newPassword" minlength="6" placeholder="Min. 6 characters" type="password"/>
-<button class="pw-toggle" onclick="togglePw('newPassword', this)" type="button">
-<svg class="eye-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-</button>
-</div>
-</div>
-<button class="btn-submit" onclick="resetPassword()">Reset Password</button>
-</div>
-</div>
-</div>
 <!-- SUCCESS OVERLAY -->
 <div class="success-overlay" id="successOverlay">
 <div class="success-icon">✓</div>
@@ -562,7 +481,6 @@
 <script>
     let currentRole = 'teacher';
     let currentTab  = 'login';
-    let pendingRegData = null;
     let selectedPlan = null;
     let authPayTab = 'online';
 
@@ -574,8 +492,6 @@
         switchRole(roleParam, true);
         const batchInput = document.getElementById('sBatchCode');
         batchInput.addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/\s/g, ''); });
-        setupOtpAutoFocus('#otpModal .otp-inputs');
-        setupOtpAutoFocus('#forgotOtpInputs');
         const session = getCurrentSession();
         if (session) {
             const user = await GetUserByID(session.id);
@@ -667,91 +583,6 @@
             : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
     }
 
-    // OTP
-    function setupOtpAutoFocus(containerSelector) {
-    const container = document.querySelector(containerSelector);
-    if (!container) return;
-    const fields = container.querySelectorAll('.otp-field');
-    fields.forEach((field, i) => {
-        field.addEventListener('input', () => {
-            field.value = field.value.replace(/\D/g, '').slice(-1);
-            if (field.value && fields[i + 1]) fields[i + 1].focus();
-        });
-        field.addEventListener('keydown', e => {
-            if (e.key === 'Backspace' && !field.value && fields[i - 1]) {
-                fields[i - 1].focus();
-            }
-        });
-    });
-}
-
-function openForgotModal() {
-    document.getElementById('forgotModal').classList.add('open');
-    document.getElementById('forgotStep1').style.display = 'block';
-    document.getElementById('forgotStep2').style.display = 'none';
-    document.getElementById('forgotError').style.display = 'none';
-    document.getElementById('forgotEmail').value = '';
-}
-
-function closeForgotModal() {
-    document.getElementById('forgotModal').classList.remove('open');
-}
-
-async function sendForgotOTP() {
-    const email = document.getElementById('forgotEmail').value.trim();
-    const errEl = document.getElementById('forgotError');
-    errEl.style.display = 'none';
-
-    if (!email) {
-        errEl.textContent = 'Please enter your email.';
-        errEl.style.display = 'block';
-        return;
-    }
-
-    try {
-        await requestJson('/send_otp', { method: 'POST', body: { email, purpose: 'reset' } });
-        document.getElementById('forgotEmailShow').textContent = email;
-        document.getElementById('forgotStep1').style.display = 'none';
-        document.getElementById('forgotStep2').style.display = 'block';
-        document.querySelectorAll('#forgotOtpInputs .otp-field').forEach(f => { f.value = ''; f.classList.remove('filled'); });
-        setupOtpAutoFocus('#forgotOtpInputs');
-    } catch (err) {
-        errEl.textContent = err?.message || 'Unable to send OTP.';
-        errEl.style.display = 'block';
-    }
-}
-
-async function resetPassword() {
-    const otp = getOTPValue('#forgotOtpInputs');
-    const newPw = document.getElementById('newPassword').value;
-    const email = document.getElementById('forgotEmailShow').textContent.trim();
-
-    if (otp.length < 4) {
-        alert('Please enter the 4-digit OTP.');
-        return;
-    }
-    if (!newPw || newPw.length < 6) {
-        alert('Password must be at least 6 characters.');
-        return;
-    }
-
-    try {
-        const res = await requestJson('/verify_otp', {
-            method: 'POST',
-            body: { email, purpose: 'reset', code: otp, new_password: newPw },
-        });
-
-        if (!res || !res.verified) {
-            throw new Error('OTP verification failed.');
-        }
-
-        closeForgotModal();
-        alert('Password reset successful! Please login with your new password.');
-    } catch (err) {
-        alert(err?.message || 'Unable to reset password. Please try again.');
-    }
-}
-
 async function handleLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
@@ -787,6 +618,26 @@ async function handleLogin() {
     setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', false);
   }
 }
+    async function completeRegistration(data) {
+        try {
+            const registered = await Register(data);
+            const loginRes = await Login(data.email, data.password);
+            if (!registered?.id || !loginRes?.access_token) {
+                throw new Error('Registration failed. Please try again.');
+            }
+            saveToken(loginRes.access_token);
+            localStorage.setItem('loggedin', 'true');
+            localStorage.setItem('current_userid', loginRes.id);
+            localStorage.setItem('current_user_role', loginRes.role);
+            localStorage.setItem('userRole', loginRes.role);
+            localStorage.setItem('userName', data.name);
+            localStorage.setItem('userEmail', data.email.toLowerCase());
+            showSuccess(data.role, registered.name);
+        } catch (err) {
+            alert(err?.message || 'Registration failed. Please try again.');
+        }
+    }
+
     // TEACHER REGISTER
     async function handleTeacherRegister() {
         const name     = document.getElementById('tName').value.trim();
@@ -813,8 +664,7 @@ async function handleLogin() {
             }
         }
 
-        pendingRegData = { name, email, phone: '+880' + phone, center_name: center, password, role: 'teacher', plan: selectedPlan };
-        openOTPModal(email, 'register');
+        await completeRegistration({ name, email, phone: '+880' + phone, center_name: center, password, role: 'teacher', plan: selectedPlan });
     }
 
     // STUDENT REGISTER
@@ -831,154 +681,8 @@ async function handleLogin() {
         if (!batch || !name || !email || !phone || !password) { alert('অনুগ্রহ করে সমস্ত প্রয়োজনীয় তথ্য পূরণ করুন।'); return; }
         if (password !== confirm) { pwErr.style.display = 'block'; return; }
         if (password.length < 6) { pwErr.textContent = 'Password must be at least 6 characters.'; pwErr.style.display = 'block'; return; }
-        pendingRegData = { name, email, phone: '+880' + phone, batch_codes: [batch], password, role: 'student' };
-        openOTPModal(email, 'register');
+        await completeRegistration({ name, email, phone: '+880' + phone, batch_codes: [batch], password, role: 'student' });
     }
-
-    // OTP MODAL (integrated with backend)
-    let otpTimerInterval = null;
-    let otpEmail = '';
-    let otpPurpose = '';
-
-    async function openOTPModal(email, purpose = 'register') {
-        otpEmail = email;
-        otpPurpose = purpose;
-        // request backend to send OTP
-        try {
-            await requestJson('/send_otp', { method: 'POST', body: { email, purpose } });
-        } catch (err) {
-            alert('Unable to send OTP. Please try again.');
-            return;
-        }
-
-        document.getElementById('otpEmailDisplay').textContent = email;
-        document.getElementById('otpModal').classList.add('open');
-        document.getElementById('otpError').style.display = 'none';
-        document.querySelectorAll('#otpModal .otp-field').forEach(f => { f.value = ''; f.classList.remove('filled'); });
-        document.querySelector('#otpModal .otp-field').focus();
-        startOTPTimer();
-    }
-    function startOTPTimer() {
-        clearInterval(otpTimerInterval);
-        let seconds = 30;
-        document.getElementById('otpCountdown').textContent = seconds;
-        document.getElementById('otpTimer').style.display = 'block';
-        document.getElementById('resendBtn').style.display = 'none';
-        otpTimerInterval = setInterval(() => {
-            seconds--;
-            document.getElementById('otpCountdown').textContent = seconds;
-            if (seconds <= 0) {
-                clearInterval(otpTimerInterval);
-                document.getElementById('otpTimer').style.display = 'none';
-                document.getElementById('resendBtn').style.display = 'block';
-            }
-        }, 1000);
-    }
-    async function resendOTP() {
-        try {
-            await requestJson('/send_otp', { method: 'POST', body: { email: otpEmail, purpose: otpPurpose } });
-            startOTPTimer();
-        } catch (err) {
-            alert('Unable to resend OTP. Please try again.');
-        }
-    }
-
-async function verifyOTP() {
-    const entered = getOTPValue('#otpModal .otp-inputs');
-    const errEl = document.getElementById('otpError');
-    errEl.style.display = 'none';
-    if (entered.length < 4) { errEl.textContent = 'Please enter all 4 digits.'; errEl.style.display = 'block'; return; }
-    const btn = document.getElementById('verifyBtn');
-    btn.disabled = true;
-    document.getElementById('otpSpinner').style.display = 'block';
-    try {
-        const res = await requestJson('/verify_otp', { method: 'POST', body: { email: otpEmail, purpose: otpPurpose, code: entered } });
-        if (!res || !res.verified) {
-            throw new Error('OTP verification failed.');
-        }
-
-        if (!pendingRegData) {
-            throw new Error('Registration data missing. Please try again.');
-        }
-
-        const responseRegData = await Register(pendingRegData);
-        if (!responseRegData || !responseRegData.id) {
-            throw new Error('Registration failed.');
-        }
-
-        const loginRes = await Login(pendingRegData.email, pendingRegData.password);
-        if (!loginRes || !loginRes.access_token) {
-            throw new Error('Login failed after verification.');
-        }
-
-        saveToken(loginRes.access_token);
-        localStorage.setItem('loggedin', 'true');
-        localStorage.setItem('userRole', pendingRegData.role);
-        localStorage.setItem('userName', pendingRegData.name);
-        localStorage.setItem('userEmail', pendingRegData.email.toLowerCase());
-
-        document.getElementById('otpModal').classList.remove('open');
-        clearInterval(otpTimerInterval);
-        showSuccess(pendingRegData.role, responseRegData.name);
-        pendingRegData = null;
-    } catch (err) {
-        errEl.textContent = err?.message || 'OTP verification failed.';
-        errEl.style.display = 'block';
-    } finally {
-        btn.disabled = false;
-        document.getElementById('otpSpinner').style.display = 'none';
-    }
-}
-
-    // FORGOT PASSWORD
-    function openForgotModal() {
-        document.getElementById('forgotModal').classList.add('open');
-        document.getElementById('forgotStep1').style.display = 'block';
-        document.getElementById('forgotStep2').style.display = 'none';
-        document.getElementById('forgotError').style.display = 'none';
-        document.getElementById('forgotEmail').value = '';
-    }
-    function closeForgotModal() { document.getElementById('forgotModal').classList.remove('open'); }
-    function sendForgotOTP() {
-        const email = document.getElementById('forgotEmail').value.trim();
-        const errEl = document.getElementById('forgotError');
-        errEl.style.display = 'none';
-        if (!email) { errEl.textContent = 'Please enter your email.'; errEl.style.display = 'block'; return; }
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
-        if (!users[email.toLowerCase()]) { errEl.style.display = 'block'; return; }
-        document.getElementById('forgotEmailShow').textContent = email;
-        document.getElementById('forgotStep1').style.display = 'none';
-        document.getElementById('forgotStep2').style.display = 'block';
-        document.querySelectorAll('#forgotOtpInputs .otp-field').forEach(f => { f.value = ''; f.classList.remove('filled'); });
-        setupOtpAutoFocus('#forgotOtpInputs');
-        requestJson('/send_otp', { method: 'POST', body: { email, purpose: 'reset' } })
-            .catch(err => {
-                errEl.textContent = err?.message || 'Unable to send OTP.';
-                errEl.style.display = 'block';
-            });
-    }
-    async function resetPassword() {
-        const otp = getOTPValue('#forgotOtpInputs');
-        const newPw = document.getElementById('newPassword').value;
-        if (otp.length < 4) { alert('Please enter the 4-digit OTP.'); return; }
-        if (newPw.length < 6) { alert('Password must be at least 6 characters.'); return; }
-        const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
-        try {
-            const res = await requestJson('/verify_otp', { method: 'POST', body: { email, purpose: 'reset', code: otp, new_password: newPw } });
-            if (!res || !res.verified) {
-                throw new Error('OTP verification failed.');
-            }
-            closeForgotModal();
-            alert('Password reset successful! Please login with your new password.');
-        } catch (err) {
-            alert(err?.message || 'Unable to reset password. Please try again.');
-        }
-    }
-
-    // CLOSE MODALS OUTSIDE CLICK
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
-    });
 
     // SUCCESS
     function showSuccess(role, name) {
