@@ -316,7 +316,7 @@
 <div class="fg"><label>Email Address</label><input id="eEmail" placeholder="email@example.com" readonly="" style="opacity:.6;cursor:not-allowed" type="email"/><p class="fg-info">Email cannot be changed. Contact support if needed.</p></div>
 <div class="fg"><label>Phone Number</label><input id="ePhone" placeholder="+880 1XXXXXXXXX" type="tel"/></div>
 <div class="fg"><label>Center / Institution Name</label><input id="eCenter" placeholder="e.g. Success Coaching Center" type="text"/></div>
-<button class="btn-save" onclick="savePersonal()">Save Changes</button>
+<button class="btn-save" id="savePersonalBtn" onclick="savePersonal()">Save Changes</button>
 </div>
 </div>
 <!-- Subscription Upgrade -->
@@ -710,33 +710,43 @@ function toggleSection(sec) {
     if (!isEditing) edit.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-function savePersonal() {
+async function savePersonal() {
     const name = document.getElementById('eName').value.trim();
+    const phone = document.getElementById('ePhone').value.trim();
+    const centerName = document.getElementById('eCenter').value.trim();
+    const button = document.getElementById('savePersonalBtn');
     if (!name) { showToast('Name is required.'); return; }
+    if (!phone) { showToast('Phone number is required.'); return; }
 
-    // Update localStorage
-    const email = localStorage.getItem('userEmail') || '';
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-    if (users[email]) {
-        users[email].name   = name;
-        users[email].phone  = document.getElementById('ePhone').value.trim();
-        users[email].center = document.getElementById('eCenter').value.trim();
-        localStorage.setItem('users', JSON.stringify(users));
+    button.disabled = true;
+    button.textContent = 'Saving…';
+    try {
+        const session = getCurrentSession();
+        const updated = await UpdateUserProfile(session?.id, {
+            name,
+            phone,
+            center_name: centerName
+        });
+        localStorage.setItem('userName', updated.name);
+        localStorage.setItem('current_user_name', updated.name);
+
+        document.getElementById('sidebarAvatar').textContent = updated.name[0].toUpperCase();
+        document.getElementById('sidebarName').textContent = updated.name;
+        document.getElementById('heroInit').textContent = updated.name[0].toUpperCase();
+        document.getElementById('heroName').textContent = updated.name;
+        document.getElementById('heroCenter').textContent = updated.center_name || '—';
+        document.getElementById('vName').textContent = updated.name;
+        document.getElementById('vPhone').textContent = updated.phone || '—';
+        document.getElementById('vCenter').textContent = updated.center_name || '—';
+
+        toggleSection('personal');
+        showToast('Profile updated ✓');
+    } catch (error) {
+        showToast(error?.message || 'Could not update profile.');
+    } finally {
+        button.disabled = false;
+        button.textContent = 'Save Changes';
     }
-    localStorage.setItem('userName', name);
-
-    // Update UI
-    document.getElementById('sidebarAvatar').textContent  = name[0].toUpperCase();
-    document.getElementById('sidebarName').textContent = name;
-    document.getElementById('heroInit').textContent = name[0].toUpperCase();
-    document.getElementById('heroName').textContent = name;
-    document.getElementById('heroCenter').textContent = document.getElementById('eCenter').value.trim() || '—';
-    document.getElementById('vName').textContent   = name;
-    document.getElementById('vPhone').textContent  = document.getElementById('ePhone').value.trim() || '—';
-    document.getElementById('vCenter').textContent = document.getElementById('eCenter').value.trim() || '—';
-
-    toggleSection('personal');
-    showToast('Profile updated ✓');
 }
 
 // ── PASSWORD ──────────────────────────────────────

@@ -58,3 +58,32 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class UserProfileUpdate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    phone: str = Field(min_length=1, max_length=40)
+    center_name: Optional[str] = Field(default=None, max_length=160)
+
+
+class ParentMessageCreate(BaseModel):
+    student_id: str
+    subject: str = Field(min_length=1, max_length=160)
+    body: str = Field(min_length=1, max_length=5000)
+
+
+class ParentBroadcastCreate(BaseModel):
+    batch_codes: List[str] = Field(default_factory=list)
+    subject: str = Field(min_length=1, max_length=160)
+    body: str = Field(min_length=1, max_length=5000)
+
+
+class ParentMessageResponse(BaseModel):
+    id: str
+    teacher_id: str
+    teacher_name: str
+    student_id: str
+    subject: str
+    body: str
+    batch_codes: List[str]
+    created_at: datetime

@@ -68,3 +68,15 @@ class StudentScore(Base):
     seen_by_guardian = Column(Boolean, default=False)
 
     result = relationship("Result", back_populates="scores")
+
+
+class ParentMessage(Base):
+    __tablename__ = 'parent_messages'
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    teacher_id = Column(String, ForeignKey('users.id'), nullable=False)
+    student_id = Column(String, ForeignKey('users.id'), nullable=False)
+    subject = Column(String, nullable=False)
+    body = Column(String, nullable=False)
+    batch_codes = Column(JSON, nullable=False, default=list)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

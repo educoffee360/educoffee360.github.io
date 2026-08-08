@@ -149,6 +149,33 @@ def get_user_by_id(user_id, db: Session = Depends(get_db), current_user = Depend
     return user
 
 
+@router.put("/user/{user_id}/profile", response_model=schemas.UserResponse, status_code=200)
+def update_user_profile(user_id: str, payload: schemas.UserProfileUpdate, db: Session = Depends(get_db), current_user = Depends(require_self_or_admin)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(404, "User Not Found")
+
+    name = payload.name.strip()
+    phone = payload.phone.strip()
+    if not name or not phone:
+        raise HTTPException(400, "Name and phone number are required")
+
+    phone_owner = db.query(models.User).filter(
+        models.User.phone == phone,
+        models.User.id != user_id,
+    ).first()
+    if phone_owner:
+        raise HTTPException(409, "This phone number is used by someone else.")
+
+    user.name = name
+    user.phone = phone
+    if user.role == "teacher":
+        user.center_name = (payload.center_name or "").strip() or None
+    db.commit()
+    db.refresh(user)
+    return user
+
+
 @router.post("/register", response_model=schemas.UserResponse, status_code=201)
 def register(user: schemas.User, db: Session = Depends(get_db)):
     if user.role == "admin":
@@ -353,6 +380,34 @@ def get_my_students(teacher_id, db: Session = Depends(get_db), current_user = De
                 break
     
     return my_students
+
+
+@router.delete('/my_students/{student_id}', response_model=schemas.UserResponse, status_code=200)
+def remove_my_student(student_id: str, db: Session = Depends(get_db), current_user = Depends(require_teacher_or_admin)):
+    student = db.query(models.User).filter(
+        models.User.id == student_id,
+        models.User.role == "student",
+    ).first()
+    if not student:
+        raise HTTPException(404, "Student Not Found")
+
+    if current_user["role"] == "admin":
+        removable_codes = set(student.batch_codes or [])
+    else:
+        removable_codes = {
+            batch.code for batch in db.query(models.Batch).filter(
+                models.Batch.teacher_id == current_user["user_id"]
+            ).all()
+        }
+
+    enrolled_codes = list(student.batch_codes or [])
+    if not removable_codes.intersection(enrolled_codes):
+        raise HTTPException(403, "This student is not enrolled in any of your batches")
+
+    student.batch_codes = [code for code in enrolled_codes if code not in removable_codes]
+    db.commit()
+    db.refresh(student)
+    return student
 
 @router.get("/results", response_model=List[schemas.Result], status_code=200)
 def get_all_results(db: Session = Depends(get_db), current_user = Depends(require_role("teacher", "admin"))):
@@ -576,3 +631,119 @@ def get_my_notices(teacher_id, db: Session = Depends(get_db), current_user = Dep
     notices = db.query(models.Notice).filter(models.Notice.teacher_id == teacher_id).all()
     
     return notices
+
+
+def _parent_message_response(message, teacher_name: str):
+    return {
+        "id": message.id,
+        "teacher_id": message.teacher_id,
+        "teacher_name": teacher_name,
+        "student_id": message.student_id,
+        "subject": message.subject,
+        "body": message.body,
+        "batch_codes": message.batch_codes or [],
+        "created_at": message.created_at,
+    }
+
+
+@router.post('/messages', response_model=schemas.ParentMessageResponse, status_code=201)
+def send_parent_message(payload: schemas.ParentMessageCreate, db: Session = Depends(get_db), current_user = Depends(require_role("teacher"))):
+    teacher = db.query(models.User).filter(models.User.id == current_user["user_id"]).first()
+    student = db.query(models.User).filter(
+        models.User.id == payload.student_id,
+        models.User.role == "student",
+    ).first()
+    if not teacher or not student:
+        raise HTTPException(404, "Teacher or student not found")
+
+    owned_codes = {
+        batch.code for batch in db.query(models.Batch).filter(
+            models.Batch.teacher_id == teacher.id
+        ).all()
+    }
+    shared_codes = sorted(owned_codes.intersection(student.batch_codes or []))
+    if not shared_codes:
+        raise HTTPException(403, "This student is not enrolled in any of your batches")
+
+    subject = payload.subject.strip()
+    body = payload.body.strip()
+    if not subject or not body:
+        raise HTTPException(400, "Subject and message are required")
+
+    message = models.ParentMessage(
+        teacher_id=teacher.id,
+        student_id=student.id,
+        subject=subject,
+        body=body,
+        batch_codes=shared_codes,
+    )
+    db.add(message)
+    db.commit()
+    db.refresh(message)
+    return _parent_message_response(message, teacher.name)
+
+
+@router.post('/messages/broadcast', status_code=201)
+def broadcast_parent_message(payload: schemas.ParentBroadcastCreate, db: Session = Depends(get_db), current_user = Depends(require_role("teacher"))):
+    teacher = db.query(models.User).filter(models.User.id == current_user["user_id"]).first()
+    if not teacher:
+        raise HTTPException(404, "Teacher Not Found")
+
+    owned_codes = {
+        batch.code for batch in db.query(models.Batch).filter(
+            models.Batch.teacher_id == teacher.id
+        ).all()
+    }
+    target_codes = set(payload.batch_codes) if payload.batch_codes else owned_codes
+    if not target_codes:
+        raise HTTPException(400, "Create a batch before sending a broadcast")
+    if not target_codes.issubset(owned_codes):
+        raise HTTPException(403, "Cannot broadcast to a batch you do not own")
+
+    subject = payload.subject.strip()
+    body = payload.body.strip()
+    if not subject or not body:
+        raise HTTPException(400, "Subject and message are required")
+
+    recipients = []
+    for student in db.query(models.User).filter(models.User.role == "student").all():
+        matching_codes = sorted(target_codes.intersection(student.batch_codes or []))
+        if matching_codes:
+            recipients.append((student, matching_codes))
+
+    for student, matching_codes in recipients:
+        db.add(models.ParentMessage(
+            teacher_id=teacher.id,
+            student_id=student.id,
+            subject=subject,
+            body=body,
+            batch_codes=matching_codes,
+        ))
+    db.commit()
+    return {"message": "Broadcast sent", "recipient_count": len(recipients)}
+
+
+@router.get('/messages/student/{student_id}', response_model=List[schemas.ParentMessageResponse], status_code=200)
+def get_parent_messages(student_id: str, db: Session = Depends(get_db), current_user = Depends(require_student_self_or_admin)):
+    if current_user["role"] == "student":
+        student_id = current_user["user_id"]
+    student = db.query(models.User).filter(
+        models.User.id == student_id,
+        models.User.role == "student",
+    ).first()
+    if not student:
+        raise HTTPException(404, "Student Not Found")
+
+    messages = db.query(models.ParentMessage).filter(
+        models.ParentMessage.student_id == student_id
+    ).order_by(models.ParentMessage.created_at.desc()).all()
+    teacher_ids = {message.teacher_id for message in messages}
+    teacher_names = {
+        teacher.id: teacher.name for teacher in db.query(models.User).filter(
+            models.User.id.in_(teacher_ids)
+        ).all()
+    } if teacher_ids else {}
+    return [
+        _parent_message_response(message, teacher_names.get(message.teacher_id, "Teacher"))
+        for message in messages
+    ]

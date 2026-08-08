@@ -461,7 +461,7 @@
 <label>Message *</label>
 <textarea id="msgBody" placeholder="Write your message to the parent..."></textarea>
 </div>
-<button class="btn-modal" onclick="sendMessage()">
+<button class="btn-modal" id="sendMessageBtn" onclick="sendMessage()">
 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><line x1="22" x2="11" y1="2" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 Send Message
             </button>
@@ -489,7 +489,7 @@
 <label>Message *</label>
 <textarea id="bcBody" placeholder="Message to all selected parents..."></textarea>
 </div>
-<button class="btn-modal" onclick="sendBroadcast()">
+<button class="btn-modal" id="sendBroadcastBtn" onclick="sendBroadcast()">
 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><line x1="22" x2="11" y1="2" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 Send to All
             </button>
@@ -615,7 +615,7 @@ function buildBatchFilters() {
         const o1 = new Option(b.name, b.code); sel.appendChild(o1);
         const o2 = new Option(b.name, b.code); addSel.appendChild(o2);
         const pill = document.createElement('div');
-        pill.className = 'batch-pill'; pill.textContent = b.name;
+        pill.className = 'batch-pill'; pill.textContent = b.name; pill.dataset.code = b.code;
         pill.onclick = () => pill.classList.toggle('active');
         bcDiv.appendChild(pill);
     });
@@ -949,24 +949,59 @@ function switchDpTab(name, btn) {
 
 /* ── MESSAGE ── */
 function openMessage(s) {
+    currentStudent = s;
     document.getElementById('msgTarget').textContent = '📧 To: ' + (s.name || '—') + (s.phone ? ' · ' + s.phone : '');
     document.getElementById('msgSubject').value = '';
     document.getElementById('msgBody').value = 'Dear Parent,\n\nI would like to inform you about ' + (s.name||'your child') + '\'s recent academic progress.\n\nThank you.';
     document.getElementById('msgModal').classList.add('open');
 }
 function closeMsgModal() { document.getElementById('msgModal').classList.remove('open'); }
-function sendMessage() {
-    if (!document.getElementById('msgBody').value.trim()) { showToast('Please write a message.'); return; }
-    closeMsgModal();
-    showToast('Message sent ✓');
+async function sendMessage() {
+    const body = document.getElementById('msgBody').value.trim();
+    const subject = document.getElementById('msgSubject').value.trim() || 'Message from your teacher';
+    const button = document.getElementById('sendMessageBtn');
+    if (!currentStudent?.id) { showToast('Please select a student.'); return; }
+    if (!body) { showToast('Please write a message.'); return; }
+
+    button.disabled = true;
+    try {
+        await SendParentMessage({ student_id: currentStudent.id, subject, body });
+        closeMsgModal();
+        showToast('Message sent ✓');
+    } catch (error) {
+        showToast(error?.message || 'Could not send message.');
+    } finally {
+        button.disabled = false;
+    }
 }
 
 /* ── BROADCAST ── */
-function openBroadcast() { document.getElementById('broadcastModal').classList.add('open'); }
-function sendBroadcast() {
-    if (!document.getElementById('bcBody').value.trim()) { showToast('Please write a message.'); return; }
-    document.getElementById('broadcastModal').classList.remove('open');
-    showToast('Broadcast sent to all parents ✓');
+function openBroadcast() {
+    document.getElementById('bcSubject').value = '';
+    document.getElementById('bcBody').value = '';
+    document.querySelectorAll('#broadcastBatches .batch-pill').forEach(pill => pill.classList.remove('active'));
+    document.getElementById('broadcastModal').classList.add('open');
+}
+async function sendBroadcast() {
+    const body = document.getElementById('bcBody').value.trim();
+    const subject = document.getElementById('bcSubject').value.trim() || 'Message from your teacher';
+    const batchCodes = [...document.querySelectorAll('#broadcastBatches .batch-pill.active')]
+        .map(pill => pill.dataset.code)
+        .filter(Boolean);
+    const button = document.getElementById('sendBroadcastBtn');
+    if (!body) { showToast('Please write a message.'); return; }
+
+    button.disabled = true;
+    try {
+        const response = await BroadcastParentMessage({ batch_codes: batchCodes, subject, body });
+        document.getElementById('broadcastModal').classList.remove('open');
+        const count = Number(response?.recipient_count || 0);
+        showToast(`Broadcast sent to ${count} parent${count === 1 ? '' : 's'} ✓`);
+    } catch (error) {
+        showToast(error?.message || 'Could not send broadcast.');
+    } finally {
+        button.disabled = false;
+    }
 }
 
 /* ── ADD STUDENT (batch code sharing) ── */
@@ -992,15 +1027,20 @@ function copyBatchCode() {
 }
 
 /* ── REMOVE STUDENT ── */
-function removeStudent(id) {
+async function removeStudent(id) {
     if (!confirm('Remove this student from your batch?')) return;
-    allStudents = allStudents.filter(s => String(s.id) !== String(id));
-    filteredStudents = filteredStudents.filter(s => String(s.id) !== String(id));
-    renderGrid();
-    renderTable();
-    updateStats();
-    closeDetail();
-    showToast('Student removed.');
+    try {
+        await RemoveMyStudent(id);
+        allStudents = allStudents.filter(s => String(s.id) !== String(id));
+        filteredStudents = filteredStudents.filter(s => String(s.id) !== String(id));
+        renderGrid();
+        renderTable();
+        updateStats();
+        closeDetail();
+        showToast('Student removed from your batches.');
+    } catch (error) {
+        showToast(error?.message || 'Could not remove student.');
+    }
 }
 
 /* ── EXPORT CSV ──

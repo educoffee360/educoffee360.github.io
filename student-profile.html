@@ -286,21 +286,28 @@ async function saveProfile() {
     errEl.style.display = 'none';
 
     if (!name) { errEl.textContent = 'Name is required.'; errEl.style.display = 'block'; return; }
+    if (!phone) { errEl.textContent = 'Phone number is required.'; errEl.style.display = 'block'; return; }
 
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Saving…';
 
     try {
-        // Update the in-page display immediately after saving
-        document.getElementById('viewName').textContent = name;
-        document.getElementById('viewPhone').textContent = phone || '—';
-        document.getElementById('heroName').textContent = name;
-        document.getElementById('heroAvatar').textContent = name[0].toUpperCase();
-        const __sidebarName = document.getElementById('sidebarName'); if (__sidebarName) __sidebarName.textContent = name;
-        const __sidebarAvatar = document.getElementById('sidebarAvatar'); if (__sidebarAvatar) __sidebarAvatar.textContent = name[0].toUpperCase();
+        const updated = await UpdateUserProfile(studentId, { name, phone });
+        userData = updated;
+        document.getElementById('viewName').textContent = updated.name;
+        document.getElementById('viewPhone').textContent = updated.phone || '—';
+        document.getElementById('heroName').textContent = updated.name;
+        document.getElementById('heroAvatar').textContent = updated.name[0].toUpperCase();
+        const __sidebarName = document.getElementById('sidebarName'); if (__sidebarName) __sidebarName.textContent = updated.name;
+        const __sidebarAvatar = document.getElementById('sidebarAvatar'); if (__sidebarAvatar) __sidebarAvatar.textContent = updated.name[0].toUpperCase();
+        localStorage.setItem('userName', updated.name);
+        localStorage.setItem('current_user_name', updated.name);
 
         toggleEdit();
         showToast('Profile updated ✓');
+    } catch (error) {
+        errEl.textContent = error?.message || 'Could not update profile.';
+        errEl.style.display = 'block';
     } finally {
         btn.disabled = false;
         btn.innerHTML = 'Save Changes';

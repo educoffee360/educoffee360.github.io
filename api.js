@@ -214,6 +214,22 @@ async function GetUserByID(id = getCurrentUserId()) {
   }
 }
 
+async function UpdateUserProfile(id = getCurrentUserId(), profile = {}) {
+  try {
+    return await requestJson(`/user/${requireId(id, "user id")}/profile`, {
+      method: "PUT",
+      body: {
+        name: profile.name,
+        phone: profile.phone,
+        center_name: profile.center_name ?? null,
+      },
+    });
+  } catch (error) {
+    console.error(error.message);
+    throw error;
+  }
+}
+
 async function Login(email, pass) {
   try {
     return await requestJson("/login", {
@@ -291,6 +307,17 @@ async function GetBatchesByTeacherId(teacher_id = getCurrentUserId()) {
 async function GetMyStudents(teacher_id = getCurrentUserId()) {
   try {
     return await requestJson(`/my_students/${requireId(teacher_id, "teacher id")}`);
+  } catch (error) {
+    console.error(error.message);
+    throw error;
+  }
+}
+
+async function RemoveMyStudent(student_id) {
+  try {
+    return await requestJson(`/my_students/${requireId(student_id, "student id", null)}`, {
+      method: "DELETE",
+    });
   } catch (error) {
     console.error(error.message);
     throw error;
@@ -432,6 +459,32 @@ async function GetNoticesForStudent(student_id = getCurrentUserId()) {
   }
 }
 
+async function SendParentMessage(message = {}) {
+  return requestJson("/messages", {
+    method: "POST",
+    body: {
+      student_id: requireId(message.student_id, "student id", null),
+      subject: message.subject,
+      body: message.body,
+    },
+  });
+}
+
+async function BroadcastParentMessage(message = {}) {
+  return requestJson("/messages/broadcast", {
+    method: "POST",
+    body: {
+      batch_codes: Array.isArray(message.batch_codes) ? message.batch_codes : [],
+      subject: message.subject,
+      body: message.body,
+    },
+  });
+}
+
+async function GetParentMessages(student_id = getCurrentUserId()) {
+  return requestJson(`/messages/student/${requireId(student_id, "student id")}`);
+}
+
 async function GetAllUsers() {
   return requestJson("/users");
 }
@@ -468,6 +521,7 @@ function bindGlobals() {
     fetchOrNull,
     Register,
     GetUserByID,
+    UpdateUserProfile,
     Login,
     CreateNewBatch,
     UpdateBatch,
@@ -475,6 +529,7 @@ function bindGlobals() {
     GetBatchesByTID,
     GetBatchesByTeacherId,
     GetMyStudents,
+    RemoveMyStudent,
     GetStudentsByBC,
     GetStudentsInBatch,
     EnrollInBatch,
@@ -489,6 +544,9 @@ function bindGlobals() {
     UpdateNotice,
     DeleteNotice,
     GetNoticesForStudent,
+    SendParentMessage,
+    BroadcastParentMessage,
+    GetParentMessages,
     GetAllUsers,
     GetAllBatches,
     GetAllResults,

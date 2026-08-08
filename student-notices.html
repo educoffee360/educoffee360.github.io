@@ -93,7 +93,7 @@
         .nc-title{font-size:.95rem;font-weight:600;color:var(--text);line-height:1.35}
         .nc-badge-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
         .nc-time{font-size:.72rem;color:var(--muted)}
-        .nc-body{font-size:.85rem;color:var(--muted);line-height:1.5;margin-top:8px;display:none}
+        .nc-body{font-size:.85rem;color:var(--muted);line-height:1.5;margin-top:8px;display:none;white-space:pre-wrap}
         .nc-body.expanded{display:block;animation:fadeIn .3s ease}
         .nc-expand{font-size:.78rem;font-weight:600;color:var(--caramel);margin-top:8px;display:inline-block;cursor:pointer}
 
@@ -130,7 +130,7 @@
 <div data-ec-layout="student" data-ec-page="student-notices" id="ec-shell"></div><main class="main">
 <div class="page-header">
 <h1>Notice Board</h1>
-<p>All notices from your enrolled batches</p>
+<p>Notices and messages from your teachers</p>
 </div>
 <!-- Filter Bar -->
 <div class="filter-bar" id="filterBar">
@@ -178,8 +178,20 @@ async function init() {
     if (!student) return;
     studentBatchCodes = student.batch_codes || [];
 
-    // Fetch notices for this student
-    allNotices = await GetNoticesForStudent(studentId) || [];
+    // Fetch batch notices and direct parent messages together.
+    const [notices, messages] = await Promise.all([
+        GetNoticesForStudent(studentId),
+        GetParentMessages(studentId)
+    ]);
+    allNotices = [
+        ...(notices || []).map(notice => ({ ...notice, kind: 'notice', body: '' })),
+        ...(messages || []).map(message => ({
+            ...message,
+            kind: 'message',
+            text: message.subject,
+            teacher_name: message.teacher_name || 'Teacher'
+        }))
+    ].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
     // Build batch filter pills from student's enrolled batches
     buildBatchFilters();
@@ -259,10 +271,12 @@ function renderNotices() {
         filtered = filtered.filter(n => n.created_at && new Date(n.created_at).getTime() > oneDayAgo);
     }
     if (searchQuery) {
-        filtered = filtered.filter(n => n.text.toLowerCase().includes(searchQuery));
+        filtered = filtered.filter(n =>
+            `${n.text || ''} ${n.body || ''} ${n.teacher_name || ''}`.toLowerCase().includes(searchQuery)
+        );
     }
 
-    document.getElementById('countLabel').textContent = `${filtered.length} notice${filtered.length !== 1 ? 's' : ''}`;
+    document.getElementById('countLabel').textContent = `${filtered.length} update${filtered.length !== 1 ? 's' : ''}`;
 
     const container = document.getElementById('noticesContainer');
     if (filtered.length === 0) {
@@ -278,13 +292,16 @@ function renderNotices() {
         const isExpanded = expandedIds.has(n.id);
         const batches = (n.batch_codes || []).join(', ');
         const date = n.created_at ? new Date(n.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
+        const isMessage = n.kind === 'message';
+        const heading = isMessage ? `Direct message · ${n.teacher_name || 'Teacher'}` : `Batch: ${batches}`;
         return `
-        <div class="notice-card" id="card-${n.id}">
+        <div class="notice-card" id="card-${escHtml(n.id)}" ${isMessage ? `onclick="toggleExpand('${escHtml(n.id)}')"` : ''}>
             <div class="nc-top">
-                <div class="nc-avatar">${batches[0] || '?'}</div>
+                <div class="nc-avatar">${isMessage ? '✉' : escHtml(batches[0] || '?')}</div>
                 <div class="nc-meta">
-                    <div class="nc-batch">Batch: ${batches}</div>
-                    <div class="nc-title">${n.text}</div>
+                    <div class="nc-batch">${escHtml(heading)}</div>
+                    <div class="nc-title">${escHtml(n.text)}</div>
+                    ${isMessage ? `<div class="nc-body ${isExpanded ? 'expanded' : ''}">${escHtml(n.body)}</div><span class="nc-expand">${isExpanded ? 'Show less' : 'Read message'}</span>` : ''}
                 </div>
             </div>
             <div class="nc-badge-row">
@@ -292,6 +309,15 @@ function renderNotices() {
             </div>
         </div>`;
     }).join('');
+}
+
+function escHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function toggleSidebar() {
