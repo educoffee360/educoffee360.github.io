@@ -142,11 +142,14 @@ async function requestJson(path, options = {}) {
       errorPayload = {};
     }
 
-    const detail =
+    const rawDetail =
       errorPayload.detail ||
       errorPayload.message ||
       errorPayload.error ||
       `Request failed with status ${response.status}`;
+    const detail = Array.isArray(rawDetail)
+      ? rawDetail.map((item) => item?.msg || String(item)).join("; ")
+      : String(rawDetail);
 
     if (response.status === 401) {
       clearAuthState();
@@ -197,12 +200,27 @@ async function Register(data) {
         role: data.role,
         batch_codes: data.batch_codes,
         plan: data.plan,
+        verification_token: data.verification_token,
       },
     });
   } catch (error) {
     console.error(error.message);
     throw error;
   }
+}
+
+async function SendRegistrationOTP(email) {
+  return requestJson("/send_otp", {
+    method: "POST",
+    body: { email, purpose: "register" },
+  });
+}
+
+async function VerifyRegistrationOTP(email, code) {
+  return requestJson("/verify_otp", {
+    method: "POST",
+    body: { email, code, purpose: "register" },
+  });
 }
 
 async function GetUserByID(id = getCurrentUserId()) {
@@ -520,6 +538,8 @@ function bindGlobals() {
     requestJson,
     fetchOrNull,
     Register,
+    SendRegistrationOTP,
+    VerifyRegistrationOTP,
     GetUserByID,
     UpdateUserProfile,
     Login,

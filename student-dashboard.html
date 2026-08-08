@@ -942,7 +942,8 @@ document.getElementById('joinModal').addEventListener('click', e => {
     if (e.target === document.getElementById('joinModal')) closeJoinModal();
 });
 
-init();
+showPageLoading('Loading your dashboard…');
+init().finally(hidePageLoading);
 </script>
 </body>
 </html>

@@ -605,7 +605,8 @@ function doLogout() {
 
 if (INIT()) {
     setSendButtonState(false);
-    loadData();
+    showPageLoading('Loading notices…');
+    loadData().finally(hidePageLoading);
 }
 </script>
 </body>

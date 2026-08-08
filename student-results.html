@@ -512,7 +512,8 @@ function closeSidebar() {
     document.getElementById('mobileOverlay').classList.remove('open');
 }
 
-init();
+showPageLoading('Loading your results…');
+init().finally(hidePageLoading);
 </script>
 </body>
 </html>

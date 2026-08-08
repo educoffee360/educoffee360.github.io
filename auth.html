@@ -190,6 +190,20 @@
         .success-overlay h1 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--primary-coffee); margin-bottom: 10px; }
         .success-overlay p { color: var(--text-muted); max-width: 300px; margin-bottom: 30px; }
 
+        /* EMAIL OTP */
+        .otp-overlay { position:fixed; inset:0; z-index:1100; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(45,36,30,.56); backdrop-filter:blur(6px); }
+        .otp-overlay.show { display:flex; animation:fadeIn .25s ease both; }
+        .otp-card { width:100%; max-width:410px; padding:30px; border-radius:24px; background:#fff; box-shadow:0 24px 70px rgba(45,36,30,.22); text-align:center; position:relative; }
+        .otp-close { position:absolute; top:14px; right:14px; width:34px; height:34px; border:0; border-radius:50%; background:var(--bg-color); color:var(--text-muted); cursor:pointer; font-size:1rem; }
+        .otp-icon { width:58px; height:58px; margin:0 auto 16px; border-radius:18px; display:flex; align-items:center; justify-content:center; background:rgba(198,134,66,.12); color:var(--accent-caramel); font-size:1.5rem; }
+        .otp-card h2 { font-family:'Playfair Display',serif; color:var(--primary-coffee); margin-bottom:8px; }
+        .otp-card > p { color:var(--text-muted); font-size:.84rem; line-height:1.55; }
+        .otp-email { color:var(--primary-coffee); font-weight:700; }
+        .otp-input { margin:22px 0 8px; text-align:center; font-size:1.5rem; font-weight:700; letter-spacing:9px; font-family:monospace; }
+        .otp-error { min-height:18px; margin:4px 0 10px; color:var(--error); font-size:.76rem; font-weight:600; }
+        .otp-resend { margin-top:14px; border:0; background:transparent; color:var(--accent-caramel); font:600 .78rem 'Inter',sans-serif; cursor:pointer; }
+        .otp-resend:disabled { color:var(--text-muted); cursor:not-allowed; }
+
         @media (max-width: 480px) {
             .form-wrap { padding: 24px 20px 20px; }
             .form-row { grid-template-columns: 1fr; gap: 0; }
@@ -477,6 +491,19 @@
 <p id="successMsg">Your account is ready. Redirecting to your dashboard...</p>
 <button class="btn-submit" id="successBtn" style="width: auto; padding: 12px 36px;">Go to Dashboard →</button>
 </div>
+<!-- EMAIL OTP MODAL -->
+<div class="otp-overlay" id="otpModal">
+<div class="otp-card">
+<button aria-label="Close verification" class="otp-close" onclick="closeOTPModal()" type="button">✕</button>
+<div class="otp-icon">✉</div>
+<h2>Verify your email</h2>
+<p>We sent a six-digit code to<br/><span class="otp-email" id="otpEmailLabel"></span></p>
+<input aria-label="Six-digit verification code" autocomplete="one-time-code" class="otp-input" id="otpInput" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" placeholder="000000"/>
+<div class="otp-error" id="otpError"></div>
+<button class="btn-submit" id="otpVerifyBtn" onclick="verifyRegistrationOTP()" type="button">Verify &amp; Create Account</button>
+<button class="otp-resend" disabled id="otpResendBtn" onclick="resendRegistrationOTP()" type="button">Resend in 60s</button>
+</div>
+</div>
 <script src="api.js"></script>
 <script>
     let currentRole = 'teacher';
@@ -623,6 +650,137 @@ async function handleLogin() {
   }
 }
     let registrationInProgress = false;
+    let otpRequestInProgress = false;
+    let pendingRegistration = null;
+    let verifiedRegistration = null;
+    let resendTimer = null;
+
+    function maskEmail(email) {
+        const [name, domain] = String(email).split('@');
+        if (!domain) return email;
+        const visible = name.slice(0, Math.min(2, name.length));
+        return `${visible}${'*'.repeat(Math.max(2, name.length - visible.length))}@${domain}`;
+    }
+
+    function startResendCountdown(seconds = 60) {
+        clearInterval(resendTimer);
+        const button = document.getElementById('otpResendBtn');
+        let remaining = seconds;
+        button.disabled = true;
+        button.textContent = `Resend in ${remaining}s`;
+        resendTimer = setInterval(() => {
+            remaining -= 1;
+            if (remaining <= 0) {
+                clearInterval(resendTimer);
+                button.disabled = false;
+                button.textContent = 'Resend code';
+            } else {
+                button.textContent = `Resend in ${remaining}s`;
+            }
+        }, 1000);
+    }
+
+    function openOTPModal(email) {
+        document.getElementById('otpEmailLabel').textContent = maskEmail(email);
+        document.getElementById('otpInput').value = '';
+        document.getElementById('otpError').textContent = '';
+        document.getElementById('otpModal').classList.add('show');
+        startResendCountdown(60);
+        setTimeout(() => document.getElementById('otpInput').focus(), 100);
+    }
+
+    function closeOTPModal() {
+        document.getElementById('otpModal').classList.remove('show');
+        document.getElementById('otpError').textContent = '';
+    }
+
+    async function requestRegistrationOTP(data, button) {
+        const email = data.email.trim().toLowerCase();
+        data.email = email;
+        if (verifiedRegistration?.email === email && verifiedRegistration?.verification_token) {
+            await completeRegistration({ ...data, verification_token: verifiedRegistration.verification_token }, button);
+            return;
+        }
+        if (otpRequestInProgress) return;
+        otpRequestInProgress = true;
+        const originalContent = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner" style="display:block"></span><span>Sending code…</span>';
+        try {
+            await SendRegistrationOTP(email);
+            pendingRegistration = { data, button };
+            verifiedRegistration = null;
+            openOTPModal(email);
+        } catch (error) {
+            alert(error?.message || 'Could not send verification code.');
+        } finally {
+            otpRequestInProgress = false;
+            button.disabled = false;
+            button.innerHTML = originalContent;
+        }
+    }
+
+    async function resendRegistrationOTP() {
+        if (!pendingRegistration || otpRequestInProgress) return;
+        const button = document.getElementById('otpResendBtn');
+        const errorEl = document.getElementById('otpError');
+        otpRequestInProgress = true;
+        button.disabled = true;
+        button.textContent = 'Sending…';
+        errorEl.textContent = '';
+        try {
+            await SendRegistrationOTP(pendingRegistration.data.email);
+            document.getElementById('otpInput').value = '';
+            startResendCountdown(60);
+        } catch (error) {
+            errorEl.textContent = error?.message || 'Could not resend the code.';
+            button.disabled = false;
+            button.textContent = 'Resend code';
+        } finally {
+            otpRequestInProgress = false;
+        }
+    }
+
+    async function verifyRegistrationOTP() {
+        if (!pendingRegistration || registrationInProgress) return;
+        const code = document.getElementById('otpInput').value.trim();
+        const button = document.getElementById('otpVerifyBtn');
+        const errorEl = document.getElementById('otpError');
+        if (!/^\d{6}$/.test(code)) {
+            errorEl.textContent = 'Enter the complete six-digit code.';
+            return;
+        }
+
+        button.disabled = true;
+        button.textContent = 'Verifying…';
+        errorEl.textContent = '';
+        try {
+            const result = await VerifyRegistrationOTP(pendingRegistration.data.email, code);
+            if (!result?.verification_token) throw new Error('Verification failed. Please try again.');
+            verifiedRegistration = {
+                email: pendingRegistration.data.email,
+                verification_token: result.verification_token
+            };
+            const registration = pendingRegistration;
+            closeOTPModal();
+            await completeRegistration(
+                { ...registration.data, verification_token: result.verification_token },
+                registration.button
+            );
+        } catch (error) {
+            errorEl.textContent = error?.message || 'Could not verify the code.';
+            if (!document.getElementById('otpModal').classList.contains('show')) {
+                alert(errorEl.textContent);
+            }
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Verify & Create Account';
+        }
+    }
+
+    document.getElementById('otpInput').addEventListener('keydown', event => {
+        if (event.key === 'Enter') verifyRegistrationOTP();
+    });
 
     async function completeRegistration(data, button) {
         if (registrationInProgress) return;
@@ -643,6 +801,8 @@ async function handleLogin() {
             localStorage.setItem('userRole', loginRes.role);
             localStorage.setItem('userName', data.name);
             localStorage.setItem('userEmail', data.email.toLowerCase());
+            verifiedRegistration = null;
+            pendingRegistration = null;
             showSuccess(data.role, registered.name);
         } catch (err) {
             alert(err?.message || 'Registration failed. Please try again.');
@@ -679,7 +839,7 @@ async function handleLogin() {
             }
         }
 
-        await completeRegistration(
+        await requestRegistrationOTP(
             { name, email, phone: '+880' + phone, center_name: center, password, role: 'teacher', plan: selectedPlan },
             document.getElementById('teacherRegisterBtn')
         );
@@ -699,7 +859,7 @@ async function handleLogin() {
         if (!batch || !name || !email || !phone || !password) { alert('অনুগ্রহ করে সমস্ত প্রয়োজনীয় তথ্য পূরণ করুন।'); return; }
         if (password !== confirm) { pwErr.style.display = 'block'; return; }
         if (password.length < 6) { pwErr.textContent = 'Password must be at least 6 characters.'; pwErr.style.display = 'block'; return; }
-        await completeRegistration(
+        await requestRegistrationOTP(
             { name, email, phone: '+880' + phone, batch_codes: [batch], password, role: 'student' },
             document.getElementById('studentRegisterBtn')
         );

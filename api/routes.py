@@ -3,17 +3,23 @@ from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import List
+import hashlib
+import hmac
+import os
+import secrets
 
 try:
     from . import schemas, models
     from .database import get_db
     from .security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
+    from .email_service import EmailDeliveryError, send_registration_otp
 except ImportError:  # Support `uvicorn main:app` when launched inside api/.
     import schemas
     import models
     from database import get_db
     from security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
-from datetime import datetime
+    from email_service import EmailDeliveryError, send_registration_otp
+from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 
@@ -29,6 +35,18 @@ class BatchUpdate(BaseModel):
 def _looks_like_argon_hash(value: str) -> bool:
     return isinstance(value, str) and value.startswith("$argon2")
 
+
+def _normalized_email(value: str) -> str:
+    return str(value).strip().lower()
+
+
+def _otp_digest(email: str, purpose: str, code: str) -> str:
+    key = (os.getenv("OTP_SECRET") or os.getenv("SECRET_KEY") or "").encode("utf-8")
+    if not key:
+        raise HTTPException(503, "Email verification is temporarily unavailable")
+    payload = f"{email}:{purpose}:{code}".encode("utf-8")
+    return hmac.new(key, payload, hashlib.sha256).hexdigest()
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
@@ -36,7 +54,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         payload = decode_access_token(token)
         user_id = payload.get("sub")
         role = payload.get("role")
-        if user_id is None:
+        if user_id is None or payload.get("scope") == "registration_email_verified":
             raise HTTPException(status_code=401, detail="Invalid Token")
         return {"user_id": user_id, "role": role}
     except JWTError:
@@ -176,11 +194,105 @@ def update_user_profile(user_id: str, payload: schemas.UserProfileUpdate, db: Se
     return user
 
 
+@router.post("/send_otp", status_code=200)
+def send_otp(payload: schemas.OTPSendRequest, db: Session = Depends(get_db)):
+    email = _normalized_email(payload.email)
+    purpose = payload.purpose
+    if db.query(models.User).filter(models.User.email == email).first():
+        raise HTTPException(409, "An account with this email already exists")
+
+    now = datetime.utcnow()
+    hour_ago = now - timedelta(hours=1)
+    latest = db.query(models.EmailOTP).filter(
+        models.EmailOTP.email == email,
+        models.EmailOTP.purpose == purpose,
+    ).order_by(models.EmailOTP.created_at.desc()).first()
+    if latest and latest.created_at > now - timedelta(seconds=60):
+        retry_after = max(1, 60 - int((now - latest.created_at).total_seconds()))
+        raise HTTPException(429, f"Please wait {retry_after} seconds before requesting another code")
+
+    email_count = db.query(models.EmailOTP).filter(
+        models.EmailOTP.email == email,
+        models.EmailOTP.created_at >= hour_ago,
+    ).count()
+    global_count = db.query(models.EmailOTP).filter(
+        models.EmailOTP.created_at >= hour_ago,
+    ).count()
+    if email_count >= 5:
+        raise HTTPException(429, "Too many verification emails. Please try again later")
+    if global_count >= 100:
+        raise HTTPException(429, "Email verification is busy. Please try again later")
+
+    code = f"{secrets.randbelow(1_000_000):06d}"
+    code_hash = _otp_digest(email, purpose, code)
+    try:
+        send_registration_otp(email, code)
+    except EmailDeliveryError:
+        raise HTTPException(503, "Unable to send verification email right now. Please try again later")
+
+    db.add(models.EmailOTP(
+        email=email,
+        purpose=purpose,
+        code_hash=code_hash,
+        expires_at=now + timedelta(minutes=10),
+    ))
+    db.commit()
+    return {"message": "Verification code sent", "expires_in": 600, "resend_after": 60}
+
+
+@router.post("/verify_otp", status_code=200)
+def verify_otp(payload: schemas.OTPVerifyRequest, db: Session = Depends(get_db)):
+    email = _normalized_email(payload.email)
+    now = datetime.utcnow()
+    otp = db.query(models.EmailOTP).filter(
+        models.EmailOTP.email == email,
+        models.EmailOTP.purpose == payload.purpose,
+        models.EmailOTP.consumed_at.is_(None),
+    ).order_by(models.EmailOTP.created_at.desc()).first()
+    if not otp:
+        raise HTTPException(400, "Request a new verification code first")
+    if otp.expires_at <= now:
+        otp.consumed_at = now
+        db.commit()
+        raise HTTPException(400, "Verification code expired. Request a new one")
+    if otp.attempts >= 5:
+        otp.consumed_at = now
+        db.commit()
+        raise HTTPException(429, "Too many incorrect attempts. Request a new code")
+
+    otp.attempts += 1
+    expected = _otp_digest(email, payload.purpose, payload.code)
+    if not hmac.compare_digest(otp.code_hash, expected):
+        if otp.attempts >= 5:
+            otp.consumed_at = now
+        db.commit()
+        raise HTTPException(400, "Incorrect verification code")
+
+    otp.consumed_at = now
+    db.commit()
+    verification_token = create_access_token({
+        "sub": email,
+        "scope": "registration_email_verified",
+    }, expires_minutes=15)
+    return {"message": "Email verified", "verification_token": verification_token}
+
+
 @router.post("/register", response_model=schemas.UserResponse, status_code=201)
 def register(user: schemas.User, db: Session = Depends(get_db)):
+    email = _normalized_email(user.email)
+    try:
+        verification = decode_access_token(user.verification_token)
+    except JWTError:
+        raise HTTPException(403, "Email verification is invalid or expired")
+    if (
+        verification.get("scope") != "registration_email_verified"
+        or _normalized_email(verification.get("sub", "")) != email
+    ):
+        raise HTTPException(403, "Verify this email before creating the account")
+
     if user.role == "admin":
         raise HTTPException(403, "Admin accounts cannot be created through public registration")
-    existing = db.query(models.User).filter(models.User.email == user.email).first()
+    existing = db.query(models.User).filter(models.User.email == email).first()
     phone_in_use = db.query(models.User).filter(models.User.phone == user.phone).first()
 
     if existing:
@@ -192,7 +304,7 @@ def register(user: schemas.User, db: Session = Depends(get_db)):
     new_user = models.User(
         name=user.name,
         phone=user.phone,
-        email=user.email,
+        email=email,
         password=hash_password(user.password),
         role=user.role,
         batch_codes=user.batch_codes if user.role == "student" else None,

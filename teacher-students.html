@@ -1174,7 +1174,10 @@ async function init() {
 }
 
 /* Start app */
-window.addEventListener("DOMContentLoaded", init);
+window.addEventListener("DOMContentLoaded", () => {
+    showPageLoading('Loading students…');
+    init().finally(hidePageLoading);
+});
 </script>
 </body>
 </html>

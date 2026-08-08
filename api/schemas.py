@@ -13,6 +13,7 @@ class User(BaseModel):
     role: Literal['teacher', 'student', 'admin']
     batch_codes: Optional[List] = None
     plan: Optional[Literal['Starter', 'Professional', 'Elite']] = None
+    verification_token: str
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -87,3 +88,14 @@ class ParentMessageResponse(BaseModel):
     body: str
     batch_codes: List[str]
     created_at: datetime
+
+
+class OTPSendRequest(BaseModel):
+    email: EmailStr
+    purpose: Literal['register'] = 'register'
+
+
+class OTPVerifyRequest(BaseModel):
+    email: EmailStr
+    code: str = Field(pattern=r'^\d{6}$')
+    purpose: Literal['register'] = 'register'

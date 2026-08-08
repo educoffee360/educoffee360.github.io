@@ -428,7 +428,8 @@ function renderNoticePreview(notices) {
     }).join('');
 }
 
-initDashboard();
+showPageLoading('Loading dashboard…');
+initDashboard().finally(hidePageLoading);
 function toggleSB() {
     document.getElementById('sidebar').classList.toggle('mopen');
     document.getElementById('mov').classList.toggle('open');

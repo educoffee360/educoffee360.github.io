@@ -80,3 +80,16 @@ class ParentMessage(Base):
     body = Column(String, nullable=False)
     batch_codes = Column(JSON, nullable=False, default=list)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class EmailOTP(Base):
+    __tablename__ = 'email_otps'
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    email = Column(String, nullable=False, index=True)
+    purpose = Column(String, nullable=False, default='register')
+    code_hash = Column(String, nullable=False)
+    attempts = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    consumed_at = Column(DateTime, nullable=True)

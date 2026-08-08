@@ -179,8 +179,62 @@
     insertShell();
   }
 
+  function ensurePageLoader() {
+    let loader = document.getElementById("ec-page-loader");
+    if (loader) return loader;
+
+    if (!document.getElementById("ec-page-loader-style")) {
+      const style = document.createElement("style");
+      style.id = "ec-page-loader-style";
+      style.textContent = `
+        #ec-page-loader {
+          position: fixed; inset: 0; z-index: 9999; display: flex;
+          align-items: center; justify-content: center;
+          background: rgba(253,251,247,.94); backdrop-filter: blur(5px);
+          opacity: 1; transition: opacity .25s ease;
+        }
+        #ec-page-loader.ec-loader-hiding { opacity: 0; pointer-events: none; }
+        .ec-loader-card { text-align: center; color: #3e2723; }
+        .ec-loader-ring {
+          width: 58px; height: 58px; margin: 0 auto 14px; border-radius: 50%;
+          border: 4px solid rgba(198,134,66,.18); border-top-color: #c68642;
+          animation: ecLoaderSpin .8s linear infinite;
+        }
+        .ec-loader-title { font: 700 .9rem 'DM Sans', sans-serif; }
+        .ec-loader-sub { margin-top: 4px; color: #7d6e64; font: 500 .72rem 'DM Sans', sans-serif; }
+        @keyframes ecLoaderSpin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) { .ec-loader-ring { animation-duration: 1.8s; } }
+      `;
+      document.head.appendChild(style);
+    }
+
+    loader = document.createElement("div");
+    loader.id = "ec-page-loader";
+    loader.setAttribute("role", "status");
+    loader.setAttribute("aria-live", "polite");
+    loader.innerHTML = `<div class="ec-loader-card"><div class="ec-loader-ring"></div><div class="ec-loader-title">Loading EduCoffee…</div><div class="ec-loader-sub">Getting everything ready</div></div>`;
+    document.body.appendChild(loader);
+    return loader;
+  }
+
+  function showPageLoading(message = "Loading EduCoffee…") {
+    const loader = ensurePageLoader();
+    const title = loader.querySelector(".ec-loader-title");
+    if (title) title.textContent = message;
+    loader.classList.remove("ec-loader-hiding");
+  }
+
+  function hidePageLoading() {
+    const loader = document.getElementById("ec-page-loader");
+    if (!loader) return;
+    loader.classList.add("ec-loader-hiding");
+    setTimeout(() => loader.remove(), 260);
+  }
+
   window.getCurrentSession = getCurrentSession;
   window.doLogout = doLogout;
+  window.showPageLoading = showPageLoading;
+  window.hidePageLoading = hidePageLoading;
 
   window.toggleSidebar = function () {
     const sidebar = document.getElementById("sidebar");

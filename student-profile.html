@@ -335,7 +335,8 @@ function closeSidebar() {
     document.getElementById('mobileOverlay').classList.remove('open');
 }
 
-init();
+showPageLoading('Loading your profile…');
+init().finally(hidePageLoading);
 </script>
 </body>
 </html>
