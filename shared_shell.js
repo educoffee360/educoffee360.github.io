@@ -137,6 +137,28 @@
       }
     }
 
+    if (layout === "student" && !document.getElementById("ec-student-shell-fixes")) {
+      const style = document.createElement("style");
+      style.id = "ec-student-shell-fixes";
+      style.textContent = `
+        .sidebar .user-chip { cursor: pointer; }
+        .sidebar .user-avatar {
+          width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          color: #fff; background: var(--caramel, #c68642);
+          font-size: .85rem; font-weight: 700;
+        }
+        .sidebar .logout-btn {
+          appearance: none; display: flex; align-items: center; justify-content: center;
+          padding: 4px; border: 0; border-radius: 6px; cursor: pointer;
+          color: rgba(255,255,255,.5); background: transparent;
+          transition: color .2s;
+        }
+        .sidebar .logout-btn:hover { color: #fff; }
+      `;
+      document.head.appendChild(style);
+    }
+
     if (meta.title) document.title = meta.title;
 
     const fname = currentFile();

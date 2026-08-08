@@ -310,6 +310,17 @@ async function GetStudentsInBatch(batch_code) {
   return GetStudentsByBC(batch_code);
 }
 
+async function EnrollInBatch(batch_code) {
+  try {
+    return await requestJson(`/enroll/${requireId(batch_code, "batch code", null)}`, {
+      method: "PUT",
+    });
+  } catch (error) {
+    console.error(error.message);
+    throw error;
+  }
+}
+
 async function CreateResult(result = {}) {
   try {
     return await requestJson("/new_result", {
@@ -466,6 +477,7 @@ function bindGlobals() {
     GetMyStudents,
     GetStudentsByBC,
     GetStudentsInBatch,
+    EnrollInBatch,
     CreateResult,
     GetStudentResults,
     GetStudentResult,

@@ -910,17 +910,11 @@ async function joinBatch() {
     btn.innerHTML = '<span class="spinner"></span>';
 
     try {
-        const res = await fetch(`${API}/enroll/${code}?student_id=${studentId}`, { method: 'PUT' });
-        const data = await res.json();
-        if (!res.ok) {
-            errEl.textContent = data.detail || 'Could not join. Check the code.';
-            errEl.style.display = 'block';
-        } else {
-            closeJoinModal();
-            await init();
-        }
-    } catch {
-        errEl.textContent = 'Network error. Please try again.';
+        await EnrollInBatch(code);
+        closeJoinModal();
+        await init();
+    } catch (error) {
+        errEl.textContent = error?.message || 'Could not join. Check the code and try again.';
         errEl.style.display = 'block';
     }
 
