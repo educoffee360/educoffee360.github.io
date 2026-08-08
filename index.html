@@ -23,7 +23,7 @@
 
 
 <!-- Custom PWA Installation Interceptor & Service Worker -->
-<script defer="" src="/pwa-installer.js"></script>
+<script defer id="educoffee-pwa-installer" src="/pwa_installer.js"></script>
 <!-- Favicon -->
 
 <!-- Apple Touch Icon -->
@@ -349,7 +349,16 @@
         .btn-hero-primary, .btn-hero-secondary { width: 100%; justify-content: center; }
     }
     </style>
-<script defer="True" src="/shared_head.js"></script></head>
+<script defer="True" src="/shared_head.js"></script>
+<script src="/api.js"></script>
+<script>
+  const existingSession = getCurrentSession();
+  if (existingSession?.role === 'teacher') {
+    window.location.replace('teacher-dashboard.html');
+  } else if (existingSession?.role === 'student') {
+    window.location.replace('student-dashboard.html');
+  }
+</script></head>
 <body>
 <!-- NAVBAR -->
 <nav class="nav" id="mainNav">
@@ -491,7 +500,7 @@
 <div class="feat-card">
 <div class="feat-icon">🔐</div>
 <div class="feat-title">OTP Verification</div>
-<div class="feat-desc">Secure email OTP during signup. Optional 2FA for teachers. Your data is protected at every step.</div>
+<div class="feat-desc">Secure password hashing and protected sessions keep teacher and student data private.</div>
 </div>
 <div class="feat-card">
 <div class="feat-icon">👨‍👩‍👧</div>

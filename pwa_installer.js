@@ -13,9 +13,34 @@ if ('serviceWorker' in navigator) {
 
 // 2. Manage App Installation Flow
 let deferredPrompt;
+const PWA_PROMPT_NEXT_KEY = 'educoffee_pwa_prompt_after';
+const PWA_PROMPT_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
+
+function isMobileInstallContext() {
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const mobilePointer = window.matchMedia('(max-width: 820px) and (pointer: coarse)').matches;
+  return mobilePointer && !standalone;
+}
+
+function canShowInstallPrompt() {
+  if (!isMobileInstallContext()) return false;
+  try {
+    return Number(localStorage.getItem(PWA_PROMPT_NEXT_KEY) || 0) <= Date.now();
+  } catch {
+    return true;
+  }
+}
+
+function postponeInstallPrompt() {
+  try {
+    localStorage.setItem(PWA_PROMPT_NEXT_KEY, String(Date.now() + PWA_PROMPT_COOLDOWN_MS));
+  } catch {
+    /* Storage may be unavailable in private browsing. */
+  }
+}
 
 window.addEventListener('beforeinstallprompt', (e) => {
-  // Prevent Chrome 67 and earlier from automatically showing the prompt
+  if (!canShowInstallPrompt()) return;
   e.preventDefault();
   // Stash the event so it can be triggered later
   deferredPrompt = e;
@@ -26,7 +51,8 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 function showInstallBanner() {
   // Do not duplicate banner
-  if (document.getElementById('educoffee-pwa-banner')) return;
+  if (document.getElementById('educoffee-pwa-banner') || !canShowInstallPrompt()) return;
+  postponeInstallPrompt();
 
   // Create PWA install notification styled perfectly with EduCoffee tokens
   const banner = document.createElement('div');
@@ -86,6 +112,7 @@ function showInstallBanner() {
 
   // Handle Close Button Click
   document.getElementById('pwa-close-btn').addEventListener('click', () => {
+    postponeInstallPrompt();
     dismissBanner();
   });
 
@@ -104,6 +131,7 @@ function showInstallBanner() {
         console.log('[PWA Installer] User dismissed the installation');
       }
       deferredPrompt = null;
+      if (choiceResult.outcome !== 'accepted') postponeInstallPrompt();
       dismissBanner();
     });
   });

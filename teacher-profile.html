@@ -16,7 +16,7 @@
 
 
 <!-- Custom PWA Installation Interceptor & Service Worker -->
-<script defer="" src="/pwa-installer.js"></script>
+<script defer id="educoffee-pwa-installer" src="/pwa_installer.js"></script>
 <!-- Favicon -->
 
 
@@ -589,8 +589,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const plan  = backendUser?.plan || localStorage.getItem('teacherPlan') || 'Starter';
 
     // Sidebar
-    document.getElementById('sav').textContent = name[0].toUpperCase();
-    document.getElementById('sname').textContent = name;
+    document.getElementById('sidebarAvatar').textContent = name[0].toUpperCase();
+    document.getElementById('sidebarName').textContent = name;
     localStorage.setItem('userName', name);
     localStorage.setItem('current_user_name', name);
     localStorage.setItem('userEmail', email);
@@ -598,20 +598,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Hero
     document.getElementById('heroInit').textContent = name[0].toUpperCase();
     document.getElementById('heroName').textContent = name;
-    document.getElementById('heroCenter').textContent = user.center || '—';
+    document.getElementById('heroCenter').textContent = user.center_name || '—';
     document.getElementById('heroPlanBadge').textContent = (PLANS[plan]?.icon || '☕') + ' ' + plan;
 
     // Info view — backend fields: name, email, phone, center_name
     document.getElementById('vName').textContent   = name;
     document.getElementById('vEmail').textContent  = email || user.email || '—';
     document.getElementById('vPhone').textContent  = user.phone || '—';
-    document.getElementById('vCenter').textContent = user.center || '—';
+    document.getElementById('vCenter').textContent = user.center_name || '—';
 
     // Pre-fill edit fields
     document.getElementById('eName').value   = name;
     document.getElementById('eEmail').value  = email || user.email || '';
     document.getElementById('ePhone').value  = user.phone || '';
-    document.getElementById('eCenter').value = user.center || '';
+    document.getElementById('eCenter').value = user.center_name || '';
 
     // Stats — from localStorage (set by other pages)
     const batches = JSON.parse(localStorage.getItem('teacherBatches') || '[]');
@@ -726,8 +726,8 @@ function savePersonal() {
     localStorage.setItem('userName', name);
 
     // Update UI
-    document.getElementById('sav').textContent  = name[0].toUpperCase();
-    document.getElementById('sname').textContent = name;
+    document.getElementById('sidebarAvatar').textContent  = name[0].toUpperCase();
+    document.getElementById('sidebarName').textContent = name;
     document.getElementById('heroInit').textContent = name[0].toUpperCase();
     document.getElementById('heroName').textContent = name;
     document.getElementById('heroCenter').textContent = document.getElementById('eCenter').value.trim() || '—';

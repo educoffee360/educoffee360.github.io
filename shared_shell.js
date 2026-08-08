@@ -109,6 +109,34 @@
     template.innerHTML = shellHtml.trim();
     placeholder.replaceWith(template.content.cloneNode(true));
 
+    if (layout === "teacher") {
+      const avatar = document.querySelector(".sidebar .uav");
+      const name = document.querySelector(".sidebar .un");
+      const fab = document.querySelector(".fab");
+      if (avatar) avatar.id = "sidebarAvatar";
+      if (name) name.id = "sidebarName";
+      if (fab) fab.id = "ecTeacherFab";
+
+      if (!document.getElementById("ec-shell-fixes")) {
+        const style = document.createElement("style");
+        style.id = "ec-shell-fixes";
+        style.textContent = `
+          #ecTeacherFab { display: none; }
+          @media (max-width: 768px) {
+            #ecTeacherFab {
+              position: fixed; right: 20px; bottom: 80px; z-index: 150;
+              display: flex; align-items: center; justify-content: center;
+              width: 54px; height: 54px; border-radius: 50%;
+              color: #fff; background: #3e2723; text-decoration: none;
+              box-shadow: 0 8px 25px rgba(62,39,35,.3);
+            }
+            #ecTeacherFab svg { width: 24px; height: 24px; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+
     if (meta.title) document.title = meta.title;
 
     const fname = currentFile();

@@ -18,7 +18,7 @@
 
 
 <!-- Custom PWA Installation Interceptor & Service Worker -->
-<script defer="" src="/pwa-installer.js"></script>
+<script defer id="educoffee-pwa-installer" src="/pwa_installer.js"></script>
 <!-- Favicon -->
 
 
@@ -403,7 +403,7 @@
 </div>
 </div>
 <p class="field-error" id="tPwError">Passwords do not match.</p>
-<button class="btn-submit" onclick="handleTeacherRegister()">
+<button class="btn-submit" id="teacherRegisterBtn" onclick="handleTeacherRegister()">
 <span>Create Teacher Account</span>
 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24"><line x1="5" x2="19" y1="12" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
 </button>
@@ -456,7 +456,7 @@
 </div>
 </div>
 <p class="field-error" id="sPwError">Passwords do not match.</p>
-<button class="btn-submit" onclick="handleStudentRegister()">
+<button class="btn-submit" id="studentRegisterBtn" onclick="handleStudentRegister()">
 <span>Create Student Account</span>
 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24"><line x1="5" x2="19" y1="12" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
 </button>
@@ -494,13 +494,17 @@
         batchInput.addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/\s/g, ''); });
         const session = getCurrentSession();
         if (session) {
-            const user = await GetUserByID(session.id);
-            if (user?.role === 'teacher') {
-                window.location.href = 'teacher-dashboard.html';
-                return;
-            } else if (user?.role === 'student') {
-                window.location.href = 'student-dashboard.html';
-                return;
+            try {
+                const user = await GetUserByID(session.id);
+                if (user?.role === 'teacher') {
+                    window.location.href = 'teacher-dashboard.html';
+                    return;
+                } else if (user?.role === 'student') {
+                    window.location.href = 'student-dashboard.html';
+                    return;
+                }
+            } catch {
+                clearAuthState();
             }
         }
     })();
@@ -618,7 +622,14 @@ async function handleLogin() {
     setLoading(btn, 'loginSpinner', 'loginArrow', 'loginBtnText', false);
   }
 }
-    async function completeRegistration(data) {
+    let registrationInProgress = false;
+
+    async function completeRegistration(data, button) {
+        if (registrationInProgress) return;
+        registrationInProgress = true;
+        const originalContent = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner" style="display:block"></span><span>Creating account…</span>';
         try {
             const registered = await Register(data);
             const loginRes = await Login(data.email, data.password);
@@ -635,6 +646,10 @@ async function handleLogin() {
             showSuccess(data.role, registered.name);
         } catch (err) {
             alert(err?.message || 'Registration failed. Please try again.');
+        } finally {
+            registrationInProgress = false;
+            button.disabled = false;
+            button.innerHTML = originalContent;
         }
     }
 
@@ -664,7 +679,10 @@ async function handleLogin() {
             }
         }
 
-        await completeRegistration({ name, email, phone: '+880' + phone, center_name: center, password, role: 'teacher', plan: selectedPlan });
+        await completeRegistration(
+            { name, email, phone: '+880' + phone, center_name: center, password, role: 'teacher', plan: selectedPlan },
+            document.getElementById('teacherRegisterBtn')
+        );
     }
 
     // STUDENT REGISTER
@@ -681,7 +699,10 @@ async function handleLogin() {
         if (!batch || !name || !email || !phone || !password) { alert('অনুগ্রহ করে সমস্ত প্রয়োজনীয় তথ্য পূরণ করুন।'); return; }
         if (password !== confirm) { pwErr.style.display = 'block'; return; }
         if (password.length < 6) { pwErr.textContent = 'Password must be at least 6 characters.'; pwErr.style.display = 'block'; return; }
-        await completeRegistration({ name, email, phone: '+880' + phone, batch_codes: [batch], password, role: 'student' });
+        await completeRegistration(
+            { name, email, phone: '+880' + phone, batch_codes: [batch], password, role: 'student' },
+            document.getElementById('studentRegisterBtn')
+        );
     }
 
     // SUCCESS

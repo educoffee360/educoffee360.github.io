@@ -54,7 +54,15 @@ function getCurrentSession() {
   if (!token) return null;
 
   const payload = decodeJwtPayload(token);
-  if (!payload || !payload.sub) return null;
+  if (!payload || !payload.sub) {
+    clearAuthState();
+    return null;
+  }
+
+  if (payload.exp && payload.exp * 1000 <= Date.now()) {
+    clearAuthState();
+    return null;
+  }
 
   return {
     id: payload.sub,
