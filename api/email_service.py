@@ -47,21 +47,24 @@ def _gmail_access_token() -> str:
     return token
 
 
-def send_registration_otp(recipient: str, code: str) -> None:
+def send_email_otp(recipient: str, code: str, purpose: str = "register") -> None:
     sender = _required_setting("OTP_FROM_EMAIL")
+    is_password_reset = purpose == "password_reset"
+    action = "reset your password" if is_password_reset else "finish creating your account"
+    subject_action = "password reset" if is_password_reset else "verification"
     message = EmailMessage()
     message["To"] = recipient
     message["From"] = f"EduCoffee <{sender}>"
-    message["Subject"] = f"{code} is your EduCoffee verification code"
+    message["Subject"] = f"{code} is your EduCoffee {subject_action} code"
     message.set_content(
-        f"Your EduCoffee verification code is {code}. "
+        f"Your EduCoffee code is {code}. Use it to {action}. "
         "It expires in 10 minutes. If you did not request this, ignore this email."
     )
     message.add_alternative(
         f"""
         <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:28px;color:#2d241e">
           <h1 style="color:#3e2723;margin:0 0 10px">EduCoffee</h1>
-          <p style="color:#7d6e64">Use this verification code to finish creating your account:</p>
+          <p style="color:#7d6e64">Use this code to {action}:</p>
           <div style="font-size:34px;font-weight:700;letter-spacing:8px;color:#3e2723;background:#fdfbf7;border:1px solid #eadfd6;border-radius:14px;padding:18px;text-align:center">{code}</div>
           <p style="color:#7d6e64;font-size:13px;margin-top:18px">This code expires in 10 minutes. Never share it with anyone.</p>
         </div>
@@ -86,3 +89,8 @@ def send_registration_otp(recipient: str, code: str) -> None:
     if not response.ok:
         logger.error("Gmail send request failed with status %s", response.status_code)
         raise EmailDeliveryError("Gmail rejected the message")
+
+
+def send_registration_otp(recipient: str, code: str) -> None:
+    """Backward-compatible wrapper for existing imports/tests."""
+    send_email_otp(recipient, code, "register")

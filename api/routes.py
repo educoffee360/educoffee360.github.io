@@ -12,13 +12,13 @@ try:
     from . import schemas, models
     from .database import get_db
     from .security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
-    from .email_service import EmailDeliveryError, send_registration_otp
+    from .email_service import EmailDeliveryError, send_email_otp
 except ImportError:  # Support `uvicorn main:app` when launched inside api/.
     import schemas
     import models
     from database import get_db
     from security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
-    from email_service import EmailDeliveryError, send_registration_otp
+    from email_service import EmailDeliveryError, send_email_otp
 from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
@@ -54,7 +54,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         payload = decode_access_token(token)
         user_id = payload.get("sub")
         role = payload.get("role")
-        if user_id is None or payload.get("scope") == "registration_email_verified":
+        if user_id is None or payload.get("scope") in ("registration_email_verified", "password_reset_verified"):
             raise HTTPException(status_code=401, detail="Invalid Token")
         return {"user_id": user_id, "role": role}
     except JWTError:
@@ -198,8 +198,12 @@ def update_user_profile(user_id: str, payload: schemas.UserProfileUpdate, db: Se
 def send_otp(payload: schemas.OTPSendRequest, db: Session = Depends(get_db)):
     email = _normalized_email(payload.email)
     purpose = payload.purpose
-    if db.query(models.User).filter(models.User.email == email).first():
+    existing_user = db.query(models.User).filter(models.User.email == email).first()
+    if purpose == "register" and existing_user:
         raise HTTPException(409, "An account with this email already exists")
+    if purpose == "password_reset" and not existing_user:
+        # Keep recovery responses neutral so this endpoint cannot enumerate accounts.
+        return {"message": "If that account exists, a verification code was sent", "expires_in": 600, "resend_after": 60}
 
     now = datetime.utcnow()
     hour_ago = now - timedelta(hours=1)
@@ -226,7 +230,7 @@ def send_otp(payload: schemas.OTPSendRequest, db: Session = Depends(get_db)):
     code = f"{secrets.randbelow(1_000_000):06d}"
     code_hash = _otp_digest(email, purpose, code)
     try:
-        send_registration_otp(email, code)
+        send_email_otp(email, code, purpose)
     except EmailDeliveryError:
         raise HTTPException(503, "Unable to send verification email right now. Please try again later")
 
@@ -270,11 +274,14 @@ def verify_otp(payload: schemas.OTPVerifyRequest, db: Session = Depends(get_db))
 
     otp.consumed_at = now
     db.commit()
+    proof_scope = "password_reset_verified" if payload.purpose == "password_reset" else "registration_email_verified"
     verification_token = create_access_token({
         "sub": email,
-        "scope": "registration_email_verified",
+        "scope": proof_scope,
+        "otp_id": otp.id,
     }, expires_minutes=15)
-    return {"message": "Email verified", "verification_token": verification_token}
+    token_name = "reset_token" if payload.purpose == "password_reset" else "verification_token"
+    return {"message": "Email verified", token_name: verification_token}
 
 
 @router.post("/register", response_model=schemas.UserResponse, status_code=201)
@@ -301,13 +308,27 @@ def register(user: schemas.User, db: Session = Depends(get_db)):
     if phone_in_use:
         raise HTTPException(400, "This phone number is used by someone else.")
 
+    student_batch_codes = None
+    if user.role == "student":
+        submitted_codes = [str(code).strip().upper() for code in (user.batch_codes or []) if str(code).strip()]
+        submitted_codes = list(dict.fromkeys(submitted_codes))
+        if not submitted_codes:
+            raise HTTPException(400, "A valid batch code is required for student registration")
+        existing_codes = {
+            batch.code for batch in db.query(models.Batch).filter(models.Batch.code.in_(submitted_codes)).all()
+        }
+        missing_codes = [code for code in submitted_codes if code not in existing_codes]
+        if missing_codes:
+            raise HTTPException(404, "Batch not found. Check the batch code with your teacher")
+        student_batch_codes = submitted_codes
+
     new_user = models.User(
         name=user.name,
         phone=user.phone,
         email=email,
         password=hash_password(user.password),
         role=user.role,
-        batch_codes=user.batch_codes if user.role == "student" else None,
+        batch_codes=student_batch_codes,
         center_name=user.center_name if user.role == "teacher" else None,
         plan=user.plan if user.role == "teacher" else None,
     )
@@ -316,6 +337,49 @@ def register(user: schemas.User, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return new_user
+
+
+@router.post("/password/change", status_code=200)
+def change_password(payload: schemas.PasswordChange, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    user = db.query(models.User).filter(models.User.id == current_user["user_id"]).first()
+    if not user:
+        raise HTTPException(404, "User Not Found")
+    if not verify_password(user.password, payload.current_password):
+        raise HTTPException(400, "Current password is incorrect")
+    if verify_password(user.password, payload.new_password):
+        raise HTTPException(400, "New password must be different from your current password")
+    user.password = hash_password(payload.new_password)
+    db.commit()
+    return {"message": "Password changed successfully"}
+
+
+@router.post("/password/reset", status_code=200)
+def reset_password(payload: schemas.PasswordReset, db: Session = Depends(get_db)):
+    try:
+        proof = decode_access_token(payload.reset_token)
+    except JWTError:
+        raise HTTPException(403, "Password reset verification is invalid or expired")
+    if proof.get("scope") != "password_reset_verified":
+        raise HTTPException(403, "Verify your email before resetting the password")
+
+    email = _normalized_email(proof.get("sub", ""))
+    otp_id = proof.get("otp_id")
+    otp = db.query(models.EmailOTP).filter(
+        models.EmailOTP.id == otp_id,
+        models.EmailOTP.email == email,
+        models.EmailOTP.purpose == "password_reset",
+        models.EmailOTP.consumed_at.is_not(None),
+    ).first()
+    if not otp:
+        raise HTTPException(403, "This password reset link has already been used or is invalid")
+
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        raise HTTPException(403, "Password reset verification is invalid")
+    user.password = hash_password(payload.new_password)
+    otp.purpose = "password_reset_used"
+    db.commit()
+    return {"message": "Password reset successfully"}
 
 
 @router.post("/login", status_code=200)
@@ -366,6 +430,15 @@ def get_all_batches(db: Session = Depends(get_db), current_user = Depends(get_cu
     return db.query(models.Batch).all()
 
 
+@router.get("/batch/validate/{batch_code}", status_code=200)
+def validate_batch_code(batch_code: str, db: Session = Depends(get_db)):
+    normalized_code = batch_code.strip().upper()
+    batch = db.query(models.Batch).filter(models.Batch.code == normalized_code).first()
+    if not batch:
+        raise HTTPException(404, "Batch not found. Check the batch code with your teacher")
+    return {"valid": True, "code": batch.code, "name": batch.name}
+
+
 @router.post("/new_batch/", response_model=schemas.Batch, status_code=201)
 def create_new_batch(batch: schemas.Batch, db: Session = Depends(get_db), current_user = Depends(require_role("teacher", "admin"))):
     if current_user["role"] == "teacher":
@@ -380,7 +453,7 @@ def create_new_batch(batch: schemas.Batch, db: Session = Depends(get_db), curren
         raise HTTPException(403, "Students are not allowed to create batches")
 
     new_batch = models.Batch(
-        code=batch.code,
+        code=batch.code.strip().upper(),
         name=batch.name,
         year=batch.year,
         schedule=batch.schedule,

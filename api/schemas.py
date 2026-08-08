@@ -9,7 +9,7 @@ class User(BaseModel):
     email: EmailStr
     center_name: Optional[str] = None
     phone: str
-    password: str
+    password: str = Field(min_length=6, max_length=128)
     role: Literal['teacher', 'student', 'admin']
     batch_codes: Optional[List] = None
     plan: Optional[Literal['Starter', 'Professional', 'Elite']] = None
@@ -67,6 +67,16 @@ class UserProfileUpdate(BaseModel):
     center_name: Optional[str] = Field(default=None, max_length=160)
 
 
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=6, max_length=128)
+
+
+class PasswordReset(BaseModel):
+    reset_token: str
+    new_password: str = Field(min_length=6, max_length=128)
+
+
 class ParentMessageCreate(BaseModel):
     student_id: str
     subject: str = Field(min_length=1, max_length=160)
@@ -92,10 +102,10 @@ class ParentMessageResponse(BaseModel):
 
 class OTPSendRequest(BaseModel):
     email: EmailStr
-    purpose: Literal['register'] = 'register'
+    purpose: Literal['register', 'password_reset'] = 'register'
 
 
 class OTPVerifyRequest(BaseModel):
     email: EmailStr
     code: str = Field(pattern=r'^\d{6}$')
-    purpose: Literal['register'] = 'register'
+    purpose: Literal['register', 'password_reset'] = 'register'
