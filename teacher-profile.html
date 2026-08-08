@@ -432,7 +432,7 @@
 </div>
 <p class="fg-info" id="pwMatchInfo" style="display:none"></p>
 </div>
-<button class="btn-save" onclick="changePw()">🔒 Change Password</button>
+<button class="btn-save" id="changePasswordBtn" onclick="changePw()">🔒 Change Password</button>
 </div>
 </div>
 <!-- Notifications -->
@@ -772,7 +772,7 @@ function checkStrength(pw) {
     txt.style.color = colors[str] || '';
 }
 
-function changePw() {
+async function changePw() {
     const cur = document.getElementById('curPw').value;
     const np  = document.getElementById('newPw').value;
     const cp  = document.getElementById('confPw').value;
@@ -781,18 +781,27 @@ function changePw() {
     if (np !== cp) { info.textContent = '❌ Passwords do not match.'; info.style.color = 'var(--fail)'; info.style.display = 'block'; return; }
     if (np.length < 6)  { showToast('Password must be at least 6 characters.'); return; }
 
-    // Verify current password
-    const email = localStorage.getItem('userEmail') || '';
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-    if (users[email] && users[email].password !== cur) { showToast('Current password is incorrect.'); return; }
-    if (users[email]) { users[email].password = np; localStorage.setItem('users', JSON.stringify(users)); }
-
-    info.textContent = '✓ Password changed successfully.'; info.style.color = 'var(--pass)'; info.style.display = 'block';
-    ['curPw','newPw','confPw'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('pwStr').style.background = 'var(--border)';
-    document.getElementById('pwStrText').textContent = '';
-    setTimeout(() => info.style.display = 'none', 3000);
-    showToast('Password changed ✓');
+    const button = document.getElementById('changePasswordBtn');
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Changing password...';
+    try {
+        await ChangePassword(cur, np);
+        info.textContent = '✓ Password changed successfully.'; info.style.color = 'var(--pass)'; info.style.display = 'block';
+        ['curPw','newPw','confPw'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('pwStr').style.background = 'var(--border)';
+        document.getElementById('pwStr').style.width = '0%';
+        document.getElementById('pwStrText').textContent = '';
+        setTimeout(() => info.style.display = 'none', 3000);
+        showToast('Password changed ✓');
+    } catch (error) {
+        info.textContent = error?.message || 'Could not change password.';
+        info.style.color = 'var(--fail)';
+        info.style.display = 'block';
+    } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+    }
 }
 
 function togglePw(id, btn) {

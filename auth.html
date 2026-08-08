@@ -203,6 +203,10 @@
         .otp-error { min-height:18px; margin:4px 0 10px; color:var(--error); font-size:.76rem; font-weight:600; }
         .otp-resend { margin-top:14px; border:0; background:transparent; color:var(--accent-caramel); font:600 .78rem 'Inter',sans-serif; cursor:pointer; }
         .otp-resend:disabled { color:var(--text-muted); cursor:not-allowed; }
+        .forgot-link { display:block; margin:-8px 0 14px; text-align:right; border:0; background:none; color:var(--accent-caramel); font:600 .78rem 'Inter',sans-serif; cursor:pointer; }
+        .recovery-field { margin-top:18px; text-align:left; }
+        .recovery-field label { display:block; margin-bottom:7px; color:var(--text-muted); font-size:.75rem; font-weight:700; }
+        .recovery-field input { width:100%; }
 
         @media (max-width: 480px) {
             .form-wrap { padding: 24px 20px 20px; }
@@ -250,6 +254,7 @@
 </button>
 </div>
 </div>
+<button class="forgot-link" onclick="openRecoveryModal()" type="button">Forgot password?</button>
 <p class="field-error" id="loginError" style="margin-bottom: 12px;">Invalid email or password. Please try again.</p>
 <button class="btn-submit" id="loginBtn" onclick="handleLogin()">
 <span id="loginBtnText">Login</span>
@@ -497,11 +502,34 @@
 <button aria-label="Close verification" class="otp-close" onclick="closeOTPModal()" type="button">✕</button>
 <div class="otp-icon">✉</div>
 <h2>Verify your email</h2>
-<p>We sent a six-digit code to<br/><span class="otp-email" id="otpEmailLabel"></span></p>
+<p>We sent a six-digit code to<br/><span class="otp-email" id="otpEmailLabel"></span><br/><small>If it is not in your inbox, please check Spam.</small></p>
 <input aria-label="Six-digit verification code" autocomplete="one-time-code" class="otp-input" id="otpInput" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" placeholder="000000"/>
 <div class="otp-error" id="otpError"></div>
 <button class="btn-submit" id="otpVerifyBtn" onclick="verifyRegistrationOTP()" type="button">Verify &amp; Create Account</button>
 <button class="otp-resend" disabled id="otpResendBtn" onclick="resendRegistrationOTP()" type="button">Resend in 60s</button>
+</div>
+</div>
+<!-- PASSWORD RECOVERY MODAL -->
+<div class="otp-overlay" id="recoveryModal">
+<div class="otp-card">
+<button aria-label="Close password recovery" class="otp-close" onclick="closeRecoveryModal()" type="button">&#10005;</button>
+<div class="otp-icon">&#128274;</div>
+<h2>Reset your password</h2>
+<p id="recoveryHelp">Enter your account email and we will send a six-digit code. Please check Spam too.</p>
+<div id="recoveryEmailStep">
+<div class="recovery-field"><label>Email Address</label><input autocomplete="email" id="recoveryEmail" placeholder="your@email.com" type="email"/></div>
+<button class="btn-submit" id="recoverySendBtn" onclick="sendRecoveryCode()" type="button">Send recovery code</button>
+</div>
+<div id="recoveryCodeStep" style="display:none">
+<input aria-label="Six-digit recovery code" autocomplete="one-time-code" class="otp-input" id="recoveryCode" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" placeholder="000000"/>
+<button class="btn-submit" id="recoveryVerifyBtn" onclick="verifyRecoveryCode()" type="button">Verify code</button>
+</div>
+<div id="recoveryPasswordStep" style="display:none">
+<div class="recovery-field"><label>New Password</label><input autocomplete="new-password" id="recoveryPassword" minlength="6" placeholder="At least 6 characters" type="password"/></div>
+<div class="recovery-field"><label>Confirm New Password</label><input autocomplete="new-password" id="recoveryPasswordConfirm" minlength="6" placeholder="Retype password" type="password"/></div>
+<button class="btn-submit" id="recoveryResetBtn" onclick="finishPasswordReset()" type="button">Set new password</button>
+</div>
+<div class="otp-error" id="recoveryError"></div>
 </div>
 </div>
 <script src="api.js"></script>
@@ -654,6 +682,8 @@ async function handleLogin() {
     let pendingRegistration = null;
     let verifiedRegistration = null;
     let resendTimer = null;
+    let recoveryEmail = '';
+    let recoveryResetToken = '';
 
     function maskEmail(email) {
         const [name, domain] = String(email).split('@');
@@ -692,6 +722,92 @@ async function handleLogin() {
     function closeOTPModal() {
         document.getElementById('otpModal').classList.remove('show');
         document.getElementById('otpError').textContent = '';
+    }
+
+    function openRecoveryModal() {
+        recoveryEmail = '';
+        recoveryResetToken = '';
+        document.getElementById('recoveryEmail').value = document.getElementById('loginEmail').value.trim();
+        document.getElementById('recoveryCode').value = '';
+        document.getElementById('recoveryPassword').value = '';
+        document.getElementById('recoveryPasswordConfirm').value = '';
+        document.getElementById('recoveryError').textContent = '';
+        document.getElementById('recoveryHelp').textContent = 'Enter your account email and we will send a six-digit code. Please check Spam too.';
+        document.getElementById('recoveryEmailStep').style.display = 'block';
+        document.getElementById('recoveryCodeStep').style.display = 'none';
+        document.getElementById('recoveryPasswordStep').style.display = 'none';
+        document.getElementById('recoveryModal').classList.add('show');
+        setTimeout(() => document.getElementById('recoveryEmail').focus(), 100);
+    }
+
+    function closeRecoveryModal() {
+        document.getElementById('recoveryModal').classList.remove('show');
+        document.getElementById('recoveryError').textContent = '';
+    }
+
+    async function withRecoveryButton(buttonId, loadingText, operation) {
+        const button = document.getElementById(buttonId);
+        const original = button.textContent;
+        button.disabled = true;
+        button.textContent = loadingText;
+        document.getElementById('recoveryError').textContent = '';
+        try { await operation(); }
+        catch (error) { document.getElementById('recoveryError').textContent = error?.message || 'Something went wrong. Please try again.'; }
+        finally { button.disabled = false; button.textContent = original; }
+    }
+
+    async function sendRecoveryCode() {
+        const email = document.getElementById('recoveryEmail').value.trim().toLowerCase();
+        if (!email || !document.getElementById('recoveryEmail').checkValidity()) {
+            document.getElementById('recoveryError').textContent = 'Enter a valid email address.';
+            return;
+        }
+        await withRecoveryButton('recoverySendBtn', 'Sending...', async () => {
+            await SendPasswordResetOTP(email);
+            recoveryEmail = email;
+            document.getElementById('recoveryHelp').innerHTML = `Enter the code sent to <span class="otp-email">${maskEmail(email)}</span>.<br><small>Please check Spam if it is not in your inbox.</small>`;
+            document.getElementById('recoveryEmailStep').style.display = 'none';
+            document.getElementById('recoveryCodeStep').style.display = 'block';
+            document.getElementById('recoveryCode').focus();
+        });
+    }
+
+    async function verifyRecoveryCode() {
+        const code = document.getElementById('recoveryCode').value.trim();
+        if (!/^\d{6}$/.test(code)) {
+            document.getElementById('recoveryError').textContent = 'Enter the complete six-digit code.';
+            return;
+        }
+        await withRecoveryButton('recoveryVerifyBtn', 'Verifying...', async () => {
+            const result = await VerifyPasswordResetOTP(recoveryEmail, code);
+            if (!result?.reset_token) throw new Error('Verification failed. Please request a new code.');
+            recoveryResetToken = result.reset_token;
+            document.getElementById('recoveryHelp').textContent = 'Email verified. Choose a new password.';
+            document.getElementById('recoveryCodeStep').style.display = 'none';
+            document.getElementById('recoveryPasswordStep').style.display = 'block';
+            document.getElementById('recoveryPassword').focus();
+        });
+    }
+
+    async function finishPasswordReset() {
+        const password = document.getElementById('recoveryPassword').value;
+        const confirm = document.getElementById('recoveryPasswordConfirm').value;
+        if (password.length < 6) {
+            document.getElementById('recoveryError').textContent = 'Password must be at least 6 characters.';
+            return;
+        }
+        if (password !== confirm) {
+            document.getElementById('recoveryError').textContent = 'Passwords do not match.';
+            return;
+        }
+        await withRecoveryButton('recoveryResetBtn', 'Saving...', async () => {
+            await ResetPassword(recoveryResetToken, password);
+            closeRecoveryModal();
+            document.getElementById('loginEmail').value = recoveryEmail;
+            document.getElementById('loginPassword').value = '';
+            alert('Password reset successfully. You can now log in.');
+            document.getElementById('loginPassword').focus();
+        });
     }
 
     async function requestRegistrationOTP(data, button) {
@@ -847,7 +963,7 @@ async function handleLogin() {
 
     // STUDENT REGISTER
     async function handleStudentRegister() {
-        const batch    = document.getElementById('sBatchCode').value.trim();
+        const batch    = document.getElementById('sBatchCode').value.trim().toUpperCase();
         const name     = document.getElementById('sName').value.trim();
         const email    = document.getElementById('sEmail').value.trim();
         const phone    = document.getElementById('sPhone').value.trim();
@@ -859,10 +975,22 @@ async function handleLogin() {
         if (!batch || !name || !email || !phone || !password) { alert('অনুগ্রহ করে সমস্ত প্রয়োজনীয় তথ্য পূরণ করুন।'); return; }
         if (password !== confirm) { pwErr.style.display = 'block'; return; }
         if (password.length < 6) { pwErr.textContent = 'Password must be at least 6 characters.'; pwErr.style.display = 'block'; return; }
-        await requestRegistrationOTP(
-            { name, email, phone: '+880' + phone, batch_codes: [batch], password, role: 'student' },
-            document.getElementById('studentRegisterBtn')
-        );
+        const registerButton = document.getElementById('studentRegisterBtn');
+        const originalContent = registerButton.innerHTML;
+        registerButton.disabled = true;
+        registerButton.innerHTML = '<span class="spinner" style="display:block"></span><span>Checking batch...</span>';
+        try {
+            const validatedBatch = await ValidateRegistrationBatch(batch);
+            await requestRegistrationOTP(
+                { name, email, phone: '+880' + phone, batch_codes: [validatedBatch.code], password, role: 'student' },
+                registerButton
+            );
+        } catch (error) {
+            alert(error?.message || 'Could not validate the batch code.');
+        } finally {
+            registerButton.disabled = false;
+            registerButton.innerHTML = originalContent;
+        }
     }
 
     // SUCCESS

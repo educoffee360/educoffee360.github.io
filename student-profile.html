@@ -196,7 +196,13 @@
             </div>
 </div>
 <div class="sec-card-body">
-<p style="font-size:.82rem;color:var(--muted);margin-bottom:16px">Password changes are handled server-side. Contact support or use the forgot-password flow.</p>
+<div class="form-group"><label class="form-label" for="studentCurrentPassword">Current Password</label><input autocomplete="current-password" class="form-input" id="studentCurrentPassword" placeholder="Enter current password" type="password"/></div>
+<div class="form-row">
+<div class="form-group"><label class="form-label" for="studentNewPassword">New Password</label><input autocomplete="new-password" class="form-input" id="studentNewPassword" minlength="6" placeholder="At least 6 characters" type="password"/></div>
+<div class="form-group"><label class="form-label" for="studentConfirmPassword">Confirm Password</label><input autocomplete="new-password" class="form-input" id="studentConfirmPassword" minlength="6" placeholder="Retype password" type="password"/></div>
+</div>
+<p id="studentPasswordError" style="display:none;color:#C62828;font-size:.78rem;margin-bottom:10px"></p>
+<button class="save-btn" id="studentPasswordBtn" onclick="changeStudentPassword()">Change Password</button>
 </div>
 </div>
 <!-- Danger Zone -->
@@ -316,6 +322,38 @@ async function saveProfile() {
 
 function doLogout() {
     logout('auth.html');
+}
+
+async function changeStudentPassword() {
+    const currentPassword = document.getElementById('studentCurrentPassword').value;
+    const newPassword = document.getElementById('studentNewPassword').value;
+    const confirmPassword = document.getElementById('studentConfirmPassword').value;
+    const error = document.getElementById('studentPasswordError');
+    const button = document.getElementById('studentPasswordBtn');
+    error.style.display = 'none';
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        error.textContent = 'Please fill in all password fields.'; error.style.display = 'block'; return;
+    }
+    if (newPassword.length < 6) {
+        error.textContent = 'Password must be at least 6 characters.'; error.style.display = 'block'; return;
+    }
+    if (newPassword !== confirmPassword) {
+        error.textContent = 'Passwords do not match.'; error.style.display = 'block'; return;
+    }
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Changing password...';
+    try {
+        await ChangePassword(currentPassword, newPassword);
+        ['studentCurrentPassword','studentNewPassword','studentConfirmPassword'].forEach(id => document.getElementById(id).value = '');
+        showToast('Password changed successfully');
+    } catch (requestError) {
+        error.textContent = requestError?.message || 'Could not change password.';
+        error.style.display = 'block';
+    } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+    }
 }
 
 function showToast(msg) {

@@ -223,6 +223,39 @@ async function VerifyRegistrationOTP(email, code) {
   });
 }
 
+async function ValidateRegistrationBatch(batchCode) {
+  const code = requireId(String(batchCode || "").trim().toUpperCase(), "batch code", null);
+  return requestJson(`/batch/validate/${encodeURIComponent(code)}`);
+}
+
+async function SendPasswordResetOTP(email) {
+  return requestJson("/send_otp", {
+    method: "POST",
+    body: { email, purpose: "password_reset" },
+  });
+}
+
+async function VerifyPasswordResetOTP(email, code) {
+  return requestJson("/verify_otp", {
+    method: "POST",
+    body: { email, code, purpose: "password_reset" },
+  });
+}
+
+async function ResetPassword(resetToken, newPassword) {
+  return requestJson("/password/reset", {
+    method: "POST",
+    body: { reset_token: resetToken, new_password: newPassword },
+  });
+}
+
+async function ChangePassword(currentPassword, newPassword) {
+  return requestJson("/password/change", {
+    method: "POST",
+    body: { current_password: currentPassword, new_password: newPassword },
+  });
+}
+
 async function GetUserByID(id = getCurrentUserId()) {
   try {
     return await requestJson(`/user/${requireId(id, "user id")}`);
@@ -540,6 +573,11 @@ function bindGlobals() {
     Register,
     SendRegistrationOTP,
     VerifyRegistrationOTP,
+    ValidateRegistrationBatch,
+    SendPasswordResetOTP,
+    VerifyPasswordResetOTP,
+    ResetPassword,
+    ChangePassword,
     GetUserByID,
     UpdateUserProfile,
     Login,
