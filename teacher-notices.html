@@ -475,7 +475,10 @@ async function submitNotice() {
     const text = document.getElementById('nText').value.trim();
     if (!text || selectedCodes.size === 0 || isSaving) return;
 
-    const teacherId = getTeacherId();
+    if (!teacherId) {
+        showToast('Please log in again.');
+        return;
+    }
     const payload = {
         text,
         teacher_id: teacherId,
@@ -541,7 +544,6 @@ function setLoadingState() {
 }
 
 async function loadData() {
-    const teacherId = getTeacherId();
     if (!teacherId) return;
 
     setLoadingState();

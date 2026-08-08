@@ -74,6 +74,35 @@ def require_student_self_or_admin(student_id: str, current_user = Depends(get_cu
     return current_user
 
 
+def accessible_student_result_batches(student_id: str, db: Session, current_user):
+    """Authorize result access and return the teacher's owned batch codes, if applicable."""
+    role = current_user["role"]
+    if role == "admin":
+        return None
+    if role == "student":
+        if current_user["user_id"] != str(student_id):
+            raise HTTPException(status_code=403, detail="Forbidden")
+        return None
+    if role != "teacher":
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    student = db.query(models.User).filter(
+        models.User.id == student_id,
+        models.User.role == "student",
+    ).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student Not Found")
+
+    owned_batch_codes = {
+        batch.code for batch in db.query(models.Batch).filter(
+            models.Batch.teacher_id == current_user["user_id"]
+        ).all()
+    }
+    if not owned_batch_codes.intersection(student.batch_codes or []):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return owned_batch_codes
+
+
 def require_teacher_or_admin(current_user = Depends(get_current_user)):
     if current_user["role"] not in ("teacher", "admin"):
         raise HTTPException(status_code=403, detail="Forbidden")
@@ -403,7 +432,8 @@ def delete_result(result_id: str, db: Session = Depends(get_db), current_user = 
     return None
 
 @router.get('/results/student/{student_id}/{result_id}', status_code=200)
-def get_student_result(student_id: str, result_id: str, db: Session = Depends(get_db), current_user = Depends(require_student_self_or_admin)):
+def get_student_result(student_id: str, result_id: str, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    accessible_batches = accessible_student_result_batches(student_id, db, current_user)
     if current_user["role"] == "student":
         student_id = current_user["user_id"]
     score = db.query(models.StudentScore).filter(
@@ -416,6 +446,8 @@ def get_student_result(student_id: str, result_id: str, db: Session = Depends(ge
     parent = db.query(models.Result).filter(
         models.Result.id == score.result_id
     ).first()
+    if accessible_batches is not None and (not parent or parent.batch_code not in accessible_batches):
+        raise HTTPException(403, 'Forbidden')
     
     return {
         "result_id":        score.result_id,
@@ -430,7 +462,8 @@ def get_student_result(student_id: str, result_id: str, db: Session = Depends(ge
     }
 
 @router.get('/results/student/{student_id}', status_code=200)
-def get_student_results(student_id: str, db: Session = Depends(get_db), current_user = Depends(require_student_self_or_admin)):
+def get_student_results(student_id: str, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    accessible_batches = accessible_student_result_batches(student_id, db, current_user)
     if current_user["role"] == "student":
         student_id = current_user["user_id"]
     scores = db.query(models.StudentScore).filter(
@@ -444,6 +477,8 @@ def get_student_results(student_id: str, db: Session = Depends(get_db), current_
         parent = db.query(models.Result).filter(
             models.Result.id == score.result_id
         ).first()
+        if accessible_batches is not None and (not parent or parent.batch_code not in accessible_batches):
+            continue
         result.append({
             "result_id":        score.result_id,
             "marks":            score.marks,

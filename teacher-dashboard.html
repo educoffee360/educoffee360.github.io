@@ -332,15 +332,103 @@
 </main>
 <!-- FAB (mobile) -->
 <!-- BOTTOM NAV -->
-<script src="/shared_shell.js"></script><script>
-    (function INIT(){
-        const session = getCurrentSession();
-        if (!session || session.role !== 'teacher') {
-            window.location.href = 'auth.html';
-            return;
-        }
-    })()
-/* Sidebar toggle + logout only — no data logic here */
+<script src="api.js"></script><script src="/shared_shell.js"></script><script>
+async function initDashboard() {
+    const session = getCurrentSession();
+    if (!session || session.role !== 'teacher') {
+        window.location.href = 'auth.html';
+        return;
+    }
+
+    try {
+        const [userData, batchData, studentData, noticeData] = await Promise.all([
+            GetUserByID(),
+            GetBatchesByTID(),
+            GetMyStudents(),
+            GetMyNotices()
+        ]);
+        const batches = Array.isArray(batchData) ? batchData : [];
+        const students = Array.isArray(studentData) ? studentData : [];
+        const notices = Array.isArray(noticeData) ? noticeData : [];
+        const resultGroups = await Promise.all(
+            batches.map(batch => GetResultsByBatch(batch.code).catch(error => {
+                console.error(`Could not load results for batch ${batch.code}:`, error);
+                return [];
+            }))
+        );
+        const results = resultGroups.flatMap(group => Array.isArray(group) ? group : []);
+
+        document.getElementById('sTotalBatches').textContent = batches.length;
+        document.getElementById('sTotalStudents').textContent = students.length;
+        document.getElementById('sTotalResults').textContent = results.length;
+        document.getElementById('sTotalNotices').textContent = notices.length;
+
+        const plan = userData?.plan || 'Starter';
+        const planLimits = {
+            Starter: 'Free · Up to 10 students',
+            Professional: 'Up to 100 students',
+            Elite: 'Unlimited students'
+        };
+        document.getElementById('planName').textContent = plan;
+        document.getElementById('planDetail').textContent = planLimits[plan] || plan;
+        renderBatchPreview(batches);
+        renderNoticePreview(notices);
+    } catch (error) {
+        console.error('Could not load teacher dashboard:', error);
+        ['sTotalBatches', 'sTotalStudents', 'sTotalResults', 'sTotalNotices'].forEach(id => {
+            document.getElementById(id).textContent = '—';
+        });
+    }
+}
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function renderBatchPreview(batches) {
+    const preview = document.getElementById('batchPreview');
+    if (!batches.length) {
+        preview.innerHTML = '<div class="empty"><div class="empty-icon">☕</div><p>No batches yet.<br><a href="teacher-batches.html">Create your first batch</a></p></div>';
+        return;
+    }
+    preview.innerHTML = batches.slice(0, 4).map(batch => `
+        <a class="batch-row" href="teacher-batches.html">
+            <div class="bav">${escapeHtml((batch.name || 'B').charAt(0).toUpperCase())}</div>
+            <div class="binfo">
+                <div class="bname">${escapeHtml(batch.name || 'Untitled batch')}</div>
+                <div class="bmeta">${escapeHtml([batch.year, batch.schedule].filter(Boolean).join(' · '))}</div>
+            </div>
+            <span class="bcode">${escapeHtml(batch.code)}</span>
+        </a>`).join('');
+}
+
+function renderNoticePreview(notices) {
+    const preview = document.getElementById('noticePreview');
+    if (!notices.length) {
+        preview.innerHTML = '<div class="empty"><div class="empty-icon" style="font-size:1.8rem">🔔</div><p>No notices sent yet.<br><a href="teacher-notices.html">Post your first notice</a></p></div>';
+        return;
+    }
+    const recent = [...notices]
+        .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+        .slice(0, 3);
+    preview.innerHTML = recent.map(notice => {
+        const date = notice.created_at ? new Date(notice.created_at).toLocaleDateString() : 'Recently';
+        const batches = Array.isArray(notice.batch_codes) && notice.batch_codes.length
+            ? notice.batch_codes.join(', ')
+            : 'All batches';
+        return `<div class="np-item">
+            <div class="np-text">${escapeHtml(notice.text)}</div>
+            <div class="np-meta"><span>${escapeHtml(date)}</span><span class="np-tag">${escapeHtml(batches)}</span></div>
+        </div>`;
+    }).join('');
+}
+
+initDashboard();
 function toggleSB() {
     document.getElementById('sidebar').classList.toggle('mopen');
     document.getElementById('mov').classList.toggle('open');
