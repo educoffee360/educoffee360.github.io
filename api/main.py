@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+import logging
+import os
 
 try:
     from . import routes, models
@@ -12,6 +15,24 @@ except ImportError:  # Support `uvicorn main:app` when launched inside api/.
     from security import hash_password
 
 Base.metadata.create_all(bind=engine)
+
+logger = logging.getLogger(__name__)
+
+
+def migrate_moderator_role() -> None:
+    """Keep the existing PostgreSQL enum compatible with the new staff role."""
+    if engine.dialect.name != "postgresql":
+        return
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as connection:
+        exists = connection.execute(text(
+            "SELECT 1 FROM pg_type t JOIN pg_enum e ON t.oid=e.enumtypid "
+            "WHERE t.typname='user_role' AND e.enumlabel='moderator'"
+        )).first()
+        if not exists:
+            connection.execute(text("ALTER TYPE user_role ADD VALUE 'moderator'"))
+
+
+migrate_moderator_role()
 
 
 def migrate_legacy_plaintext_passwords() -> None:
@@ -29,6 +50,39 @@ def migrate_legacy_plaintext_passwords() -> None:
         db.close()
 
 migrate_legacy_plaintext_passwords()
+
+
+def bootstrap_admin() -> None:
+    """Create the first admin from private Render environment variables."""
+    email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+    password = os.getenv("ADMIN_PASSWORD", "")
+    if not email or not password:
+        return
+    if len(password) < 12:
+        logger.warning("ADMIN_PASSWORD must be at least 12 characters; bootstrap skipped")
+        return
+    db = SessionLocal()
+    try:
+        existing = db.query(models.User).filter(models.User.email == email).first()
+        if existing:
+            if existing.role != "admin":
+                logger.warning("ADMIN_EMAIL belongs to a non-admin account; bootstrap skipped")
+            return
+        db.add(models.User(
+            name=os.getenv("ADMIN_NAME", "EduCoffee Admin").strip() or "EduCoffee Admin",
+            email=email,
+            phone=os.getenv("ADMIN_PHONE", "admin-not-public").strip() or "admin-not-public",
+            password=hash_password(password),
+            role="admin",
+            plan=None,
+            batch_codes=None,
+        ))
+        db.commit()
+    finally:
+        db.close()
+
+
+bootstrap_admin()
 
 app = FastAPI()
 

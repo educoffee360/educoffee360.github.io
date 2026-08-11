@@ -340,7 +340,7 @@
 <div id="paymentSection" style="display:none">
 <div class="section-label">💳 Payment</div>
 <div class="pay-tabs">
-<button class="pay-tab-btn active" onclick="switchAuthPayTab('online')">📲 Online (bKash/Nagad)</button>
+<button class="pay-tab-btn active" onclick="switchAuthPayTab('online')">📲 Nagad</button>
 <button class="pay-tab-btn" onclick="switchAuthPayTab('offline')">🏢 Offline / Office</button>
 </div>
 <!-- Online -->
@@ -349,12 +349,8 @@
 <div class="oi-title">Send Money To</div>
 <div class="oi-numbers">
 <div class="oi-num-item">
-<div class="oi-num-label">💳 bKash</div>
-<div class="oi-num-val" onclick="copyToClip('01700-000000')">01700-000000 <span style="opacity:.5;font-size:.7rem">📋</span></div>
-</div>
-<div class="oi-num-item">
 <div class="oi-num-label">🟠 Nagad</div>
-<div class="oi-num-val" onclick="copyToClip('01700-000001')">01700-000001 <span style="opacity:.5;font-size:.7rem">📋</span></div>
+<div class="oi-num-val">Available after signup</div>
 </div>
 </div>
 <div class="oi-note">পেমেন্টের পর Transaction ID (TrxID) নিচে লিখুন। যাচাইয়ের পর ২৪ ঘন্টায় অ্যাকাউন্ট সক্রিয় হবে।</div>
@@ -362,7 +358,7 @@
 <div class="form-group">
 <label>Transaction ID (TrxID) *</label>
 <input class="paycode-field" id="tTrxId" placeholder="e.g. 8K9J2XA1R5" type="text"/>
-<p class="field-info">bKash বা Nagad-এর TrxID লিখুন।</p>
+<p class="field-info">Nagad-এর TrxID লিখুন।</p>
 </div>
 </div>
 <!-- Offline -->
@@ -452,6 +448,10 @@
 <div class="form-group">
 <label>Class / Grade</label>
 <input id="sClass" placeholder="e.g. Class 9, HSC 1st Year" type="text"/>
+</div>
+<div class="form-group">
+<label>City / Area (Optional)</label>
+<input id="sLocation" placeholder="e.g. Naogaon" type="text"/>
 </div>
 <div class="section-label">Security</div>
 <div class="form-row">
@@ -543,6 +543,11 @@
     (async function init() {
         console.log('initialized..')
         const params = new URLSearchParams(window.location.search);
+        if (params.get('suspended') === '1') {
+            const error = document.getElementById('loginError');
+            error.textContent = 'This account has been suspended. Contact EduCoffee support if you believe this is a mistake.';
+            error.style.display = 'block';
+        }
         const roleParam = params.get('role') || sessionStorage.getItem('selectedRole') || 'teacher';
         switchRole(roleParam, true);
         const batchInput = document.getElementById('sBatchCode');
@@ -556,6 +561,9 @@
                     return;
                 } else if (user?.role === 'student') {
                     window.location.href = 'student-dashboard.html';
+                    return;
+                } else if (user?.role === 'admin' || user?.role === 'moderator') {
+                    window.location.href = 'admin-dashboard.html';
                     return;
                 }
             } catch {
@@ -604,6 +612,10 @@
 
     // PLAN SELECTION
     function selectPlan(plan) {
+        if (plan !== 'Starter') {
+            alert('Create your free Starter account first, then submit a Nagad upgrade request from your profile.');
+            plan = 'Starter';
+        }
         selectedPlan = plan;
         ['Starter','Professional','Elite'].forEach(p => {
             const el = document.getElementById('planOpt' + p);
@@ -667,9 +679,9 @@ async function handleLogin() {
     localStorage.setItem('current_userid', loginRes.id);
     localStorage.setItem('current_user_role', loginRes.role);
 
-    window.location.href = loginRes.role === 'teacher'
-      ? 'teacher-dashboard.html'
-      : 'student-dashboard.html';
+    window.location.href = (loginRes.role === 'admin' || loginRes.role === 'moderator')
+      ? 'admin-dashboard.html'
+      : (loginRes.role === 'teacher' ? 'teacher-dashboard.html' : 'student-dashboard.html');
   } catch (err) {
     errorEl.textContent = err?.message || 'Login failed. Please try again.';
     errorEl.style.display = 'block';
@@ -936,7 +948,7 @@ async function handleLogin() {
         const phone    = document.getElementById('tPhone').value.trim();
         const center   = document.getElementById('tCenter').value.trim();
         // const subject  = document.getElementById('tSubject').value.trim();
-        // const city     = document.getElementById('tCity').value.trim();
+        const city     = document.getElementById('tCity').value.trim();
         const password = document.getElementById('tPassword').value;
         const confirm  = document.getElementById('tConfirmPassword').value;
         const pwErr    = document.getElementById('tPwError');
@@ -947,16 +959,8 @@ async function handleLogin() {
         if (password !== confirm) { pwErr.style.display = 'block'; return; }
         if (password.length < 6) { pwErr.textContent = 'Password must be at least 6 characters.'; pwErr.style.display = 'block'; return; }
 
-        // Validate payment if paid plan
-        if (selectedPlan !== 'Starter') {
-            if (authPayTab === 'online') {
-                const trxId = document.getElementById('tTrxId').value.trim();
-                if (!trxId) { alert('অনুগ্রহ করে Transaction ID (TrxID) লিখুন।'); return; }
-            }
-        }
-
         await requestRegistrationOTP(
-            { name, email, phone: '+880' + phone, center_name: center, password, role: 'teacher', plan: selectedPlan },
+            { name, email, phone: '+880' + phone, center_name: center, location: city, password, role: 'teacher', plan: 'Starter' },
             document.getElementById('teacherRegisterBtn')
         );
     }
@@ -967,7 +971,8 @@ async function handleLogin() {
         const name     = document.getElementById('sName').value.trim();
         const email    = document.getElementById('sEmail').value.trim();
         const phone    = document.getElementById('sPhone').value.trim();
-        // const cls      = document.getElementById('sClass').value.trim();
+        const cls      = document.getElementById('sClass').value.trim();
+        const location = document.getElementById('sLocation').value.trim();
         const password = document.getElementById('sPassword').value;
         const confirm  = document.getElementById('sConfirmPassword').value;
         const pwErr    = document.getElementById('sPwError');
@@ -982,7 +987,7 @@ async function handleLogin() {
         try {
             const validatedBatch = await ValidateRegistrationBatch(batch);
             await requestRegistrationOTP(
-                { name, email, phone: '+880' + phone, batch_codes: [validatedBatch.code], password, role: 'student' },
+                { name, email, phone: '+880' + phone, batch_codes: [validatedBatch.code], grade: cls, location, password, role: 'student' },
                 registerButton
             );
         } catch (error) {

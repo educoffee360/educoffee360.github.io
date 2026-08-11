@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import List
+from collections import Counter
 import hashlib
 import hmac
 import os
@@ -12,13 +13,13 @@ try:
     from . import schemas, models
     from .database import get_db
     from .security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
-    from .email_service import EmailDeliveryError, send_email_otp
+    from .email_service import EmailDeliveryError, send_email_otp, send_staff_emails
 except ImportError:  # Support `uvicorn main:app` when launched inside api/.
     import schemas
     import models
     from database import get_db
     from security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
-    from email_service import EmailDeliveryError, send_email_otp
+    from email_service import EmailDeliveryError, send_email_otp, send_staff_emails
 from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
@@ -49,14 +50,22 @@ def _otp_digest(email: str, purpose: str, code: str) -> str:
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     try:
         payload = decode_access_token(token)
         user_id = payload.get("sub")
-        role = payload.get("role")
         if user_id is None or payload.get("scope") in ("registration_email_verified", "password_reset_verified"):
             raise HTTPException(status_code=401, detail="Invalid Token")
-        return {"user_id": user_id, "role": role}
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid Token")
+        restriction = db.query(models.UserRestriction).filter(
+            models.UserRestriction.user_id == user_id,
+            models.UserRestriction.banned.is_(True),
+        ).first()
+        if restriction:
+            raise HTTPException(status_code=403, detail="This account has been suspended")
+        return {"user_id": user_id, "role": user.role}
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid Token")
 
@@ -297,8 +306,8 @@ def register(user: schemas.User, db: Session = Depends(get_db)):
     ):
         raise HTTPException(403, "Verify this email before creating the account")
 
-    if user.role == "admin":
-        raise HTTPException(403, "Admin accounts cannot be created through public registration")
+    if user.role in ("admin", "moderator"):
+        raise HTTPException(403, "Staff accounts cannot be created through public registration")
     existing = db.query(models.User).filter(models.User.email == email).first()
     phone_in_use = db.query(models.User).filter(models.User.phone == user.phone).first()
 
@@ -330,10 +339,15 @@ def register(user: schemas.User, db: Session = Depends(get_db)):
         role=user.role,
         batch_codes=student_batch_codes,
         center_name=user.center_name if user.role == "teacher" else None,
-        plan=user.plan if user.role == "teacher" else None,
+        plan="Starter" if user.role == "teacher" else None,
     )
 
     db.add(new_user)
+    db.flush()
+    location = (user.location or "").strip() or None
+    grade = (user.grade or "").strip() or None
+    if location or grade:
+        db.add(models.UserDemographic(user_id=new_user.id, location=location, grade=grade))
     db.commit()
     db.refresh(new_user)
     return new_user
@@ -384,10 +398,17 @@ def reset_password(payload: schemas.PasswordReset, db: Session = Depends(get_db)
 
 @router.post("/login", status_code=200)
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.email == user.email).first()
+    db_user = db.query(models.User).filter(models.User.email == _normalized_email(user.email)).first()
 
     if not db_user:
         raise HTTPException(404, "User doesn't exist")
+
+    restriction = db.query(models.UserRestriction).filter(
+        models.UserRestriction.user_id == db_user.id,
+        models.UserRestriction.banned.is_(True),
+    ).first()
+    if restriction:
+        raise HTTPException(403, "This account has been suspended")
 
     try:
         if verify_password(db_user.password, user.password):
@@ -427,7 +448,14 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
 
 @router.get("/batches", response_model=List[schemas.Batch], status_code=200)
 def get_all_batches(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    return db.query(models.Batch).all()
+    if current_user["role"] == "admin":
+        return db.query(models.Batch).all()
+    if current_user["role"] == "teacher":
+        return db.query(models.Batch).filter(models.Batch.teacher_id == current_user["user_id"]).all()
+    if current_user["role"] == "student":
+        student = db.query(models.User).filter(models.User.id == current_user["user_id"]).first()
+        return db.query(models.Batch).filter(models.Batch.code.in_(student.batch_codes or [])).all()
+    raise HTTPException(403, "Moderators cannot inspect batches")
 
 
 @router.get("/batch/validate/{batch_code}", status_code=200)
@@ -932,3 +960,201 @@ def get_parent_messages(student_id: str, db: Session = Depends(get_db), current_
         _parent_message_response(message, teacher_names.get(message.teacher_id, "Teacher"))
         for message in messages
     ]
+
+
+# --- Staff operations ------------------------------------------------------
+
+def _staff_user_response(user, demographics, restrictions, include_phone=False):
+    demographic = demographics.get(user.id)
+    restriction = restrictions.get(user.id)
+    return {
+        "id": user.id, "name": user.name, "email": user.email,
+        "phone": user.phone if include_phone else None,
+        "role": user.role, "plan": user.plan, "center_name": user.center_name,
+        "location": demographic.location if demographic else None,
+        "grade": demographic.grade if demographic else None,
+        "banned": bool(restriction and restriction.banned),
+        "ban_reason": restriction.reason if restriction and restriction.banned else None,
+    }
+
+
+@router.get("/staff/users", status_code=200)
+def staff_users(db: Session = Depends(get_db), current_user = Depends(require_role("admin", "moderator"))):
+    users = db.query(models.User).order_by(models.User.name.asc()).all()
+    demographics = {row.user_id: row for row in db.query(models.UserDemographic).all()}
+    restrictions = {row.user_id: row for row in db.query(models.UserRestriction).all()}
+    return [_staff_user_response(user, demographics, restrictions, current_user["role"] == "admin") for user in users]
+
+
+@router.get("/staff/analytics", status_code=200)
+def staff_analytics(db: Session = Depends(get_db), current_user = Depends(require_role("admin", "moderator"))):
+    users = db.query(models.User).all()
+    demographics = db.query(models.UserDemographic).all()
+    locations = Counter(row.location for row in demographics if row.location)
+    grades = Counter(row.grade for row in demographics if row.grade)
+    plans = Counter((user.plan or "None") for user in users if user.role == "teacher")
+    roles = Counter(user.role for user in users)
+    return {
+        "total_users": len(users), "roles": dict(roles), "plans": dict(plans),
+        "locations": [{"label": label, "count": count} for label, count in locations.most_common(12)],
+        "grades": [{"label": label, "count": count} for label, count in grades.most_common(12)],
+        "profiled_users": len({row.user_id for row in demographics if row.location or row.grade}),
+    }
+
+
+@router.get("/billing/config", status_code=200)
+def billing_config(current_user = Depends(require_role("teacher", "admin"))):
+    return {
+        "provider": "Nagad", "payment_number": os.getenv("NAGAD_PAYMENT_NUMBER", "").strip(),
+        "review_window": "within 24 hours",
+        "plans": {"Professional": {"amount": 150, "period": "1 month"}, "Elite": {"amount": 600, "period": "6 months"}},
+    }
+
+
+def _upgrade_response(request, db):
+    teacher = db.query(models.User).filter(models.User.id == request.teacher_id).first()
+    reviewer = db.query(models.User).filter(models.User.id == request.reviewed_by).first() if request.reviewed_by else None
+    return {
+        "id": request.id, "teacher_id": request.teacher_id,
+        "teacher_name": teacher.name if teacher else "Unknown teacher",
+        "teacher_email": teacher.email if teacher else "", "current_plan": teacher.plan if teacher else None,
+        "requested_plan": request.requested_plan, "method": request.method, "trx_id": request.trx_id,
+        "payment_phone": request.payment_phone, "status": request.status, "review_note": request.review_note,
+        "reviewed_by_name": reviewer.name if reviewer else None,
+        "requested_at": request.requested_at, "reviewed_at": request.reviewed_at,
+    }
+
+
+@router.post("/upgrade-requests", status_code=201)
+def create_upgrade_request(payload: schemas.PlanUpgradeCreate, db: Session = Depends(get_db), current_user = Depends(require_role("teacher"))):
+    teacher = db.query(models.User).filter(models.User.id == current_user["user_id"]).first()
+    if teacher.plan == payload.requested_plan:
+        raise HTTPException(400, "This plan is already active")
+    if db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.teacher_id == teacher.id, models.PlanUpgradeRequest.status == "pending").first():
+        raise HTTPException(409, "You already have a pending upgrade request")
+    trx_id = (payload.trx_id or "").strip().upper() or None
+    payment_phone = (payload.payment_phone or "").strip() or None
+    if payload.method == "nagad" and (not trx_id or not payment_phone):
+        raise HTTPException(400, "Nagad TrxID and payment phone number are required")
+    if trx_id and db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.trx_id == trx_id).first():
+        raise HTTPException(409, "This TrxID has already been submitted")
+    request = models.PlanUpgradeRequest(teacher_id=teacher.id, requested_plan=payload.requested_plan, method=payload.method, trx_id=trx_id, payment_phone=payment_phone)
+    db.add(request); db.commit(); db.refresh(request)
+    return _upgrade_response(request, db)
+
+
+@router.get("/upgrade-requests/mine", status_code=200)
+def my_upgrade_requests(db: Session = Depends(get_db), current_user = Depends(require_role("teacher"))):
+    requests = db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.teacher_id == current_user["user_id"]).order_by(models.PlanUpgradeRequest.requested_at.desc()).all()
+    return [_upgrade_response(request, db) for request in requests]
+
+
+@router.get("/staff/upgrade-requests", status_code=200)
+def staff_upgrade_requests(db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    return [_upgrade_response(request, db) for request in db.query(models.PlanUpgradeRequest).order_by(models.PlanUpgradeRequest.requested_at.desc()).all()]
+
+
+@router.post("/staff/upgrade-requests/{request_id}/decision", status_code=200)
+def decide_upgrade_request(request_id: str, payload: schemas.StaffDecision, db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    request = db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.id == request_id).first()
+    if not request: raise HTTPException(404, "Upgrade request not found")
+    if request.status != "pending": raise HTTPException(409, "This request has already been reviewed")
+    teacher = db.query(models.User).filter(models.User.id == request.teacher_id, models.User.role == "teacher").first()
+    if not teacher: raise HTTPException(404, "Teacher not found")
+    request.status = "approved" if payload.approved else "rejected"
+    request.review_note = (payload.note or "").strip() or None
+    request.reviewed_by = current_user["user_id"]; request.reviewed_at = datetime.utcnow()
+    if payload.approved: teacher.plan = request.requested_plan
+    db.commit(); db.refresh(request)
+    return _upgrade_response(request, db)
+
+
+@router.put("/staff/teachers/{teacher_id}/plan", status_code=200)
+def set_teacher_plan(teacher_id: str, payload: schemas.PlanSet, db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    teacher = db.query(models.User).filter(models.User.id == teacher_id, models.User.role == "teacher").first()
+    if not teacher: raise HTTPException(404, "Teacher not found")
+    teacher.plan = payload.plan; db.commit()
+    return {"message": "Teacher plan updated", "teacher_id": teacher.id, "plan": teacher.plan}
+
+
+@router.post("/staff/teachers/{teacher_id}/ban", status_code=200)
+def ban_teacher(teacher_id: str, payload: schemas.BanAction, db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    teacher = db.query(models.User).filter(models.User.id == teacher_id, models.User.role == "teacher").first()
+    if not teacher: raise HTTPException(404, "Teacher not found")
+    restriction = db.query(models.UserRestriction).filter(models.UserRestriction.user_id == teacher_id).first()
+    if not restriction:
+        restriction = models.UserRestriction(user_id=teacher_id); db.add(restriction)
+    restriction.banned = True; restriction.reason = payload.reason.strip()
+    restriction.banned_by = current_user["user_id"]; restriction.banned_at = datetime.utcnow()
+    db.commit()
+    return {"message": "Teacher suspended"}
+
+
+@router.delete("/staff/teachers/{teacher_id}/ban", status_code=200)
+def unban_teacher(teacher_id: str, db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    restriction = db.query(models.UserRestriction).filter(models.UserRestriction.user_id == teacher_id).first()
+    if not restriction or not restriction.banned: raise HTTPException(404, "Teacher is not suspended")
+    restriction.banned = False; restriction.reason = None; restriction.banned_by = None; restriction.banned_at = None
+    db.commit()
+    return {"message": "Teacher restored"}
+
+
+def _ban_request_response(request, db):
+    target = db.query(models.User).filter(models.User.id == request.target_user_id).first()
+    requester = db.query(models.User).filter(models.User.id == request.requested_by).first()
+    return {"id": request.id, "target_user_id": request.target_user_id, "target_name": target.name if target else "Unknown teacher", "target_email": target.email if target else "", "requested_by_name": requester.name if requester else "Unknown moderator", "reason": request.reason, "status": request.status, "review_note": request.review_note, "requested_at": request.requested_at}
+
+
+@router.post("/staff/teachers/{teacher_id}/ban-requests", status_code=201)
+def request_teacher_ban(teacher_id: str, payload: schemas.BanAction, db: Session = Depends(get_db), current_user = Depends(require_role("moderator"))):
+    if not db.query(models.User).filter(models.User.id == teacher_id, models.User.role == "teacher").first(): raise HTTPException(404, "Teacher not found")
+    if db.query(models.BanRequest).filter(models.BanRequest.target_user_id == teacher_id, models.BanRequest.status == "pending").first(): raise HTTPException(409, "A ban request is already pending for this teacher")
+    request = models.BanRequest(target_user_id=teacher_id, requested_by=current_user["user_id"], reason=payload.reason.strip())
+    db.add(request); db.commit(); db.refresh(request)
+    return _ban_request_response(request, db)
+
+
+@router.get("/staff/ban-requests", status_code=200)
+def list_ban_requests(db: Session = Depends(get_db), current_user = Depends(require_role("admin", "moderator"))):
+    query = db.query(models.BanRequest)
+    if current_user["role"] == "moderator": query = query.filter(models.BanRequest.requested_by == current_user["user_id"])
+    return [_ban_request_response(request, db) for request in query.order_by(models.BanRequest.requested_at.desc()).all()]
+
+
+@router.post("/staff/ban-requests/{request_id}/decision", status_code=200)
+def decide_ban_request(request_id: str, payload: schemas.StaffDecision, db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    request = db.query(models.BanRequest).filter(models.BanRequest.id == request_id).first()
+    if not request: raise HTTPException(404, "Ban request not found")
+    if request.status != "pending": raise HTTPException(409, "This request has already been reviewed")
+    request.status = "approved" if payload.approved else "rejected"; request.reviewed_by = current_user["user_id"]
+    request.review_note = (payload.note or "").strip() or None; request.reviewed_at = datetime.utcnow()
+    if payload.approved:
+        restriction = db.query(models.UserRestriction).filter(models.UserRestriction.user_id == request.target_user_id).first()
+        if not restriction: restriction = models.UserRestriction(user_id=request.target_user_id); db.add(restriction)
+        restriction.banned = True; restriction.reason = request.reason
+        restriction.banned_by = current_user["user_id"]; restriction.banned_at = datetime.utcnow()
+    db.commit()
+    return _ban_request_response(request, db)
+
+
+@router.post("/staff/email", status_code=200)
+def staff_send_email(payload: schemas.StaffEmailCreate, db: Session = Depends(get_db), current_user = Depends(require_role("admin", "moderator"))):
+    recipient_ids = list(dict.fromkeys(payload.recipient_ids))
+    users = db.query(models.User).filter(models.User.id.in_(recipient_ids)).all()
+    if len(users) != len(recipient_ids): raise HTTPException(400, "One or more recipients no longer exist")
+    recipients = [user.email for user in users]
+    try: sent, failed = send_staff_emails(recipients, payload.subject.strip(), payload.body.strip())
+    except EmailDeliveryError: raise HTTPException(503, "Email delivery is temporarily unavailable")
+    db.add(models.EmailCampaign(sender_id=current_user["user_id"], subject=payload.subject.strip(), body=payload.body.strip(), recipient_count=len(recipients), sent_count=len(sent), failed_recipients=failed))
+    db.commit()
+    return {"message": f"Sent {len(sent)} of {len(recipients)} emails", "sent_count": len(sent), "failed": failed}
+
+
+@router.post("/staff/moderators", status_code=201)
+def create_moderator(payload: schemas.ModeratorCreate, db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    email = _normalized_email(payload.email)
+    if db.query(models.User).filter(models.User.email == email).first(): raise HTTPException(409, "Email already in use")
+    if db.query(models.User).filter(models.User.phone == payload.phone.strip()).first(): raise HTTPException(409, "Phone number already in use")
+    moderator = models.User(name=payload.name.strip(), email=email, phone=payload.phone.strip(), password=hash_password(payload.password), role="moderator", plan=None, batch_codes=None)
+    db.add(moderator); db.commit(); db.refresh(moderator)
+    return {"id": moderator.id, "name": moderator.name, "email": moderator.email, "role": moderator.role}

@@ -1,6 +1,8 @@
 import base64
 import logging
 import os
+from html import escape
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from email.message import EmailMessage
 
 import requests
@@ -94,3 +96,54 @@ def send_email_otp(recipient: str, code: str, purpose: str = "register") -> None
 def send_registration_otp(recipient: str, code: str) -> None:
     """Backward-compatible wrapper for existing imports/tests."""
     send_email_otp(recipient, code, "register")
+
+
+def send_staff_email(recipient: str, subject: str, body: str, access_token: str = None) -> None:
+    sender = _required_setting("OTP_FROM_EMAIL")
+    message = EmailMessage()
+    message["To"] = recipient
+    message["From"] = f"EduCoffee <{sender}>"
+    message["Subject"] = subject
+    message.set_content(body)
+    safe_body = escape(body).replace("\n", "<br>")
+    message.add_alternative(
+        f'<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:28px;color:#2d241e">'
+        f'<h1 style="color:#3e2723">EduCoffee</h1><div style="line-height:1.65">{safe_body}</div></div>',
+        subtype="html",
+    )
+    raw = base64.urlsafe_b64encode(message.as_bytes()).decode("ascii")
+    try:
+        response = requests.post(
+            "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+            headers={
+                "Authorization": f"Bearer {access_token or _gmail_access_token()}",
+                "Content-Type": "application/json",
+            },
+            json={"raw": raw},
+            timeout=12,
+        )
+    except requests.RequestException as exc:
+        raise EmailDeliveryError("Could not connect to Gmail") from exc
+    if not response.ok:
+        logger.error("Gmail staff email failed with status %s", response.status_code)
+        raise EmailDeliveryError("Gmail rejected the message")
+
+
+def send_staff_emails(recipients, subject: str, body: str):
+    token = _gmail_access_token()
+    sent = []
+    failed = []
+
+    def deliver(recipient):
+        try:
+            send_staff_email(recipient, subject, body, token)
+            return recipient, True
+        except EmailDeliveryError:
+            return recipient, False
+
+    with ThreadPoolExecutor(max_workers=min(5, max(1, len(recipients)))) as executor:
+        futures = [executor.submit(deliver, recipient) for recipient in recipients]
+        for future in as_completed(futures):
+            recipient, delivered = future.result()
+            (sent if delivered else failed).append(recipient)
+    return sent, failed

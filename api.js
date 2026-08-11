@@ -157,6 +157,12 @@ async function requestJson(path, options = {}) {
         window.location.replace(DEFAULT_AUTH_REDIRECT);
       }
     }
+    if (response.status === 403 && detail.toLowerCase().includes("suspended")) {
+      clearAuthState();
+      if (typeof window !== "undefined" && !window.location.pathname.endsWith("/auth.html")) {
+        window.location.replace(`${DEFAULT_AUTH_REDIRECT}?suspended=1`);
+      }
+    }
     throw new Error(detail);
   }
 
@@ -200,6 +206,8 @@ async function Register(data) {
         role: data.role,
         batch_codes: data.batch_codes,
         plan: data.plan,
+        location: data.location,
+        grade: data.grade,
         verification_token: data.verification_token,
       },
     });
@@ -552,6 +560,55 @@ async function GetAllNotices() {
   return requestJson("/notices");
 }
 
+async function GetBillingConfig() {
+  return requestJson("/billing/config");
+}
+
+async function CreateUpgradeRequest(request = {}) {
+  return requestJson("/upgrade-requests", {
+    method: "POST",
+    body: {
+      requested_plan: request.requested_plan,
+      method: request.method || "nagad",
+      trx_id: request.trx_id || null,
+      payment_phone: request.payment_phone || null,
+    },
+  });
+}
+
+async function GetMyUpgradeRequests() {
+  return requestJson("/upgrade-requests/mine");
+}
+
+async function GetStaffUsers() { return requestJson("/staff/users"); }
+async function GetStaffAnalytics() { return requestJson("/staff/analytics"); }
+async function GetStaffUpgradeRequests() { return requestJson("/staff/upgrade-requests"); }
+async function DecideUpgradeRequest(id, approved, note = "") {
+  return requestJson(`/staff/upgrade-requests/${requireId(id, "upgrade request", null)}/decision`, { method: "POST", body: { approved, note } });
+}
+async function SetTeacherPlan(id, plan) {
+  return requestJson(`/staff/teachers/${requireId(id, "teacher id", null)}/plan`, { method: "PUT", body: { plan } });
+}
+async function BanTeacher(id, reason) {
+  return requestJson(`/staff/teachers/${requireId(id, "teacher id", null)}/ban`, { method: "POST", body: { reason } });
+}
+async function UnbanTeacher(id) {
+  return requestJson(`/staff/teachers/${requireId(id, "teacher id", null)}/ban`, { method: "DELETE" });
+}
+async function RequestTeacherBan(id, reason) {
+  return requestJson(`/staff/teachers/${requireId(id, "teacher id", null)}/ban-requests`, { method: "POST", body: { reason } });
+}
+async function GetBanRequests() { return requestJson("/staff/ban-requests"); }
+async function DecideBanRequest(id, approved, note = "") {
+  return requestJson(`/staff/ban-requests/${requireId(id, "ban request", null)}/decision`, { method: "POST", body: { approved, note } });
+}
+async function SendStaffEmail(recipientIds, subject, body) {
+  return requestJson("/staff/email", { method: "POST", body: { recipient_ids: recipientIds, subject, body } });
+}
+async function CreateModerator(data) {
+  return requestJson("/staff/moderators", { method: "POST", body: data });
+}
+
 function bindGlobals() {
   Object.assign(globalThis, {
     api_url,
@@ -609,6 +666,21 @@ function bindGlobals() {
     GetAllBatches,
     GetAllResults,
     GetAllNotices,
+    GetBillingConfig,
+    CreateUpgradeRequest,
+    GetMyUpgradeRequests,
+    GetStaffUsers,
+    GetStaffAnalytics,
+    GetStaffUpgradeRequests,
+    DecideUpgradeRequest,
+    SetTeacherPlan,
+    BanTeacher,
+    UnbanTeacher,
+    RequestTeacherBan,
+    GetBanRequests,
+    DecideBanRequest,
+    SendStaffEmail,
+    CreateModerator,
   });
 }
 

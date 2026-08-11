@@ -387,7 +387,7 @@
 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><polyline points="17 11 12 6 7 11"></polyline><line x1="12" x2="12" y1="6" y2="18"></line></svg>
                         Upgrade My Plan
                     </button>
-<p class="upgrade-note">Click on a plan above or "Upgrade" to choose and pay.<br/>Online (bKash/Nagad) or visit our office for offline payment.</p>
+<p class="upgrade-note">Pay with Nagad, then submit your TrxID for admin review.</p>
 </div>
 </div>
 </div>
@@ -503,8 +503,8 @@
 <div class="selected-plan-tag" id="modalPlanTag">📦 Professional — ৳150/month</div>
 <!-- Payment Method Tabs -->
 <div class="pay-tabs">
-<button class="pay-tab active" onclick="switchPayTab('online',this)">📲 Online (bKash/Nagad)</button>
-<button class="pay-tab" onclick="switchPayTab('offline',this)">🏢 Office / Offline</button>
+<button class="pay-tab active" onclick="switchPayTab('online',this)">📲 Nagad</button>
+<button class="pay-tab" onclick="switchPayTab('offline',this)" style="display:none">🏢 Office / Offline</button>
 </div>
 <!-- Online Tab -->
 <div class="pay-content active" id="payOnline">
@@ -512,12 +512,8 @@
 <div class="oi-title">Send Payment To</div>
 <div class="oi-numbers">
 <div class="oi-num-item">
-<div class="oi-num-label">💳 bKash</div>
-<div class="oi-num-val" onclick="copyToClip('01700-000000')">01700-000000 <span style="opacity:.5;font-size:.7rem">📋</span></div>
-</div>
-<div class="oi-num-item">
 <div class="oi-num-label">🟠 Nagad</div>
-<div class="oi-num-val" onclick="copyToClip('01700-000001')">01700-000001 <span style="opacity:.5;font-size:.7rem">📋</span></div>
+<div class="oi-num-val" id="nagadPaymentNumber" onclick="copyToClip(this.dataset.number || '')" data-number="">Set in Render <span style="opacity:.5;font-size:.7rem">📋</span></div>
 </div>
 </div>
 <div class="oi-note">Send money then fill in the Transaction ID below. Your account will be activated within 24 hours after verification.</div>
@@ -525,13 +521,13 @@
 <div class="modal-fg">
 <label>Transaction ID (TrxID) *</label>
 <input class="mono" id="payTrxId" placeholder="e.g. 8K9J2XA1R5" type="text"/>
-<p class="modal-fg-hint">Enter the TrxID from your bKash or Nagad confirmation message.</p>
+<p class="modal-fg-hint">Enter the TrxID from your Nagad confirmation message.</p>
 </div>
 <div class="modal-fg">
 <label>Your Phone Number *</label>
 <input id="payPhone" placeholder="01XXXXXXXXX" type="tel"/>
 </div>
-<button class="btn-submit-pay" onclick="submitUpgrade('online')">Submit &amp; Request Upgrade</button>
+<button class="btn-submit-pay" onclick="submitUpgrade('online', this)">Submit &amp; Request Upgrade</button>
 </div>
 <!-- Offline Tab -->
 <div class="pay-content" id="payOffline">
@@ -562,7 +558,7 @@
 <input class="mono" id="offlineCode" placeholder="e.g. EC-123456" type="text"/>
 <p class="modal-fg-hint">If you've already paid at our office, enter the code we gave you.</p>
 </div>
-<button class="btn-submit-pay" onclick="submitUpgrade('offline')">Submit Upgrade Request</button>
+<button class="btn-submit-pay" onclick="submitUpgrade('offline', this)">Submit Upgrade Request</button>
 </div>
 </div>
 </div>
@@ -575,6 +571,8 @@ const PLANS = {
     Professional: { icon:'🏆', price:'৳150/month',     detail:'৳150/month · Unlimited students & analytics' },
     Elite:        { icon:'👑', price:'৳600/6 months',  detail:'৳600/6 months · Full suite + rewards' }
 };
+let billingConfig = null;
+let currentTeacherUser = null;
 
 // ── INIT ──────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -588,6 +586,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const name  = backendUser?.name || session.name || 'Teacher';
     const email = backendUser?.email || '';
     const user  = backendUser || {};
+    currentTeacherUser = user;
     const plan  = backendUser?.plan || localStorage.getItem('teacherPlan') || 'Starter';
 
     // Sidebar
@@ -627,6 +626,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Subscription plan UI
     renderCurrentPlan(plan);
     markCurrentPlanCard(plan);
+    billingConfig = await GetBillingConfig().catch(() => null);
+    const paymentNumber = billingConfig?.payment_number || '';
+    const paymentNumberEl = document.getElementById('nagadPaymentNumber');
+    paymentNumberEl.dataset.number = paymentNumber;
+    paymentNumberEl.innerHTML = paymentNumber ? `${paymentNumber} <span style="opacity:.5;font-size:.7rem">📋</span>` : 'Payment number not configured';
+    const upgradeRequests = await GetMyUpgradeRequests().catch(() => []);
+    const pendingRequest = upgradeRequests.find(request => request.status === 'pending');
+    if (pendingRequest) {
+        document.getElementById('currentPlanStatus').textContent = `${pendingRequest.requested_plan} review pending`;
+        document.getElementById('currentPlanStatus').className = 'uc-badge ucb-starter';
+    } else if (upgradeRequests[0]?.status === 'rejected') {
+        document.getElementById('currentPlanStatus').textContent = 'Last upgrade request rejected';
+        document.getElementById('currentPlanStatus').className = 'uc-badge ucb-starter';
+        document.getElementById('currentPlanStatus').title = upgradeRequests[0].review_note || '';
+    }
 
     // Activity log
     renderActivityLog();
@@ -663,6 +677,10 @@ function markCurrentPlanCard(plan) {
 let selectedUpgradePlan = 'Professional';
 
 function openUpgradeModal(plan) {
+    if (!billingConfig?.payment_number) {
+        showToast('Nagad payment is not configured yet. Please contact support.');
+        return;
+    }
     if (!plan) plan = 'Professional';
     selectedUpgradePlan = plan;
     const p = PLANS[plan];
@@ -673,7 +691,7 @@ function openUpgradeModal(plan) {
     document.getElementById('payOnline').classList.add('active');
     document.getElementById('payOffline').classList.remove('active');
     document.getElementById('payTrxId').value = '';
-    document.getElementById('payPhone').value = localStorage.getItem('userEmail') || '';
+    document.getElementById('payPhone').value = currentTeacherUser?.phone || '';
 }
 
 function closeUpgradeModal() {
@@ -691,7 +709,7 @@ function switchPayTab(tab, btn) {
     document.getElementById('payOffline').classList.toggle('active', tab === 'offline');
 }
 
-function submitUpgrade(method) {
+async function submitUpgrade(method, button) {
     if (method === 'online') {
         const trx   = document.getElementById('payTrxId').value.trim();
         const phone = document.getElementById('payPhone').value.trim();
@@ -699,10 +717,24 @@ function submitUpgrade(method) {
     } else {
         // Offline: optional code
     }
-    // Save pending plan upgrade locally (actual activation handled manually by admin)
-    localStorage.setItem('pendingPlanUpgrade', JSON.stringify({ plan: selectedUpgradePlan, method, requested: new Date().toISOString() }));
-    closeUpgradeModal();
-    showToast('Upgrade request submitted! We\'ll activate your plan within 24 hours.');
+    const originalText = button?.textContent;
+    if (button) { button.disabled = true; button.textContent = 'Submitting...'; }
+    try {
+        await CreateUpgradeRequest({
+            requested_plan: selectedUpgradePlan,
+            method: method === 'online' ? 'nagad' : 'offline',
+            trx_id: method === 'online' ? document.getElementById('payTrxId').value.trim() : null,
+            payment_phone: method === 'online' ? document.getElementById('payPhone').value.trim() : null,
+        });
+        closeUpgradeModal();
+        document.getElementById('currentPlanStatus').textContent = `${selectedUpgradePlan} review pending`;
+        document.getElementById('currentPlanStatus').className = 'uc-badge ucb-starter';
+        showToast('Upgrade request sent to the admin dashboard.');
+    } catch (error) {
+        showToast(error?.message || 'Could not submit the upgrade request.');
+    } finally {
+        if (button) { button.disabled = false; button.textContent = originalText; }
+    }
 }
 
 // ── PERSONAL INFO ─────────────────────────────────
