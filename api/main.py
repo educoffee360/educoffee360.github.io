@@ -19,20 +19,25 @@ Base.metadata.create_all(bind=engine)
 logger = logging.getLogger(__name__)
 
 
-def migrate_moderator_role() -> None:
-    """Keep the existing PostgreSQL enum compatible with the new staff role."""
+def migrate_user_roles() -> None:
+    """Keep the existing PostgreSQL enum compatible with all supported roles."""
     if engine.dialect.name != "postgresql":
         return
     with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as connection:
-        exists = connection.execute(text(
-            "SELECT 1 FROM pg_type t JOIN pg_enum e ON t.oid=e.enumtypid "
-            "WHERE t.typname='user_role' AND e.enumlabel='moderator'"
-        )).first()
-        if not exists:
-            connection.execute(text("ALTER TYPE user_role ADD VALUE 'moderator'"))
+        existing_roles = {
+            row[0]
+            for row in connection.execute(text(
+                "SELECT e.enumlabel FROM pg_type t "
+                "JOIN pg_enum e ON t.oid=e.enumtypid "
+                "WHERE t.typname='user_role'"
+            ))
+        }
+        for role_name in ("admin", "moderator"):
+            if role_name not in existing_roles:
+                connection.execute(text(f"ALTER TYPE user_role ADD VALUE '{role_name}'"))
 
 
-migrate_moderator_role()
+migrate_user_roles()
 
 
 def migrate_legacy_plaintext_passwords() -> None:
