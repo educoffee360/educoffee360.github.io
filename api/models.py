@@ -35,6 +35,17 @@ class Batch(Base):
     schedule = Column(String)
     teacher_id = Column(String, ForeignKey('users.id'))
 
+    fee_amount = Column(Integer, nullable=False)
+
+    payment_cycle = Column(
+        Enum("monthly", "six-months", "custom"),
+        nullable=False,
+        default="monthly"
+    )
+
+    fee_period_start = Column(DateTime, nullable=True)
+    fee_period_end = Column(DateTime, nullable=True)
+
 class Notice(Base):
     __tablename__ = 'notices'
 
@@ -155,3 +166,16 @@ class EmailCampaign(Base):
     sent_count = Column(Integer, nullable=False, default=0)
     failed_recipients = Column(JSON, nullable=False, default=list)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+class Payment(Base):
+
+    id = Column(String, primary_key=True, default=lambda:str(uuid.uuid4()))
+
+    student_id = Column(String, ForeignKey('users.id'), nullable=False)
+    batch_code = Column(String, ForeignKey('batches.code'), nullable=False)
+
+    status = Column(Enum("unpaid", "paid", "overdue"), default="unpaid", nullable=False)
+    paid_at = Column(DateTime, nullable=True)
+
+    period_start = Column(DateTime, nullable=False)
+    period_end = Column(DateTime, nullable=False)

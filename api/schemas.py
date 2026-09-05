@@ -28,6 +28,11 @@ class Batch(BaseModel):
     code: str = Field(min_length=6, max_length=6)
     teacher_id: str
 
+    fee_amount: int
+    payment_cycle: Literal['monthly', 'six-months', 'custom']
+    custom_period_start: Optional[datetime] = None
+    custom_period_end: Optional[datetime] = None
+
 class StudentScore(BaseModel):
     student_id: str
     marks: Optional[float] = None
@@ -144,3 +149,13 @@ class ModeratorCreate(BaseModel):
     email: EmailStr
     phone: str = Field(min_length=8, max_length=40)
     password: str = Field(min_length=8, max_length=128)
+
+class Payment(BaseModel):
+    id: str
+    student_id: str
+    batch_code: str
+    status: Literal["paid", "unpaid", "overdue"]
+    paid_at: Optional[datetime] = None
+
+    period_start: datetime
+    period_end: datetime
