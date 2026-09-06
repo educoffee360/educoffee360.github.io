@@ -168,6 +168,7 @@ class EmailCampaign(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 class Payment(Base):
+    __tablename__ = 'payments'
 
     id = Column(String, primary_key=True, default=lambda:str(uuid.uuid4()))
 
