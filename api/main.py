@@ -64,6 +64,18 @@ def migrate_legacy_plaintext_passwords() -> None:
 migrate_legacy_plaintext_passwords()
 
 
+def ensure_payment_table() -> None:
+    """Create the payments table if this deployment does not have it yet."""
+    try:
+        Payment.__table__.create(bind=engine, checkfirst=True)
+    except Exception:
+        logger.exception("Could not create the payments table")
+        raise
+
+
+ensure_payment_table()
+
+
 def bootstrap_admin() -> None:
     """Create the first admin from private Render environment variables."""
     email = os.getenv("ADMIN_EMAIL", "").strip().lower()
@@ -111,3 +123,4 @@ app.add_middleware(
 )
 
 app.include_router(routes.router)
+

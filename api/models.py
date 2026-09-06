@@ -46,6 +46,23 @@ class Batch(Base):
     fee_period_start = Column(DateTime, nullable=True)
     fee_period_end = Column(DateTime, nullable=True)
 
+    # API-facing names used by the batch schema.
+    @property
+    def custom_period_start(self):
+        return self.fee_period_start
+
+    @custom_period_start.setter
+    def custom_period_start(self, value):
+        self.fee_period_start = value
+
+    @property
+    def custom_period_end(self):
+        return self.fee_period_end
+
+    @custom_period_end.setter
+    def custom_period_end(self, value):
+        self.fee_period_end = value
+
 class Notice(Base):
     __tablename__ = 'notices'
 
@@ -175,8 +192,11 @@ class Payment(Base):
     student_id = Column(String, ForeignKey('users.id'), nullable=False)
     batch_code = Column(String, ForeignKey('batches.code'), nullable=False)
 
+    amount = Column(Integer, nullable=False)
+
     status = Column(Enum("unpaid", "paid", "overdue"), name="payment_status", default="unpaid", nullable=False)
     paid_at = Column(DateTime, nullable=True)
 
     period_start = Column(DateTime, nullable=False)
     period_end = Column(DateTime, nullable=False)
+

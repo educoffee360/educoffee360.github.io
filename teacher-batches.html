@@ -313,6 +313,31 @@
 <p class="fg-info">Each batch can have a different day &amp; time.</p>
 </div>
 </div>
+<div class="fg-row">
+<div class="fg">
+<label>Fee Amount *</label>
+<input id="bFeeAmount" min="0" placeholder="e.g. 1000" type="number"/>
+</div>
+<div class="fg">
+<label>Payment Cycle *</label>
+<select id="bPaymentCycle" onchange="onPaymentCycleChange()">
+<option value="monthly">Monthly</option>
+<option value="six-months">Six months</option>
+<option value="custom">Custom period</option>
+</select>
+</div>
+</div>
+<div class="fg-row" id="customPaymentPeriodWrap" style="display:none">
+<div class="fg">
+<label>Custom Period Start *</label>
+<input id="bFeePeriodStart" type="date"/>
+</div>
+<div class="fg">
+<label>Custom Period End *</label>
+<input id="bFeePeriodEnd" type="date"/>
+</div>
+</div>
+<p class="fg-info" id="paymentCycleInfo">Monthly payments renew automatically. You only need to mark each student paid or unpaid.</p>
 <div class="code-box" id="codeBox">
 <label>Batch Code (students use this to join)</label>
 <span class="code-big" id="codeDisplay">XXXXXX</span>
@@ -457,6 +482,11 @@ function openModal() {
     document.getElementById('bLabel').value    = '';
     document.getElementById('bYear').value     = '';
     document.getElementById('bSchedule').value = '';
+    document.getElementById('bFeeAmount').value = '';
+    document.getElementById('bPaymentCycle').value = 'monthly';
+    document.getElementById('bFeePeriodStart').value = '';
+    document.getElementById('bFeePeriodEnd').value = '';
+    onPaymentCycleChange();
     document.getElementById('namePreview').textContent = '';
     document.getElementById('codeBox').classList.remove('edit-mode');
     currentCode = genCode();
@@ -503,6 +533,11 @@ function editBatch(code) {
     document.getElementById('bLabel').value    = label;
     document.getElementById('bYear').value     = b.year     || '';
     document.getElementById('bSchedule').value = b.schedule || '';
+    document.getElementById('bFeeAmount').value = b.fee_amount ?? '';
+    document.getElementById('bPaymentCycle').value = b.payment_cycle || 'monthly';
+    document.getElementById('bFeePeriodStart').value = toDateInput(b.custom_period_start);
+    document.getElementById('bFeePeriodEnd').value = toDateInput(b.custom_period_end);
+    onPaymentCycleChange();
 
     // Show code as read-only (code is the PK — cannot change after creation)
     currentCode = b.code;
@@ -517,15 +552,39 @@ function editBatch(code) {
 /* ─────────────────────────────────────────
    SAVE BATCH — CREATE or UPDATE via API
 ───────────────────────────────────────── */
+function toDateInput(value) {
+    if (!value) return '';
+    return String(value).slice(0, 10);
+}
+
+function onPaymentCycleChange() {
+    const cycle = document.getElementById('bPaymentCycle').value;
+    const custom = cycle === 'custom';
+    document.getElementById('customPaymentPeriodWrap').style.display = custom ? 'grid' : 'none';
+    const info = document.getElementById('paymentCycleInfo');
+    if (cycle === 'monthly') info.textContent = 'Monthly payments renew automatically. You only need to mark each student paid or unpaid.';
+    else if (cycle === 'six-months') info.textContent = 'Six-month payments renew automatically in Jan–Jun and Jul–Dec cycles.';
+    else info.textContent = 'Custom periods do not renew automatically. When the period ends, set a new start and end date for the batch.';
+}
+
 async function saveBatch() {
     const cls      = getSelectedClass();
     const label    = document.getElementById('bLabel').value.trim();
     const schedule = document.getElementById('bSchedule').value.trim();
     const year     = document.getElementById('bYear').value.trim();
+    const feeAmount = Number(document.getElementById('bFeeAmount').value);
+    const paymentCycle = document.getElementById('bPaymentCycle').value;
+    const customStart = document.getElementById('bFeePeriodStart').value;
+    const customEnd = document.getElementById('bFeePeriodEnd').value;
 
     if (!cls)      { showToast('Please select a class / grade.');  return; }
     if (!label)    { showToast('Please enter a batch label.');     return; }
     if (!schedule) { showToast('Please enter a schedule & time.'); return; }
+    if (!Number.isFinite(feeAmount) || feeAmount < 0) { showToast('Please enter a valid fee amount.'); return; }
+    if (paymentCycle === 'custom' && (!customStart || !customEnd || customEnd <= customStart)) { showToast('Please choose a valid custom payment period.'); return; }
+
+    const custom_period_start = paymentCycle === 'custom' ? `${customStart}T00:00:00` : null;
+    const custom_period_end = paymentCycle === 'custom' ? `${customEnd}T23:59:59` : null;
 
     const name = cls + ' — ' + label;
 
@@ -542,11 +601,11 @@ async function saveBatch() {
     try {
         if (editingCode) {
             /* ── UPDATE ── */
-            await UpdateBatch(editingCode, { name, year, schedule });
+            await UpdateBatch(editingCode, { name, year, schedule, fee_amount: feeAmount, payment_cycle: paymentCycle, custom_period_start, custom_period_end });
 
             // Reflect change in local state
             const idx = batches.findIndex(b => b.code === editingCode);
-            if (idx > -1) batches[idx] = { ...batches[idx], name, year, schedule };
+            if (idx > -1) batches[idx] = { ...batches[idx], name, year, schedule, fee_amount: feeAmount, payment_cycle: paymentCycle, custom_period_start, custom_period_end };
 
             showToast('Batch updated ✓');
         } else {
@@ -557,6 +616,10 @@ async function saveBatch() {
                 year,
                 schedule,
                 teacher_id: currentTeacherId,
+                fee_amount: feeAmount,
+                payment_cycle: paymentCycle,
+                custom_period_start,
+                custom_period_end,
             });
 
             // Use server-returned object if available, otherwise build locally
@@ -566,6 +629,10 @@ async function saveBatch() {
                 year,
                 schedule,
                 teacher_id: currentTeacherId,
+                fee_amount: feeAmount,
+                payment_cycle: paymentCycle,
+                custom_period_start,
+                custom_period_end,
             });
 
             showToast('Batch created ✓');
@@ -684,6 +751,9 @@ function buildBatchCard(b) {
                 </div>
                 <div class="bc-mi">
                     <strong>${escHtml(b.year || '—')}</strong>Session
+                </div>
+                <div class="bc-mi">
+                    <strong>৳${Number(b.fee_amount || 0).toLocaleString()}</strong>Fee · ${escHtml(b.payment_cycle || 'monthly')}
                 </div>
             </div>
             <div class="bc-actions">

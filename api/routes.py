@@ -26,6 +26,10 @@ class BatchUpdate(BaseModel):
     name: str
     year: str
     schedule: str
+    fee_amount: int
+    payment_cycle: str
+    custom_period_start: datetime | None = None
+    custom_period_end: datetime | None = None
 
 
 def _looks_like_argon_hash(value: str) -> bool:
@@ -441,6 +445,72 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     }
 
 
+
+def _payment_period(batch: models.Batch, now: datetime | None = None):
+    """Return the billing period that should currently be active for a batch."""
+    now = now or datetime.utcnow()
+
+    if batch.payment_cycle == "custom":
+        if not batch.fee_period_start or not batch.fee_period_end:
+            return None
+        if batch.fee_period_end < now:
+            return None
+        return batch.fee_period_start, batch.fee_period_end
+
+    if batch.payment_cycle == "monthly":
+        period_start = datetime(now.year, now.month, 1)
+        if now.month == 12:
+            period_end = datetime(now.year + 1, 1, 1)
+        else:
+            period_end = datetime(now.year, now.month + 1, 1)
+        return period_start, period_end
+
+    # six-months: January-June or July-December.
+    if now.month <= 6:
+        return datetime(now.year, 1, 1), datetime(now.year, 7, 1)
+    return datetime(now.year, 7, 1), datetime(now.year + 1, 1, 1)
+
+
+def _get_or_create_current_payment(student_id: str, batch: models.Batch, db: Session):
+    """Create the current payment record if one does not already exist."""
+    period = _payment_period(batch)
+    if period is None:
+        return None
+
+    period_start, period_end = period
+    payment = db.query(models.Payment).filter(
+        models.Payment.student_id == student_id,
+        models.Payment.batch_code == batch.code,
+        models.Payment.period_start == period_start,
+        models.Payment.period_end == period_end,
+    ).first()
+
+    if payment:
+        if payment.status == "unpaid" and period_end < datetime.utcnow():
+            payment.status = "overdue"
+        return payment
+
+    payment = models.Payment(
+        student_id=student_id,
+        batch_code=batch.code,
+        amount=batch.fee_amount,
+        period_start=period_start,
+        period_end=period_end,
+        status="unpaid",
+    )
+    db.add(payment)
+    return payment
+
+
+def _sync_batch_payments(batch: models.Batch, db: Session):
+    """Ensure current payment records exist for all students enrolled in this batch."""
+    students = db.query(models.User).filter(models.User.role == "student").all()
+    for student in students:
+        if batch.code in (student.batch_codes or []):
+            _get_or_create_current_payment(student.id, batch, db)
+    db.commit()
+
+
 @router.get("/batches", response_model=List[schemas.Batch], status_code=200)
 def get_all_batches(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     if current_user["role"] == "admin":
@@ -475,12 +545,24 @@ def create_new_batch(batch: schemas.Batch, db: Session = Depends(get_db), curren
     if db_teacher.role != "teacher":
         raise HTTPException(403, "Students are not allowed to create batches")
 
+    if batch.payment_cycle == "custom":
+        if not batch.custom_period_start or not batch.custom_period_end:
+            raise HTTPException(400, "Custom payment cycles require a start and end date")
+        if batch.custom_period_start >= batch.custom_period_end:
+            raise HTTPException(400, "Custom payment period must end after it starts")
+    elif batch.custom_period_start or batch.custom_period_end:
+        raise HTTPException(400, "Custom payment dates are only allowed for custom cycles")
+
     new_batch = models.Batch(
         code=batch.code.strip().upper(),
         name=batch.name,
         year=batch.year,
         schedule=batch.schedule,
         teacher_id=teacher_id,
+        fee_amount=batch.fee_amount,
+        payment_cycle=batch.payment_cycle,
+        fee_period_start=batch.custom_period_start,
+        fee_period_end=batch.custom_period_end,
     )
 
     db.add(new_batch)
@@ -496,9 +578,31 @@ def create_new_batch(batch: schemas.Batch, db: Session = Depends(get_db), curren
 @router.put("/batch/{batch_code}", response_model=schemas.Batch)
 def update_batch(batch_code: str, payload: BatchUpdate, db: Session = Depends(get_db), current_user = Depends(require_batch_teacher_or_admin)):
     batch = db.query(models.Batch).filter(models.Batch.code == batch_code).first()
+    if not batch:
+        raise HTTPException(404, "Batch not found")
+
+    if payload.fee_amount < 0:
+        raise HTTPException(400, "Fee amount cannot be negative")
+
+    if payload.payment_cycle not in ("monthly", "six-months", "custom"):
+        raise HTTPException(400, "Invalid payment cycle")
+
+    if payload.payment_cycle == "custom":
+        if not payload.custom_period_start or not payload.custom_period_end:
+            raise HTTPException(400, "Custom payment cycles require a start and end date")
+        if payload.custom_period_start >= payload.custom_period_end:
+            raise HTTPException(400, "Custom payment period must end after it starts")
+    elif payload.custom_period_start or payload.custom_period_end:
+        raise HTTPException(400, "Custom payment dates are only allowed for custom cycles")
+
     batch.name = payload.name
     batch.year = payload.year
     batch.schedule = payload.schedule
+    batch.fee_amount = payload.fee_amount
+    batch.payment_cycle = payload.payment_cycle
+    batch.fee_period_start = payload.custom_period_start
+    batch.fee_period_end = payload.custom_period_end
+
     db.commit()
     db.refresh(batch)
     return batch
@@ -554,6 +658,7 @@ def enroll_in_batch(batch_code, db: Session = Depends(get_db), current_user = De
     updated_batch_codes.append(batch_code)
     student.batch_codes = updated_batch_codes
 
+    _get_or_create_current_payment(student.id, batch, db)
     db.commit()
     db.refresh(student)
     return student
@@ -1153,3 +1258,64 @@ def create_moderator(payload: schemas.ModeratorCreate, db: Session = Depends(get
     moderator = models.User(name=payload.name.strip(), email=email, phone=payload.phone.strip(), password=hash_password(payload.password), role="moderator", plan=None, batch_codes=None)
     db.add(moderator); db.commit(); db.refresh(moderator)
     return {"id": moderator.id, "name": moderator.name, "email": moderator.email, "role": moderator.role}
+
+
+@router.get("/payments/teacher/{teacher_id}", response_model=List[schemas.Payment], status_code=200)
+def get_teacher_payments(
+    teacher_id: str,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_teacher_self_or_admin),
+):
+    batches = db.query(models.Batch).filter(models.Batch.teacher_id == teacher_id).all()
+    batch_codes = [batch.code for batch in batches]
+    if not batch_codes:
+        return []
+
+    students = db.query(models.User).filter(models.User.role == "student").all()
+    payments = []
+
+    for batch in batches:
+        for student in students:
+            if batch.code not in (student.batch_codes or []):
+                continue
+            payment = _get_or_create_current_payment(student.id, batch, db)
+            if payment:
+                payments.append(payment)
+
+    db.commit()
+    return payments
+
+
+@router.put("/payment/{student_id}/{batch_code}", response_model=schemas.Payment, status_code=200)
+def update_payment(
+    student_id: str,
+    batch_code: str,
+    payload: schemas.PaymentUpdate,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_teacher_or_admin),
+):
+    batch = db.query(models.Batch).filter(models.Batch.code == batch_code).first()
+    if not batch:
+        raise HTTPException(404, "Batch not found")
+
+    if current_user["role"] != "admin" and batch.teacher_id != current_user["user_id"]:
+        raise HTTPException(403, "You do not manage this batch")
+
+    student = db.query(models.User).filter(
+        models.User.id == student_id,
+        models.User.role == "student",
+    ).first()
+    if not student or batch_code not in (student.batch_codes or []):
+        raise HTTPException(404, "Student is not enrolled in this batch")
+
+    payment = _get_or_create_current_payment(student_id, batch, db)
+    if payment is None:
+        raise HTTPException(400, "This custom payment period has expired. Set a new period on the batch first")
+
+    payment.status = payload.status
+    payment.paid_at = datetime.utcnow() if payload.status == "paid" else None
+
+    db.commit()
+    db.refresh(payment)
+    return payment
+

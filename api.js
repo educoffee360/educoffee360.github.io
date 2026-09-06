@@ -307,6 +307,7 @@ async function Login(email, pass) {
 async function CreateNewBatch(batch = {}) {
   try {
     const teacher_id = requireId(batch.teacher_id, "teacher id");
+
     return await requestJson("/new_batch/", {
       method: "POST",
       body: {
@@ -315,6 +316,12 @@ async function CreateNewBatch(batch = {}) {
         schedule: batch.schedule,
         teacher_id,
         code: batch.code,
+
+        // Payment configuration
+        fee_amount: batch.fee_amount,
+        payment_cycle: batch.payment_cycle,
+        custom_period_start: batch.custom_period_start ?? null,
+        custom_period_end: batch.custom_period_end ?? null,
       },
     });
   } catch (error) {
@@ -331,6 +338,12 @@ async function UpdateBatch(code, batch) {
         name: batch.name,
         year: batch.year,
         schedule: batch.schedule,
+
+        // Payment configuration
+        fee_amount: batch.fee_amount,
+        payment_cycle: batch.payment_cycle,
+        custom_period_start: batch.custom_period_start ?? null,
+        custom_period_end: batch.custom_period_end ?? null,
       },
     });
   } catch (error) {
@@ -401,6 +414,34 @@ async function EnrollInBatch(batch_code) {
     return await requestJson(`/enroll/${requireId(batch_code, "batch code", null)}`, {
       method: "PUT",
     });
+  } catch (error) {
+    console.error(error.message);
+    throw error;
+  }
+}
+
+async function GetTeacherPayments(teacher_id = getCurrentUserId()) {
+  try {
+    return await requestJson(
+      `/payments/teacher/${requireId(teacher_id, "teacher id")}`
+    );
+  } catch (error) {
+    console.error(error.message);
+    throw error;
+  }
+}
+
+async function UpdatePayment(student_id, batch_code, status) {
+  try {
+    return await requestJson(
+      `/payment/${requireId(student_id, "student id")}/${requireId(batch_code, "batch code")}`,
+      {
+        method: "PUT",
+        body: {
+          status,
+        },
+      }
+    );
   } catch (error) {
     console.error(error.message);
     throw error;
@@ -648,6 +689,8 @@ function bindGlobals() {
     GetStudentsByBC,
     GetStudentsInBatch,
     EnrollInBatch,
+    GetTeacherPayments,
+    UpdatePayment,
     CreateResult,
     GetStudentResults,
     GetStudentResult,
