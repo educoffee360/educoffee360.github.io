@@ -4,11 +4,12 @@ from sqlalchemy import text
 import logging
 import os
 
-# Clean, explicit absolute imports
 import routes
-import models
+import models  
 from database import Base, engine, SessionLocal
 from security import hash_password
+
+from models import User, Batch, Notice, Result, StudentScore, ParentMessage, EmailOTP, UserDemographic, UserRestriction, PlanUpgradeRequest, BanRequest, EmailCampaign, Payment
 
 Base.metadata.create_all(bind=engine)
 
