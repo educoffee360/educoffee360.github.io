@@ -187,10 +187,12 @@ def _push_configured():
 
 
 def _send_push(subscription, payload):
+    logger.info("PUSH: attempting delivery")
     if not _push_configured():
         return False
 
     try:
+        logger.info("PUSH: calling webpush()")
         webpush(
             subscription_info={
                 "endpoint": subscription.endpoint,
@@ -205,6 +207,7 @@ def _send_push(subscription, payload):
                 "sub": os.getenv("VAPID_SUBJECT"),
             },
         )
+        logger.info("PUSH: webpush() succeeded")
         return True
 
     except WebPushException as exc:
