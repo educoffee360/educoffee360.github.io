@@ -948,11 +948,32 @@ def get_notices_for_student(student_id, db: Session = Depends(get_db), current_u
 
 
 @router.post("/new_notice", response_model=schemas.Notice, status_code=201)
-def create_new_notice(notice: schemas.Notice, db: Session = Depends(get_db), current_user = Depends(require_teacher_or_admin)):
-    teacher_id = notice.teacher_id if current_user["role"] == "admin" else current_user["user_id"]
-    owned_codes = {b.code for b in db.query(models.Batch).filter(models.Batch.teacher_id == teacher_id).all()}
-    if current_user["role"] != "admin" and any(code not in owned_codes for code in notice.batch_codes):
-        raise HTTPException(403, "Cannot publish to a batch you do not own")
+def create_new_notice(
+    notice: schemas.Notice,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_teacher_or_admin)
+):
+    teacher_id = (
+        notice.teacher_id
+        if current_user["role"] == "admin"
+        else current_user["user_id"]
+    )
+
+    owned_codes = {
+        b.code
+        for b in db.query(models.Batch)
+        .filter(models.Batch.teacher_id == teacher_id)
+        .all()
+    }
+
+    if current_user["role"] != "admin" and any(
+        code not in owned_codes for code in notice.batch_codes
+    ):
+        raise HTTPException(
+            403,
+            "Cannot publish to a batch you do not own"
+        )
+
     new_notice = models.Notice(
         text=notice.text,
         teacher_id=teacher_id,
@@ -963,27 +984,47 @@ def create_new_notice(notice: schemas.Notice, db: Session = Depends(get_db), cur
     db.add(new_notice)
     db.commit()
     db.refresh(new_notice)
-    
-    # Send a real device notification to every enrolled student's
-    # registered devices. Push failures must not make notice creation fail.
+
+    # ---------------- PUSH NOTIFICATION DEBUG ----------------
+
     students = db.query(models.User).filter(
         models.User.role == "student"
     ).all()
-    
+
     target_batches = set(notice.batch_codes or [])
     expired_subscriptions = []
-    
+
+    logger.info("PUSH DEBUG: target_batches=%s", target_batches)
+    logger.info("PUSH DEBUG: total students=%d", len(students))
+
     for student in students:
         student_batches = set(student.batch_codes or [])
-    
+
+        logger.info(
+            "PUSH DEBUG: student batches=%s",
+            student.batch_codes
+        )
+
         if not target_batches.intersection(student_batches):
+            logger.info(
+                "PUSH DEBUG: batch mismatch, skipping student"
+            )
             continue
-    
+
+        logger.info("PUSH DEBUG: MATCHING STUDENT FOUND")
+
         subscriptions = db.query(models.PushSubscription).filter(
             models.PushSubscription.user_id == student.id
         ).all()
-    
+
+        logger.info(
+            "PUSH DEBUG: matching student has %d subscriptions",
+            len(subscriptions)
+        )
+
         for subscription in subscriptions:
+            logger.info("PUSH: attempting delivery")
+
             result = _send_push(
                 subscription,
                 {
@@ -997,6 +1038,7 @@ def create_new_notice(notice: schemas.Notice, db: Session = Depends(get_db), cur
             if result == "expired":
                 expired_subscriptions.append(subscription)
 
+    # Remove expired subscriptions
     for subscription in expired_subscriptions:
         db.delete(subscription)
 
