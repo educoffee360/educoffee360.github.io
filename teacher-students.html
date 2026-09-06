@@ -81,7 +81,7 @@
         .btn-o svg{width:15px;height:15px}
 
         /* ── STATS ── */
-        .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+        .stats-row{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:24px}
         .sc{background:var(--card);border-radius:16px;padding:15px 16px;border:1px solid var(--border);box-shadow:var(--sh);display:flex;align-items:center;gap:11px;transition:all .3s}
         .sc:hover{transform:translateY(-2px);box-shadow:var(--shl)}
         .sc-ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -150,6 +150,15 @@
         .sfb-view:hover{background:rgba(62,39,35,.12)}
         .sfb-rem{background:#FFF5F5;color:var(--fail);flex:0;padding:8px 10px}
         .sfb-rem:hover{background:#FFEBEE}
+
+
+.payment-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font-size:.68rem;font-weight:700}
+.payment-paid{background:#E8F5E9;color:#2E7D32}
+.payment-due{background:#FFF8E1;color:#A15C00}
+.payment-overdue{background:#FFEBEE;color:#C62828}
+.payment-none{background:rgba(62,39,35,.06);color:var(--muted)}
+.payment-actions{display:flex;gap:5px;align-items:center}
+.payment-amount{font-size:.72rem;color:var(--muted);margin-top:3px}
 
         /* ── TABLE VIEW ── */
         .table-wrap{display:none;background:var(--card);border-radius:20px;border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden}
@@ -264,7 +273,7 @@
         .bna.active{color:var(--coffee)}
         .bna svg{width:21px;height:21px}
 
-        @media(max-width:1200px){.stats-row{grid-template-columns:repeat(3,1fr)}}
+        @media(max-width:1200px){.stats-row{grid-template-columns:repeat(4,1fr)}}
         @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}}
         @media(max-width:768px){
             .sidebar{transform:translateX(-100%);width:260px}
@@ -328,6 +337,14 @@
 <div class="sc-ic si4"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
 <div><div class="sc-num" id="stAvg">—</div><div class="sc-lbl">Class Average</div></div>
 </div>
+<div class="sc">
+<div class="sc-ic si2"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M8 12h8"></path></svg></div>
+<div><div class="sc-num" id="stPayment">—</div><div class="sc-lbl">Dues / Paid</div></div>
+</div>
+<div class="sc">
+<div class="sc-ic si5"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 7v5l3 2"></path></svg></div>
+<div><div class="sc-num" id="stOverdue">—</div><div class="sc-lbl">Overdue</div></div>
+</div>
 </div>
 <!-- TOOLBAR -->
 <div class="toolbar">
@@ -378,6 +395,7 @@
 <th>Rank</th>
 <th>Trend</th>
 <th>Absent</th>
+<th>Payment</th>
 <th>Actions</th>
 </tr></thead>
 <tbody id="tableBody"></tbody>
@@ -531,6 +549,16 @@
 </div>
 </div>
 </div>
+<div class="modal-overlay" id="paymentModal">
+<div class="modal-box">
+<div class="mh"><h2>Update Payment</h2><button class="mcl" onclick="closePaymentModal()">✕</button></div>
+<div class="mbody">
+<div id="paymentModalStudent" style="font-weight:700;color:var(--coffee);margin-bottom:14px"></div>
+<div class="fg"><label>Batch</label><select id="paymentBatchSel" onchange="refreshPaymentModalInfo()"></select></div>
+<div id="paymentModalInfo" class="fg-info" style="margin-bottom:14px"></div>
+<div class="fg"><label>Status</label><select id="paymentStatusSel"><option value="paid">Paid</option><option value="unpaid">Due / Unpaid</option><option value="overdue">Overdue</option></select></div>
+<button class="btn-modal" id="paymentSaveBtn" onclick="savePaymentStatus()">Save Payment Status</button>
+</div></div></div>
 <div class="toast" id="toast"></div>
 <script src="api.js"></script>
 <script src="/shared_shell.js"></script><script>
@@ -578,6 +606,84 @@ let currentStudent   = null;
 let dpChartInst      = null;
 let sortKey          = 'name';
 let miniChartInsts   = {};
+let paymentByStudent = {};
+let paymentModalStudent = null;
+
+function getStudentPayments(student) {
+    return paymentByStudent[String(student.id)] || [];
+}
+
+function paymentSummary(student) {
+    const payments = getStudentPayments(student);
+    if (!payments.length) return { status: 'none', due: 0, paid: 0, overdue: 0 };
+    const due = payments.filter(p => p.status === 'unpaid').reduce((n,p) => n + Number(p.amount || 0), 0);
+    const paid = payments.filter(p => p.status === 'paid').reduce((n,p) => n + Number(p.amount || 0), 0);
+    const overdue = payments.filter(p => p.status === 'overdue').reduce((n,p) => n + Number(p.amount || 0), 0);
+    const status = overdue > 0 ? 'overdue' : due > 0 ? 'unpaid' : 'paid';
+    return { status, due, paid, overdue, count: payments.length };
+}
+
+function paymentBadge(student) {
+    const p = paymentSummary(student);
+    if (p.status === 'overdue') return `<span class="payment-badge payment-overdue">Overdue · ৳${p.overdue.toLocaleString()}</span>`;
+    if (p.status === 'unpaid') return `<span class="payment-badge payment-due">Due · ৳${p.due.toLocaleString()}</span>`;
+    if (p.status === 'paid') return `<span class="payment-badge payment-paid">Paid · ৳${p.paid.toLocaleString()}</span>`;
+    return `<span class="payment-badge payment-none">No payment set</span>`;
+}
+
+function openPaymentModal(id) {
+    const student = allStudents.find(s => String(s.id) === String(id));
+    if (!student) return;
+    paymentModalStudent = student;
+    document.getElementById('paymentModalStudent').textContent = student.name;
+    const sel = document.getElementById('paymentBatchSel');
+    sel.innerHTML = (student.batch_codes || []).map(code => {
+        const b = batches.find(x => x.code === code);
+        return `<option value="${escAttr(code)}">${escHtml(b?.name || code)}</option>`;
+    }).join('');
+    refreshPaymentModalInfo();
+    document.getElementById('paymentModal').classList.add('open');
+}
+
+function refreshPaymentModalInfo() {
+    if (!paymentModalStudent) return;
+    const code = document.getElementById('paymentBatchSel').value;
+    const payments = getStudentPayments(paymentModalStudent).filter(p => p.batch_code === code);
+    const latest = [...payments].sort((a,b) => new Date(b.period_end) - new Date(a.period_end))[0];
+    if (!latest) {
+        document.getElementById('paymentModalInfo').textContent = 'No active payment period is configured for this batch yet.';
+        return;
+    }
+    document.getElementById('paymentStatusSel').value = latest.status;
+    document.getElementById('paymentModalInfo').textContent = `৳${Number(latest.amount || 0).toLocaleString()} · ${new Date(latest.period_start).toLocaleDateString()} → ${new Date(latest.period_end).toLocaleDateString()}`;
+}
+
+function closePaymentModal() {
+    document.getElementById('paymentModal').classList.remove('open');
+    paymentModalStudent = null;
+}
+
+async function savePaymentStatus() {
+    if (!paymentModalStudent) return;
+    const code = document.getElementById('paymentBatchSel').value;
+    const status = document.getElementById('paymentStatusSel').value;
+    const btn = document.getElementById('paymentSaveBtn');
+    btn.disabled = true;
+    try {
+        const updated = await UpdatePayment(paymentModalStudent.id, code, status);
+        const arr = paymentByStudent[String(paymentModalStudent.id)] || [];
+        const idx = arr.findIndex(p => p.batch_code === updated.batch_code && p.period_start === updated.period_start && p.period_end === updated.period_end);
+        if (idx >= 0) arr[idx] = updated; else arr.push(updated);
+        paymentByStudent[String(paymentModalStudent.id)] = arr;
+        closePaymentModal();
+        updateStats();
+        renderGrid();
+        renderTable();
+        showToast('Payment status updated ✓');
+    } catch (err) {
+        showToast(err.message || 'Could not update payment.', true);
+    } finally { btn.disabled = false; }
+}
 
 /* ── COMPUTE STATS from _scores ── */
 function computeAvg(scores) {
@@ -633,6 +739,12 @@ function updateStats() {
     document.getElementById('stDeclining').textContent = declining;
     document.getElementById('stAtRisk').textContent    = atRisk;
     document.getElementById('stAvg').textContent       = classAvg !== null ? classAvg + '%' : '—';
+    const currentPayments = allStudents.flatMap(s => getStudentPayments(s));
+    const dueCount = currentPayments.filter(p => p.status === 'unpaid').length;
+    const paidCount = currentPayments.filter(p => p.status === 'paid').length;
+    const overdueCount = currentPayments.filter(p => p.status === 'overdue').length;
+    document.getElementById('stPayment').textContent = `${dueCount} / ${paidCount}`;
+    document.getElementById('stOverdue').textContent = overdueCount;
 }
 
 /* ── APPLY FILTERS + SORT ── */
@@ -731,6 +843,7 @@ function renderGrid() {
                     </span>
                 </div>
                 <div class="sc-row"><span class="sc-lbl2">Exams Taken</span><span class="sc-val">${(s._scores||[]).length}</span></div>
+                <div class="sc-row"><span class="sc-lbl2">Payment</span><span class="sc-val">${paymentBadge(s)}</span></div>
                 <div class="sc-row"><span class="sc-lbl2">Absences</span>
                     <span class="sc-val" style="color:${absent>0?'var(--fail)':'var(--pass)'}">${absent}</span>
                 </div>
@@ -741,6 +854,7 @@ function renderGrid() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                     Message
                 </button>
+                <button class="sf-btn sfb-view" onclick="openPaymentModal('${s.id}')">💳 Payment</button>
                 <button class="sf-btn sfb-view" onclick="openDetail('${s.id}')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                     Details
@@ -790,7 +904,7 @@ function openMessageById(id) {
 function renderTable() {
     const tbody = document.getElementById('tableBody');
     if (!filteredStudents.length) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--muted)">No students found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:36px;color:var(--muted)">No students found.</td></tr>`;
         return;
     }
     tbody.innerHTML = filteredStudents.map((s, idx) => {
@@ -822,9 +936,11 @@ function renderTable() {
             <td style="font-size:.82rem;color:var(--muted)">${rank}</td>
             <td>${trendHtml}</td>
             <td style="font-size:.82rem;color:${absent>0?'var(--fail)':'var(--muted)'};font-weight:${absent>0?700:400}">${absent}</td>
+            <td>${paymentBadge(s)}</td>
             <td>
                 <div class="tbl-actions">
                     <button class="ta-btn" onclick="openDetail('${s.id}')" style="background:rgba(62,39,35,.07);color:var(--coffee)">View</button>
+                    <button class="ta-btn" onclick="openPaymentModal('${s.id}')" style="background:var(--cl);color:var(--caramel)">💳</button>
                     <button class="ta-btn" onclick="openMessageById('${s.id}')" style="background:var(--cl);color:var(--caramel)">📧</button>
                     <button class="ta-btn" onclick="removeStudent('${s.id}')" style="background:#FFF5F5;color:var(--fail)">🗑</button>
                 </div>
@@ -1094,7 +1210,7 @@ function doLogout() {
 }
 
 /* Close modals on backdrop click */
-['msgModal','broadcastModal','addModal'].forEach(id => {
+['msgModal','broadcastModal','addModal','paymentModal'].forEach(id => {
     document.getElementById(id).addEventListener('click', e => {
         if (e.target === document.getElementById(id)) document.getElementById(id).classList.remove('open');
     });
@@ -1130,9 +1246,23 @@ async function init() {
 
         /* batches */
         batches = await GetBatchesByTID();
+        const now = new Date();
+        const expiredCustom = batches.find(b => b.payment_cycle === 'custom' && b.custom_period_end && new Date(b.custom_period_end) < now);
+        if (expiredCustom) {
+            showToast(`Custom payment period ended for ${expiredCustom.name}. Edit the batch to set a new period.`, true);
+        }
 
         /* students */
         const students = await GetMyStudents();
+
+        /* payment records for current teacher */
+        const payments = await GetTeacherPayments(teacherId);
+        paymentByStudent = {};
+        (payments || []).forEach(payment => {
+            const key = String(payment.student_id);
+            if (!paymentByStudent[key]) paymentByStudent[key] = [];
+            paymentByStudent[key].push(payment);
+        });
 
         /* attach scores + batch names */
         allStudents = await Promise.all(
