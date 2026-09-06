@@ -597,6 +597,19 @@
 
 const COLORS = ['#3E2723','#5D4037','#C68642','#795548','#8D6E63','#4E342E','#6D4C41'];
 
+function escHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function escAttr(value) {
+    return escHtml(value);
+}
+
 /* ── STATE ── */
 let allStudents      = [];   /* set by API layer */
 let batches          = [];   /* set by API layer */
