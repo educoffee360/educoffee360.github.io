@@ -11,7 +11,7 @@ from security import hash_password
 
 from models import User, Batch, Notice, Result, StudentScore, ParentMessage, EmailOTP, UserDemographic, UserRestriction, PlanUpgradeRequest, BanRequest, EmailCampaign, Payment
 
-Base.metadata.create_all(bind=engine)
+#Base.metadata.create_all(bind=engine)
 
 logger = logging.getLogger(__name__)
 
