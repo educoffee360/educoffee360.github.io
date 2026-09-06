@@ -20,6 +20,17 @@ def migrate_user_roles() -> None:
     if engine.dialect.name != "postgresql":
         return
     with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as connection:
+        # 1. Safely initialize the type object if it's completely missing from Supabase
+        connection.execute(text("""
+            DO $$ 
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+                    CREATE TYPE user_role AS ENUM ('teacher', 'student');
+                END IF;
+            END $$;
+        """))
+
+        # 2. Inspect active values
         existing_roles = {
             row[0]
             for row in connection.execute(text(
@@ -28,13 +39,13 @@ def migrate_user_roles() -> None:
                 "WHERE t.typname='user_role'"
             ))
         }
+        
+        # 3. Inject missing values seamlessly
         for role_name in ("admin", "moderator"):
             if role_name not in existing_roles:
                 connection.execute(text(f"ALTER TYPE user_role ADD VALUE '{role_name}'"))
 
-
 migrate_user_roles()
-
 
 def migrate_legacy_plaintext_passwords() -> None:
     db = SessionLocal()
