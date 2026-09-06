@@ -205,6 +205,35 @@
 <button class="save-btn" id="studentPasswordBtn" onclick="changeStudentPassword()">Change Password</button>
 </div>
 </div>
+
+<!-- Notifications -->
+<div class="sec-card">
+    <div class="sec-card-header">
+        <div class="sec-card-title">
+            🔔 Notifications
+        </div>
+    </div>
+
+    <div class="sec-card-body">
+        <p style="color:var(--muted);font-size:.85rem;margin-bottom:14px">
+            Receive EduCoffee notices directly on this device, even when EduCoffee isn't open.
+        </p>
+
+        <button
+            class="save-btn"
+            id="enableNotificationsBtn"
+            onclick="enableStudentNotifications()"
+        >
+            Enable Notifications
+        </button>
+
+        <p
+            id="notificationStatus"
+            style="font-size:.78rem;margin-top:10px"
+        ></p>
+    </div>
+</div>
+
 <!-- Danger Zone -->
 <div class="sec-card">
 <div class="sec-card-header">
@@ -317,6 +346,28 @@ async function saveProfile() {
     } finally {
         btn.disabled = false;
         btn.innerHTML = 'Save Changes';
+    }
+}
+
+async function enableStudentNotifications() {
+    const btn = document.getElementById('enableNotificationsBtn');
+    const status = document.getElementById('notificationStatus');
+
+    btn.disabled = true;
+    btn.textContent = 'Enabling…';
+    status.textContent = '';
+
+    try {
+        await EnablePushNotifications();
+
+        btn.textContent = 'Notifications Enabled ✓';
+        status.textContent = 'You will now receive EduCoffee notices on this device.';
+        status.style.color = '#2E7D32';
+    } catch (error) {
+        btn.disabled = false;
+        btn.textContent = 'Enable Notifications';
+        status.textContent = error?.message || 'Could not enable notifications.';
+        status.style.color = '#C62828';
     }
 }
 

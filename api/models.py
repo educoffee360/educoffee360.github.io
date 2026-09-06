@@ -72,6 +72,18 @@ class Notice(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     batch_codes = Column(JSON)
 
+class PushSubscription(Base):
+    __tablename__ = 'push_subscriptions'
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey('users.id'), nullable=False, index=True)
+
+    endpoint = Column(String, nullable=False, unique=True)
+    p256dh = Column(String, nullable=False)
+    auth = Column(String, nullable=False)
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
 class Result(Base):
     __tablename__ = 'results'
 

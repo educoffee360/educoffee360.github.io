@@ -67,6 +67,7 @@ python-docx==1.2.0
 python-dotenv==1.2.1
 python-jose==3.5.0
 python-multipart==0.0.21
+pywebpush==2.5.0
 PyYAML==6.0.3
 regex==2026.1.15
 reportlab==4.4.9

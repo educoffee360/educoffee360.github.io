@@ -15,6 +15,13 @@ from database import get_db
 from security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
 from email_service import EmailDeliveryError, send_email_otp, send_staff_emails
 
+import json
+
+from pywebpush import webpush, WebPushException
+
+import logging
+logger = logging.getLogger(__name__)
+
 from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
@@ -166,6 +173,57 @@ def require_notice_owner_or_admin(notice_id: str, db: Session = Depends(get_db),
 def get_all_users(db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
     return db.query(models.User).all()
 
+class PushSubscriptionPayload(BaseModel):
+    endpoint: str
+    keys: dict
+
+
+def _push_configured():
+    return bool(
+        os.getenv("VAPID_PUBLIC_KEY")
+        and os.getenv("VAPID_PRIVATE_KEY")
+        and os.getenv("VAPID_SUBJECT")
+    )
+
+
+def _send_push(subscription, payload):
+    if not _push_configured():
+        return False
+
+    try:
+        webpush(
+            subscription_info={
+                "endpoint": subscription.endpoint,
+                "keys": {
+                    "p256dh": subscription.p256dh,
+                    "auth": subscription.auth,
+                },
+            },
+            data=json.dumps(payload),
+            vapid_private_key=os.getenv("VAPID_PRIVATE_KEY"),
+            vapid_claims={
+                "sub": os.getenv("VAPID_SUBJECT"),
+            },
+        )
+        return True
+
+    except WebPushException as exc:
+        status_code = getattr(
+            getattr(exc, "response", None),
+            "status_code",
+            None,
+        )
+
+        # Subscription is no longer valid.
+        if status_code in (404, 410):
+            return "expired"
+
+        logger.exception("Web push delivery failed")
+        return False
+
+    except Exception:
+        logger.exception("Web push delivery failed")
+        return False
 
 @router.get("/user/{user_id}", response_model=schemas.UserResponse, status_code=200)
 def get_user_by_id(user_id, db: Session = Depends(get_db), current_user = Depends(require_self_or_admin)):
@@ -902,6 +960,45 @@ def create_new_notice(notice: schemas.Notice, db: Session = Depends(get_db), cur
     db.add(new_notice)
     db.commit()
     db.refresh(new_notice)
+    
+    # Send a real device notification to every enrolled student's
+    # registered devices. Push failures must not make notice creation fail.
+    students = db.query(models.User).filter(
+        models.User.role == "student"
+    ).all()
+    
+    target_batches = set(notice.batch_codes or [])
+    expired_subscriptions = []
+    
+    for student in students:
+        student_batches = set(student.batch_codes or [])
+    
+        if not target_batches.intersection(student_batches):
+            continue
+    
+        subscriptions = db.query(models.PushSubscription).filter(
+            models.PushSubscription.user_id == student.id
+        ).all()
+    
+        for subscription in subscriptions:
+            result = _send_push(
+                subscription,
+                {
+                    "title": "New notice from EduCoffee",
+                    "body": new_notice.text[:180],
+                    "url": "/student-notices.html",
+                    "tag": f"notice-{new_notice.id}",
+                },
+            )
+
+            if result == "expired":
+                expired_subscriptions.append(subscription)
+
+    for subscription in expired_subscriptions:
+        db.delete(subscription)
+
+    db.commit()
+
     return new_notice
 
 @router.put("/notice/{notice_id}", response_model=schemas.Notice, status_code=200)
@@ -945,6 +1042,73 @@ def get_my_notices(teacher_id, db: Session = Depends(get_db), current_user = Dep
     
     return notices
 
+@router.get("/push/public-key")
+def get_push_public_key(
+    current_user = Depends(require_student),
+):
+    public_key = os.getenv("VAPID_PUBLIC_KEY")
+
+    if not public_key:
+        raise HTTPException(
+            503,
+            "Push notifications are not configured yet."
+        )
+
+    return {"public_key": public_key}
+
+
+@router.post("/push/subscribe")
+def subscribe_to_push(
+    payload: PushSubscriptionPayload,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_student),
+):
+    endpoint = payload.endpoint.strip()
+    keys = payload.keys or {}
+
+    p256dh = keys.get("p256dh")
+    auth = keys.get("auth")
+
+    if not endpoint or not p256dh or not auth:
+        raise HTTPException(400, "Invalid push subscription")
+
+    existing = db.query(models.PushSubscription).filter(
+        models.PushSubscription.endpoint == endpoint
+    ).first()
+
+    if existing:
+        existing.user_id = current_user["user_id"]
+        existing.p256dh = p256dh
+        existing.auth = auth
+    else:
+        db.add(models.PushSubscription(
+            user_id=current_user["user_id"],
+            endpoint=endpoint,
+            p256dh=p256dh,
+            auth=auth,
+        ))
+
+    db.commit()
+
+    return {"message": "Push notifications enabled"}
+
+
+@router.delete("/push/subscribe")
+def unsubscribe_from_push(
+    payload: PushSubscriptionPayload,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_student),
+):
+    subscription = db.query(models.PushSubscription).filter(
+        models.PushSubscription.user_id == current_user["user_id"],
+        models.PushSubscription.endpoint == payload.endpoint,
+    ).first()
+
+    if subscription:
+        db.delete(subscription)
+        db.commit()
+
+    return {"message": "Push notifications disabled"}
 
 def _parent_message_response(message, teacher_name: str):
     return {

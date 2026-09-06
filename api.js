@@ -650,6 +650,76 @@ async function CreateModerator(data) {
   return requestJson("/staff/moderators", { method: "POST", body: data });
 }
 
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = atob(base64);
+
+  return Uint8Array.from(
+    [...rawData].map(char => char.charCodeAt(0))
+  );
+}
+
+async function GetPushPublicKey() {
+  return requestJson("/push/public-key");
+}
+
+async function EnablePushNotifications() {
+  if (!("serviceWorker" in navigator)) {
+    throw new Error("This browser does not support service workers.");
+  }
+
+  if (!("PushManager" in window)) {
+    throw new Error("This browser does not support push notifications.");
+  }
+
+  if (!("Notification" in window)) {
+    throw new Error("This browser does not support notifications.");
+  }
+
+  const permission = await Notification.requestPermission();
+
+  if (permission !== "granted") {
+    throw new Error("Notification permission was not granted.");
+  }
+
+  const registration = await navigator.serviceWorker.ready;
+  const { public_key } = await GetPushPublicKey();
+
+  let subscription = await registration.pushManager.getSubscription();
+
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(public_key),
+    });
+  }
+
+  await requestJson("/push/subscribe", {
+    method: "POST",
+    body: subscription.toJSON(),
+  });
+
+  return subscription;
+}
+
+async function DisablePushNotifications() {
+  const registration = await navigator.serviceWorker.ready;
+  const subscription = await registration.pushManager.getSubscription();
+
+  if (!subscription) return;
+
+  await requestJson("/push/subscribe", {
+    method: "DELETE",
+    body: subscription.toJSON(),
+  });
+
+  await subscription.unsubscribe();
+}
+
 function bindGlobals() {
   Object.assign(globalThis, {
     api_url,
@@ -724,6 +794,9 @@ function bindGlobals() {
     DecideBanRequest,
     SendStaffEmail,
     CreateModerator,
+    GetPushPublicKey,
+    EnablePushNotifications,
+    DisablePushNotifications,
   });
 }
 

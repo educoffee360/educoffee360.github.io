@@ -9,7 +9,22 @@ import models
 from database import Base, engine, SessionLocal
 from security import hash_password
 
-from models import User, Batch, Notice, Result, StudentScore, ParentMessage, EmailOTP, UserDemographic, UserRestriction, PlanUpgradeRequest, BanRequest, EmailCampaign, Payment
+from models import (
+    User,
+    Batch,
+    Notice,
+    Result,
+    StudentScore,
+    ParentMessage,
+    EmailOTP,
+    UserDemographic,
+    UserRestriction,
+    PlanUpgradeRequest,
+    BanRequest,
+    EmailCampaign,
+    Payment,
+    PushSubscription,
+)
 
 #Base.metadata.create_all(bind=engine)
 
@@ -75,6 +90,16 @@ def ensure_payment_table() -> None:
 
 ensure_payment_table()
 
+def ensure_push_subscription_table() -> None:
+    """Create the push subscription table if this deployment does not have it yet."""
+    try:
+        PushSubscription.__table__.create(bind=engine, checkfirst=True)
+    except Exception:
+        logger.exception("Could not create the push subscriptions table")
+        raise
+
+
+ensure_push_subscription_table()
 
 def bootstrap_admin() -> None:
     """Create the first admin from private Render environment variables."""
