@@ -9,22 +9,18 @@ import hmac
 import os
 import secrets
 
-try:
-    from . import schemas, models
-    from .database import get_db
-    from .security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
-    from .email_service import EmailDeliveryError, send_email_otp, send_staff_emails
-except ImportError:  # Support `uvicorn main:app` when launched inside api/.
-    import schemas
-    import models
-    from database import get_db
-    from security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
-    from email_service import EmailDeliveryError, send_email_otp, send_staff_emails
+import schemas
+import models
+from database import get_db
+from security import hash_password, verify_password, needs_rehash, create_access_token, decode_access_token
+from email_service import EmailDeliveryError, send_email_otp, send_staff_emails
+
 from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 
 router = APIRouter(prefix="/api")
+
 
 class BatchUpdate(BaseModel):
     name: str
