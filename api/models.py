@@ -18,7 +18,6 @@ class User(Base):
     phone = Column(String)
     password = Column(String)
     
-    # FIX: Added name='user_role'
     role = Column(Enum('teacher', 'student', 'admin', 'moderator', name='user_role'))
     
     batch_codes = Column(JSON, nullable=True)
