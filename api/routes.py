@@ -26,7 +26,6 @@ from jose import JWTError
 
 router = APIRouter(prefix="/api")
 
-
 class BatchUpdate(BaseModel):
     name: str
     year: str
