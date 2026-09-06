@@ -4,20 +4,15 @@ from sqlalchemy import text
 import logging
 import os
 
-try:
-    from . import routes, models
-    from .database import Base, engine, SessionLocal
-    from .security import hash_password
-except ImportError:  # Support `uvicorn main:app` when launched inside api/.
-    import routes
-    import models
-    from database import Base, engine, SessionLocal
-    from security import hash_password
+# Clean, explicit absolute imports
+import routes
+import models
+from database import Base, engine, SessionLocal
+from security import hash_password
 
 Base.metadata.create_all(bind=engine)
 
 logger = logging.getLogger(__name__)
-
 
 def migrate_user_roles() -> None:
     """Keep the existing PostgreSQL enum compatible with all supported roles."""
