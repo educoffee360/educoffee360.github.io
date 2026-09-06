@@ -1,4 +1,4 @@
-const CACHE_NAME = 'educoffee-cache-v2';
+const CACHE_NAME = 'educoffee-cache-v3';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache immediately for offline capability
