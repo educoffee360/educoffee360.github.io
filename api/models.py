@@ -40,6 +40,7 @@ class Batch(Base):
     payment_cycle = Column(
         Enum("monthly", "six-months", "custom"),
         nullable=False,
+        name="payment_cycle",
         default="monthly"
     )
 
@@ -175,7 +176,7 @@ class Payment(Base):
     student_id = Column(String, ForeignKey('users.id'), nullable=False)
     batch_code = Column(String, ForeignKey('batches.code'), nullable=False)
 
-    status = Column(Enum("unpaid", "paid", "overdue"), default="unpaid", nullable=False)
+    status = Column(Enum("unpaid", "paid", "overdue"), name="payment_status", default="unpaid", nullable=False)
     paid_at = Column(DateTime, nullable=True)
 
     period_start = Column(DateTime, nullable=False)
