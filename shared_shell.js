@@ -13,6 +13,7 @@
     "teacher-batches.html": { layout: "teacher", title: "Batches | EduCoffee" },
     "teacher-students.html": { layout: "teacher", title: "Students | EduCoffee" },
     "teacher-notices.html": { layout: "teacher", title: "Teacher Notices | EduCoffee" },
+    "attendance.html": { layout: "teacher", title: "Attendance Panel | EduCoffee" },
     "teacher-results.html": { layout: "teacher", title: "Teacher Results | EduCoffee" },
     "teacher-profile.html": { layout: "teacher", title: "Teacher Profile | EduCoffee" },
   };

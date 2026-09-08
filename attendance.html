@@ -197,11 +197,8 @@
     </style>
 <script defer="True" src="/shared_head.js"></script></head>
 <body data-ec-layout="teacher" data-ec-page="teacher-attendance">
-<!-- ── SIDEBAR ── -->
-<!-- ── MOBILE HEADER ── -->
-<!-- ── MAIN ── -->
-<div data-ec-layout="teacher" data-ec-page="teacher-attendance" id="ec-shell"></div><main class="main">
-<!-- TOPBAR -->
+<div data-ec-layout="teacher" data-ec-page="teacher-attendance" id="ec-shell"></div>
+<main class="main">
 <div class="topbar ani">
 <div class="tl">
 <h1>Attendance Panel</h1>
@@ -210,17 +207,11 @@
 <div class="tactions">
 <a class="btn-outline" href="teacher-students.html">
 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
-                My Students
-            </a>
+My Students
+</a>
 </div>
 </div>
 
-<!--
-    ATTENDANCE FILTERS
-    Fields: date (input[type=date]), class, batch_code
-    Suggested API: GET /api/my_students?batch_code={code}&date={date}
-    onchange/submit handlers to be wired by the backend team
--->
 <div class="card filter-card ani d1">
 <div class="ch"><div class="ctitle">Select Batch</div></div>
 <div class="cbody">
@@ -250,24 +241,18 @@
 </select>
 </div>
 <button class="btn-primary" type="submit">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-                    Find Students
-                </button>
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linewidth="2.5" viewbox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+Find Students
+</button>
 </form>
 </div>
 </div>
 
-<!--
-    ATTENDANCE LIST
-    Student model fields: roll, name, student_id, status (present|absent)
-    Rendered into #attendanceRows (desktop) / #attendanceCards (mobile) by the API layer
-    Suggested API: POST /api/attendance  { batch_code, date, records:[{student_id,status}] }
--->
 <div class="card ani d2">
 <div class="ch">
 <div>
-<div class="ctitle">Batch A — Morning</div>
-<div class="csub">Class 8 · 24 students enrolled</div>
+<div class="ctitle" id="attendanceBatchTitle">Batch A — Morning</div>
+<div class="csub" id="attendanceSubTitle">Class 8 · 24 students enrolled</div>
 </div>
 <a class="see-all" href="teacher-students.html">View roster →</a>
 </div>
@@ -281,267 +266,16 @@
 <th class="status-col">Status</th>
 </tr>
 </thead>
-<tbody id="attendanceRows">
-<tr>
-<td class="att-roll">01</td>
-<td>
-<div class="student-cell">
-<div class="sav">A</div>
-<div>
-<div class="sname">Ayesha Rahman</div>
-<div class="sguardian">Guardian: M. Rahman</div>
-</div>
-</div>
-</td>
-<td class="status-col">
-<div class="status-toggle">
-<input checked="" class="p-radio" id="p-1" name="status-1" type="radio"/>
-<label for="p-1">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                Present
-                            </label>
-<input class="a-radio" id="a-1" name="status-1" type="radio"/>
-<label for="a-1">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
-                                Not Present
-                            </label>
-</div>
-</td>
-</tr>
-<tr>
-<td class="att-roll">02</td>
-<td>
-<div class="student-cell">
-<div class="sav">T</div>
-<div>
-<div class="sname">Tanvir Ahmed</div>
-<div class="sguardian">Guardian: S. Ahmed</div>
-</div>
-</div>
-</td>
-<td class="status-col">
-<div class="status-toggle">
-<input class="p-radio" id="p-2" name="status-2" type="radio"/>
-<label for="p-2">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                Present
-                            </label>
-<input checked="" class="a-radio" id="a-2" name="status-2" type="radio"/>
-<label for="a-2">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
-                                Not Present
-                            </label>
-</div>
-</td>
-</tr>
-<tr>
-<td class="att-roll">03</td>
-<td>
-<div class="student-cell">
-<div class="sav">N</div>
-<div>
-<div class="sname">Nusrat Jahan</div>
-<div class="sguardian">Guardian: K. Jahan</div>
-</div>
-</div>
-</td>
-<td class="status-col">
-<div class="status-toggle">
-<input checked="" class="p-radio" id="p-3" name="status-3" type="radio"/>
-<label for="p-3">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                Present
-                            </label>
-<input class="a-radio" id="a-3" name="status-3" type="radio"/>
-<label for="a-3">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
-                                Not Present
-                            </label>
-</div>
-</td>
-</tr>
-<tr>
-<td class="att-roll">04</td>
-<td>
-<div class="student-cell">
-<div class="sav">R</div>
-<div>
-<div class="sname">Rakib Hasan</div>
-<div class="sguardian">Guardian: F. Hasan</div>
-</div>
-</div>
-</td>
-<td class="status-col">
-<div class="status-toggle">
-<input checked="" class="p-radio" id="p-4" name="status-4" type="radio"/>
-<label for="p-4">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                Present
-                            </label>
-<input class="a-radio" id="a-4" name="status-4" type="radio"/>
-<label for="a-4">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
-                                Not Present
-                            </label>
-</div>
-</td>
-</tr>
-<tr>
-<td class="att-roll">05</td>
-<td>
-<div class="student-cell">
-<div class="sav">S</div>
-<div>
-<div class="sname">Sadia Islam</div>
-<div class="sguardian">Guardian: N. Islam</div>
-</div>
-</div>
-</td>
-<td class="status-col">
-<div class="status-toggle">
-<input class="p-radio" id="p-5" name="status-5" type="radio"/>
-<label for="p-5">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                Present
-                            </label>
-<input checked="" class="a-radio" id="a-5" name="status-5" type="radio"/>
-<label for="a-5">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
-                                Not Present
-                            </label>
-</div>
-</td>
-</tr>
-</tbody>
+<tbody id="attendanceRows"></tbody>
 </table>
-
-<!-- Mobile card list — mirrors #attendanceRows for <720px, IDs kept separate (m-*) -->
-<div class="att-list" id="attendanceCards">
-<div class="att-row-card">
-<div class="arc-top">
-<div class="student-cell">
-<div class="sav">A</div>
-<div>
-<div class="sname">Ayesha Rahman</div>
-<div class="sguardian">Roll 01</div>
-</div>
-</div>
-</div>
-<div class="status-toggle">
-<input checked="" class="p-radio" id="mp-1" name="mstatus-1" type="radio"/>
-<label for="mp-1">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Present
-                        </label>
-<input class="a-radio" id="ma-1" name="mstatus-1" type="radio"/>
-<label for="ma-1">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
-                            Not Present
-                        </label>
-</div>
-</div>
-<div class="att-row-card">
-<div class="arc-top">
-<div class="student-cell">
-<div class="sav">T</div>
-<div>
-<div class="sname">Tanvir Ahmed</div>
-<div class="sguardian">Roll 02</div>
-</div>
-</div>
-</div>
-<div class="status-toggle">
-<input class="p-radio" id="mp-2" name="mstatus-2" type="radio"/>
-<label for="mp-2">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Present
-                        </label>
-<input checked="" class="a-radio" id="ma-2" name="mstatus-2" type="radio"/>
-<label for="ma-2">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
-                            Not Present
-                        </label>
-</div>
-</div>
-<div class="att-row-card">
-<div class="arc-top">
-<div class="student-cell">
-<div class="sav">N</div>
-<div>
-<div class="sname">Nusrat Jahan</div>
-<div class="sguardian">Roll 03</div>
-</div>
-</div>
-</div>
-<div class="status-toggle">
-<input checked="" class="p-radio" id="mp-3" name="mstatus-3" type="radio"/>
-<label for="mp-3">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Present
-                        </label>
-<input class="a-radio" id="ma-3" name="mstatus-3" type="radio"/>
-<label for="ma-3">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
-                            Not Present
-                        </label>
-</div>
-</div>
-<div class="att-row-card">
-<div class="arc-top">
-<div class="student-cell">
-<div class="sav">R</div>
-<div>
-<div class="sname">Rakib Hasan</div>
-<div class="sguardian">Roll 04</div>
-</div>
-</div>
-</div>
-<div class="status-toggle">
-<input checked="" class="p-radio" id="mp-4" name="mstatus-4" type="radio"/>
-<label for="mp-4">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Present
-                        </label>
-<input class="a-radio" id="ma-4" name="mstatus-4" type="radio"/>
-<label for="ma-4">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
-                            Not Present
-                        </label>
-</div>
-</div>
-<div class="att-row-card">
-<div class="arc-top">
-<div class="student-cell">
-<div class="sav">S</div>
-<div>
-<div class="sname">Sadia Islam</div>
-<div class="sguardian">Roll 05</div>
-</div>
-</div>
-</div>
-<div class="status-toggle">
-<input class="p-radio" id="mp-5" name="mstatus-5" type="radio"/>
-<label for="mp-5">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Present
-                        </label>
-<input checked="" class="a-radio" id="ma-5" name="mstatus-5" type="radio"/>
-<label for="ma-5">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
-                            Not Present
-                        </label>
-</div>
-</div>
-</div>
-
-<!-- ACTION FOOTER -->
+<div class="att-list" id="attendanceCards"></div>
 <div class="action-footer">
-<span class="action-note" id="attendanceCount">5 of 24 students shown</span>
-<button class="btn-outline" type="button">Cancel</button>
+<span class="action-note" id="attendanceCount">0 students shown</span>
+<button class="btn-outline" type="button" onclick="window.location.reload()">Cancel</button>
 <button class="btn-primary" type="submit">
 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                Submit Attendance
-            </button>
+Submit Attendance
+</button>
 </div>
 </form>
 </div>
@@ -549,185 +283,173 @@
 <!-- FAB (mobile) -->
 <!-- BOTTOM NAV -->
 <script src="api.js"></script><script src="/shared_shell.js"></script><script>
-const attendanceForm = document.getElementById('attendanceForm');
 const attendanceFilterForm = document.getElementById('attendanceFilterForm');
+const attendanceForm = document.getElementById('attendanceForm');
 const attendanceRows = document.getElementById('attendanceRows');
 const attendanceCards = document.getElementById('attendanceCards');
 const attendanceCount = document.getElementById('attendanceCount');
-const headerTitle = document.querySelector('#attendanceForm .ctitle') || document.querySelector('.ctitle');
+const titleEl = document.getElementById('attendanceBatchTitle');
+const subtitleEl = document.getElementById('attendanceSubTitle');
 
 function escapeHtml(value) {
-    return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#039;');
+  return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
-function buildStudentRow(student, index, statusMap) {
-    const studentId = student.id;
-    const roll = String(index + 1).padStart(2, '0');
-    const initial = (student.name || 'S').trim().charAt(0).toUpperCase();
-    const status = statusMap[studentId] || 'present';
-    const presentChecked = status === 'present' ? 'checked' : '';
-    const absentChecked = status === 'absent' ? 'checked' : '';
+function getBatchLabel(batchCode) {
+  const map = {
+    'BATCHA': 'Batch A — Morning',
+    'BATCHB': 'Batch B — Afternoon',
+    'BATCHC': 'Batch C — Evening',
+  };
+  return map[batchCode] || batchCode || 'Selected Batch';
+}
 
+function renderRows(students, statusMap) {
+  attendanceRows.innerHTML = students.map((student, index) => {
+    const id = student.id;
+    const rowNo = String(index + 1).padStart(2, '0');
+    const initial = (student.name || 'S').trim().charAt(0).toUpperCase();
+    const status = statusMap[id] || 'present';
     return `<tr>
-        <td class="att-roll">${roll}</td>
-        <td>
-            <div class="student-cell">
-                <div class="sav">${escapeHtml(initial)}</div>
-                <div>
-                    <div class="sname">${escapeHtml(student.name)}</div>
-                    <div class="sguardian">Guardian: ${escapeHtml(student.phone || 'N/A')}</div>
-                </div>
-            </div>
-        </td>
-        <td class="status-col">
-            <div class="status-toggle">
-                <input ${presentChecked} class="p-radio" id="p-${studentId}" name="status-${studentId}" type="radio" value="present" />
-                <label for="p-${studentId}">
-                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    Present
-                </label>
-                <input ${absentChecked} class="a-radio" id="a-${studentId}" name="status-${studentId}" type="radio" value="absent" />
-                <label for="a-${studentId}">
-                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
-                    Not Present
-                </label>
-            </div>
-        </td>
-    </tr>`;
-}
-
-function buildMobileCard(student, index, statusMap) {
-    const studentId = student.id;
-    const roll = String(index + 1).padStart(2, '0');
-    const initial = (student.name || 'S').trim().charAt(0).toUpperCase();
-    const status = statusMap[studentId] || 'present';
-    const presentChecked = status === 'present' ? 'checked' : '';
-    const absentChecked = status === 'absent' ? 'checked' : '';
-
-    return `<div class="att-row-card">
-        <div class="arc-top">
-            <div class="student-cell">
-                <div class="sav">${escapeHtml(initial)}</div>
-                <div>
-                    <div class="sname">${escapeHtml(student.name)}</div>
-                    <div class="sguardian">Roll ${roll}</div>
-                </div>
-            </div>
+      <td class="att-roll">${rowNo}</td>
+      <td>
+        <div class="student-cell">
+          <div class="sav">${escapeHtml(initial)}</div>
+          <div>
+            <div class="sname">${escapeHtml(student.name)}</div>
+            <div class="sguardian">Guardian: ${escapeHtml(student.phone || 'N/A')}</div>
+          </div>
         </div>
+      </td>
+      <td class="status-col">
         <div class="status-toggle">
-            <input ${presentChecked} class="p-radio" id="mp-${studentId}" name="mstatus-${studentId}" type="radio" value="present" />
-            <label for="mp-${studentId}">
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Present
-            </label>
-            <input ${absentChecked} class="a-radio" id="ma-${studentId}" name="mstatus-${studentId}" type="radio" value="absent" />
-            <label for="ma-${studentId}">
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
-                Not Present
-            </label>
+          <input ${status === 'present' ? 'checked' : ''} class="p-radio" id="p-${escapeHtml(id)}" name="status-${escapeHtml(id)}" type="radio" value="present"/>
+          <label for="p-${escapeHtml(id)}">
+            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Present
+          </label>
+          <input ${status === 'absent' ? 'checked' : ''} class="a-radio" id="a-${escapeHtml(id)}" name="status-${escapeHtml(id)}" type="radio" value="absent"/>
+          <label for="a-${escapeHtml(id)}">
+            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
+            Not Present
+          </label>
         </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  attendanceCards.innerHTML = students.map((student, index) => {
+    const id = student.id;
+    const rowNo = String(index + 1).padStart(2, '0');
+    const initial = (student.name || 'S').trim().charAt(0).toUpperCase();
+    const status = statusMap[id] || 'present';
+    return `<div class="att-row-card">
+      <div class="arc-top">
+        <div class="student-cell">
+          <div class="sav">${escapeHtml(initial)}</div>
+          <div>
+            <div class="sname">${escapeHtml(student.name)}</div>
+            <div class="sguardian">Roll ${rowNo}</div>
+          </div>
+        </div>
+      </div>
+      <div class="status-toggle">
+        <input ${status === 'present' ? 'checked' : ''} class="p-radio" id="mp-${escapeHtml(id)}" name="mstatus-${escapeHtml(id)}" type="radio" value="present"/>
+        <label for="mp-${escapeHtml(id)}">
+          <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Present
+        </label>
+        <input ${status === 'absent' ? 'checked' : ''} class="a-radio" id="ma-${escapeHtml(id)}" name="mstatus-${escapeHtml(id)}" type="radio" value="absent"/>
+        <label for="ma-${escapeHtml(id)}">
+          <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
+          Not Present
+        </label>
+      </div>
     </div>`;
+  }).join('');
 }
 
 async function loadAttendance() {
-    const formData = new FormData(attendanceFilterForm);
-    const batch_code = (formData.get('batch_code') || '').trim();
-    const date = (formData.get('date') || '').trim();
+  const formData = new FormData(attendanceFilterForm);
+  const batchCode = String(formData.get('batch_code') || '').trim();
+  const date = String(formData.get('date') || '').trim();
+  if (!batchCode || !date) {
+    alert('Choose a batch and date first.');
+    return;
+  }
 
-    if (!batch_code || !date) {
-        alert('Choose a batch and date before loading the attendance list.');
-        return;
+  try {
+    const students = await requestJson(`/students_in_batch/${encodeURIComponent(batchCode)}`);
+    const attendance = await fetchOrNull(`/attendance/${encodeURIComponent(batchCode)}/${encodeURIComponent(date)}`);
+    const statusMap = {};
+    if (attendance && attendance.records) {
+      for (const record of attendance.records) {
+        statusMap[record.student_id] = record.status;
+      }
     }
 
-    try {
-        const students = await requestJson(`/students_in_batch/${encodeURIComponent(batch_code)}`);
-        const attendance = await fetchOrNull(`/attendance/${encodeURIComponent(batch_code)}/${encodeURIComponent(date)}`);
-        const statusMap = {};
-        if (attendance?.records) {
-            for (const item of attendance.records) {
-                statusMap[item.student_id] = item.status;
-            }
-        }
-
-        attendanceRows.innerHTML = students.map((student, index) => buildStudentRow(student, index, statusMap)).join('');
-        attendanceCards.innerHTML = students.map((student, index) => buildMobileCard(student, index, statusMap)).join('');
-        attendanceCount.textContent = `${students.length} of ${students.length} students shown`;
-
-        const batchName = (document.getElementById('att-batch')).selectedOptions[0]?.text || 'Selected Batch';
-        const className = (document.getElementById('att-class')).selectedOptions[0]?.text || 'Class';
-        document.querySelector('.csub').textContent = `${className} · ${students.length} students enrolled`;
-        document.querySelector('.ctitle').textContent = batchName;
-    } catch (err) {
-        console.error(err);
-        alert(err.message || 'Could not load attendance');
-    }
+    titleEl.textContent = getBatchLabel(batchCode);
+    subtitleEl.textContent = `${document.getElementById('att-class').selectedOptions[0]?.text || 'Class'} · ${students.length} students enrolled`;
+    renderRows(students, statusMap);
+    attendanceCount.textContent = `${students.length} of ${students.length} students shown`;
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Could not load attendance');
+  }
 }
 
-attendanceFilterForm?.addEventListener('submit', function (e) {
-    e.preventDefault();
-    loadAttendance();
+attendanceFilterForm.addEventListener('submit', function (event) {
+  event.preventDefault();
+  loadAttendance();
 });
 
-attendanceForm?.addEventListener('submit', function (e) {
-    e.preventDefault();
+attendanceForm.addEventListener('submit', function (event) {
+  event.preventDefault();
+  const formData = new FormData(attendanceFilterForm);
+  const batchCode = String(formData.get('batch_code') || '').trim();
+  const date = String(formData.get('date') || '').trim();
+  if (!batchCode || !date) {
+    alert('Choose a batch and date before saving.');
+    return;
+  }
 
-    const formData = new FormData(attendanceFilterForm);
-    const batch_code = (formData.get('batch_code') || '').trim();
-    const date = (formData.get('date') || '').trim();
-
-    if (!batch_code || !date) {
-        alert('Choose a batch and date before submitting attendance.');
-        return;
+  const records = [];
+  const radios = Array.from(attendanceForm.querySelectorAll('input[type="radio"]'));
+  const statusMap = new Map();
+  for (const radio of radios) {
+    const studentId = radio.name.replace(/^status-/, '').replace(/^mstatus-/, '');
+    if (radio.checked) {
+      statusMap.set(studentId, radio.value);
     }
+  }
 
-    const records = [];
-    const desktopRows = Array.from(document.querySelectorAll('#attendanceRows input[type="radio"]'));
-    const mobileRows = Array.from(document.querySelectorAll('#attendanceCards input[type="radio"]'));
+  for (const [studentId, status] of statusMap.entries()) {
+    records.push({ student_id: studentId, status });
+  }
 
-    const radios = [...desktopRows, ...mobileRows];
-    const uniqueGroups = new Map();
-    for (const radio of radios) {
-        const key = radio.name.replace(/^m?status-/, '');
-        if (!uniqueGroups.has(key)) {
-            uniqueGroups.set(key, radio);
-        }
-    }
-
-    for (const [studentId, checkedRadio] of uniqueGroups.entries()) {
-        const checkedValue = attendanceForm.querySelector(`[name="status-${studentId}"]:checked`) || attendanceForm.querySelector(`[name="mstatus-${studentId}"]:checked`);
-        records.push({
-            student_id: studentId,
-            status: checkedValue ? checkedValue.value : 'absent'
-        });
-    }
-
-    requestJson('/attendance', {
-        method: 'POST',
-        body: {
-            batch_code,
-            date,
-            records,
-        },
-    }).then((payload) => {
-        alert(payload.message || 'Attendance saved successfully');
-    }).catch((err) => {
-        console.error(err);
-        alert(err.message || 'Attendance could not be saved');
-    });
+  requestJson('/attendance', {
+    method: 'POST',
+    body: { batch_code: batchCode, date, records },
+  }).then((payload) => {
+    alert(payload.message || 'Attendance saved');
+  }).catch((err) => {
+    console.error(err);
+    alert(err.message || 'Attendance could not be saved');
+  });
 });
 
 function toggleSB() {
-    document.getElementById('sidebar').classList.toggle('mopen');
-    document.getElementById('mov').classList.toggle('open');
+  document.getElementById('sidebar').classList.toggle('mopen');
+  document.getElementById('mov').classList.toggle('open');
 }
 function closeSB() {
-    document.getElementById('sidebar').classList.remove('mopen');
-    document.getElementById('mov').classList.remove('open');
+  document.getElementById('sidebar').classList.remove('mopen');
+  document.getElementById('mov').classList.remove('open');
 }
 function doLogout() {
-    if (confirm('Log out?')) {
-        logout('auth.html');
-    }
+  if (confirm('Log out?')) {
+    logout('auth.html');
+  }
 }
 </script>
 </body>
