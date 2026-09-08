@@ -409,6 +409,33 @@ async function GetStudentsInBatch(batch_code) {
   return GetStudentsByBC(batch_code);
 }
 
+async function GetAttendance(batch_code, attendance_date) {
+  try {
+    return await requestJson(
+      `/attendance/${encodeURIComponent(requireId(batch_code, "batch code"))}/${encodeURIComponent(requireId(attendance_date, "attendance date"))}`
+    );
+  } catch (error) {
+    console.error(error.message);
+    throw error;
+  }
+}
+
+async function SubmitAttendance(payload = {}) {
+  try {
+    return await requestJson("/attendance", {
+      method: "POST",
+      body: {
+        batch_code: payload.batch_code,
+        date: payload.date,
+        records: payload.records,
+      },
+    });
+  } catch (error) {
+    console.error(error.message);
+    throw error;
+  }
+}
+
 async function EnrollInBatch(batch_code) {
   try {
     return await requestJson(`/enroll/${requireId(batch_code, "batch code", null)}`, {
@@ -758,6 +785,8 @@ function bindGlobals() {
     RemoveMyStudent,
     GetStudentsByBC,
     GetStudentsInBatch,
+    GetAttendance,
+    SubmitAttendance,
     EnrollInBatch,
     GetTeacherPayments,
     UpdatePayment,

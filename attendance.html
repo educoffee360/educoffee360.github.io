@@ -379,8 +379,8 @@ async function loadAttendance() {
   }
 
   try {
-    const students = await requestJson(`/students_in_batch/${encodeURIComponent(batchCode)}`);
-    const attendance = await fetchOrNull(`/attendance/${encodeURIComponent(batchCode)}/${encodeURIComponent(date)}`);
+    const students = await GetStudentsInBatch(batchCode);
+    const attendance = await GetAttendance(batchCode, date);
     const statusMap = {};
     if (attendance && attendance.records) {
       for (const record of attendance.records) {
@@ -427,15 +427,14 @@ attendanceForm.addEventListener('submit', function (event) {
     records.push({ student_id: studentId, status });
   }
 
-  requestJson('/attendance', {
-    method: 'POST',
-    body: { batch_code: batchCode, date, records },
-  }).then((payload) => {
-    alert(payload.message || 'Attendance saved');
-  }).catch((err) => {
-    console.error(err);
-    alert(err.message || 'Attendance could not be saved');
-  });
+  SubmitAttendance({ batch_code: batchCode, date, records })
+    .then((payload) => {
+      alert(payload.message || 'Attendance saved');
+    })
+    .catch((err) => {
+      console.error(err);
+      alert(err.message || 'Attendance could not be saved');
+    });
 });
 
 function toggleSB() {
