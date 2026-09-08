@@ -168,5 +168,25 @@ class Payment(BaseModel):
         from_attributes = True
 
 
+class AttendanceRecord(BaseModel):
+    student_id: str
+    status: Literal['present', 'absent']
+
+
+class AttendancePayload(BaseModel):
+    batch_code: str = Field(min_length=1, max_length=10)
+    date: str
+    records: List[AttendanceRecord]
+
+
+class AttendanceStatus(BaseModel):
+    student_id: str
+    status: Literal['present', 'absent']
+
+
+class AttendanceUpdate(BaseModel):
+    status: Literal['present', 'absent']
+
+
 class PaymentUpdate(BaseModel):
     status: Literal["paid", "unpaid", "overdue"]

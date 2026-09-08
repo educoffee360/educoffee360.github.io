@@ -756,6 +756,95 @@ def get_my_students(teacher_id, db: Session = Depends(get_db), current_user = De
     return my_students
 
 
+@router.get('/attendance/{batch_code}/{attendance_date}', status_code=200)
+def get_attendance_records(batch_code: str, attendance_date: str, db: Session = Depends(get_db), current_user = Depends(require_teacher_or_admin)):
+    batch = db.query(models.Batch).filter(models.Batch.code == batch_code).first()
+    if not batch:
+        raise HTTPException(404, 'Batch not found')
+    if current_user['role'] == 'teacher' and batch.teacher_id != current_user['user_id']:
+        raise HTTPException(403, 'Forbidden')
+
+    try:
+        parsed_date = datetime.strptime(attendance_date, '%Y-%m-%d').date()
+    except ValueError:
+        raise HTTPException(400, 'Use YYYY-MM-DD for the attendance date')
+
+    records = db.query(models.Attendance).filter(
+        models.Attendance.batch_code == batch_code,
+        models.Attendance.attendance_date == parsed_date,
+    ).all()
+
+    return {
+        'batch_code': batch_code,
+        'date': attendance_date,
+        'records': [
+            {
+                'student_id': record.student_id,
+                'status': record.status,
+            } for record in records
+        ],
+    }
+
+
+@router.post('/attendance', status_code=201)
+def submit_attendance(payload: schemas.AttendancePayload, db: Session = Depends(get_db), current_user = Depends(require_teacher_or_admin)):
+    batch = db.query(models.Batch).filter(models.Batch.code == payload.batch_code).first()
+    if not batch:
+        raise HTTPException(404, 'Batch not found')
+    if current_user['role'] == 'teacher' and batch.teacher_id != current_user['user_id']:
+        raise HTTPException(403, 'Forbidden')
+
+    try:
+        parsed_date = datetime.strptime(payload.date, '%Y-%m-%d').date()
+    except ValueError:
+        raise HTTPException(400, 'Use YYYY-MM-DD for the attendance date')
+
+    enrolled_ids = {
+        student.id for student in db.query(models.User).filter(models.User.role == 'student').all()
+        if payload.batch_code in (student.batch_codes or [])
+    }
+
+    seen = set()
+    for record in payload.records:
+        student_id = record.student_id
+        if student_id in seen:
+            raise HTTPException(400, 'Duplicate attendance records for a student')
+        if student_id not in enrolled_ids:
+            raise HTTPException(400, 'A record contains a student who is not enrolled in the batch')
+        if record.status not in ('present', 'absent'):
+            raise HTTPException(400, 'Attendance status must be present or absent')
+        seen.add(student_id)
+
+    records_to_upsert = []
+    for record in payload.records:
+        existing = db.query(models.Attendance).filter(
+            models.Attendance.batch_code == payload.batch_code,
+            models.Attendance.student_id == record.student_id,
+            models.Attendance.attendance_date == parsed_date,
+        ).first()
+        if existing:
+            existing.status = record.status
+            existing.teacher_id = current_user['user_id']
+            existing.updated_at = datetime.utcnow()
+        else:
+            records_to_upsert.append(models.Attendance(
+                batch_code=payload.batch_code,
+                student_id=record.student_id,
+                teacher_id=current_user['user_id'],
+                attendance_date=parsed_date,
+                status=record.status,
+            ))
+
+    db.add_all(records_to_upsert)
+    db.commit()
+    return {
+        'message': 'Attendance saved successfully',
+        'batch_code': payload.batch_code,
+        'date': payload.date,
+        'count': len(payload.records),
+    }
+
+
 @router.delete('/my_students/{student_id}', response_model=schemas.UserResponse, status_code=200)
 def remove_my_student(student_id: str, db: Session = Depends(get_db), current_user = Depends(require_teacher_or_admin)):
     student = db.query(models.User).filter(

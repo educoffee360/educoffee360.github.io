@@ -23,6 +23,7 @@ from models import (
     BanRequest,
     EmailCampaign,
     Payment,
+    Attendance,
     PushSubscription,
 )
 
@@ -99,7 +100,17 @@ def ensure_push_subscription_table() -> None:
         raise
 
 
+def ensure_attendance_table() -> None:
+    """Create the attendance table if the deployment does not yet have the model."""
+    try:
+        Attendance.__table__.create(bind=engine, checkfirst=True)
+    except Exception:
+        logger.exception("Could not create the attendance records table")
+        raise
+
+
 ensure_push_subscription_table()
+ensure_attendance_table()
 
 def bootstrap_admin() -> None:
     """Create the first admin from private Render environment variables."""

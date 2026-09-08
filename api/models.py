@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Enum, Float, Boolean, DateTime, Integer, ForeignKey, JSON
+from sqlalchemy import Column, String, Enum, Float, Boolean, DateTime, Integer, ForeignKey, JSON, Date, UniqueConstraint
 from sqlalchemy.orm import relationship
 try:
     from .database import Base
@@ -195,6 +195,23 @@ class EmailCampaign(Base):
     sent_count = Column(Integer, nullable=False, default=0)
     failed_recipients = Column(JSON, nullable=False, default=list)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+class Attendance(Base):
+    __tablename__ = 'attendance_records'
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    batch_code = Column(String, ForeignKey('batches.code'), nullable=False, index=True)
+    student_id = Column(String, ForeignKey('users.id'), nullable=False, index=True)
+    teacher_id = Column(String, ForeignKey('users.id'), nullable=False, index=True)
+    attendance_date = Column(Date, nullable=False, index=True)
+    status = Column(String(16), nullable=False, default='present')
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint('batch_code', 'student_id', 'attendance_date', name='uq_attendance_batch_student_date'),
+    )
+
 
 class Payment(Base):
     __tablename__ = 'payments'
