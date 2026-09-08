@@ -221,23 +221,9 @@ My Students
 <input id="att-date" name="date" type="date"/>
 </div>
 <div class="f-field">
-<label for="att-class">Class</label>
-<select id="att-class" name="class_id">
-<option disabled selected value="">Select class</option>
-<option value="class-6">Class 6</option>
-<option value="class-7">Class 7</option>
-<option value="class-8">Class 8</option>
-<option value="class-9">Class 9</option>
-<option value="class-10">Class 10</option>
-</select>
-</div>
-<div class="f-field">
 <label for="att-batch">Batch</label>
 <select id="att-batch" name="batch_code">
 <option disabled selected value="">Select batch</option>
-<option value="BATCHA">Batch A — Morning</option>
-<option value="BATCHB">Batch B — Afternoon</option>
-<option value="BATCHC">Batch C — Evening</option>
 </select>
 </div>
 <button class="btn-primary" type="submit">
@@ -302,6 +288,32 @@ function getBatchLabel(batchCode) {
     'BATCHC': 'Batch C — Evening',
   };
   return map[batchCode] || batchCode || 'Selected Batch';
+}
+
+async function populateBatchDropdown() {
+  const batchSelect = document.getElementById('att-batch');
+  if (!batchSelect) return;
+
+  batchSelect.innerHTML = '<option disabled selected value="">Select batch</option>';
+
+  try {
+    const batches = await GetBatchesByTeacherId();
+    if (!Array.isArray(batches) || batches.length === 0) {
+      batchSelect.innerHTML = '<option disabled selected value="">No batches available</option>';
+      return;
+    }
+
+    batchSelect.innerHTML = '<option disabled selected value="">Select batch</option>' +
+      batches.map((batch) => {
+        const code = escapeHtml(batch.code || '');
+        const name = escapeHtml(batch.name || batch.schedule || 'Batch');
+        const schedule = escapeHtml(batch.schedule || '');
+        return `<option value="${code}">${code} — ${name}${schedule ? ` (${schedule})` : ''}</option>`;
+      }).join('');
+  } catch (err) {
+    console.error(err);
+    batchSelect.innerHTML = '<option disabled selected value="">Unable to load batches</option>';
+  }
 }
 
 function renderRows(students, statusMap) {
@@ -389,7 +401,7 @@ async function loadAttendance() {
     }
 
     titleEl.textContent = getBatchLabel(batchCode);
-    subtitleEl.textContent = `${document.getElementById('att-class').selectedOptions[0]?.text || 'Class'} · ${students.length} students enrolled`;
+    subtitleEl.textContent = `${getBatchLabel(batchCode)} · ${students.length} students enrolled`;
     renderRows(students, statusMap);
     attendanceCount.textContent = `${students.length} of ${students.length} students shown`;
   } catch (err) {
@@ -402,6 +414,8 @@ attendanceFilterForm.addEventListener('submit', function (event) {
   event.preventDefault();
   loadAttendance();
 });
+
+populateBatchDropdown();
 
 attendanceForm.addEventListener('submit', function (event) {
   event.preventDefault();
