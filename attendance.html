@@ -321,7 +321,9 @@ function renderRows(students, statusMap) {
     const id = student.id;
     const rowNo = String(index + 1).padStart(2, '0');
     const initial = (student.name || 'S').trim().charAt(0).toUpperCase();
-    const status = statusMap[id] || 'present';
+    const status = statusMap[id];
+    const isPresent = status === 'present';
+    const isAbsent = status === 'absent';
     return `<tr>
       <td class="att-roll">${rowNo}</td>
       <td>
@@ -335,12 +337,12 @@ function renderRows(students, statusMap) {
       </td>
       <td class="status-col">
         <div class="status-toggle">
-          <input ${status === 'present' ? 'checked' : ''} class="p-radio" id="p-${escapeHtml(id)}" name="status-${escapeHtml(id)}" type="radio" value="present"/>
+          <input ${isPresent ? 'checked' : ''} class="p-radio" id="p-${escapeHtml(id)}" name="status-${escapeHtml(id)}" type="radio" value="present"/>
           <label for="p-${escapeHtml(id)}">
             <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
             Present
           </label>
-          <input ${status === 'absent' ? 'checked' : ''} class="a-radio" id="a-${escapeHtml(id)}" name="status-${escapeHtml(id)}" type="radio" value="absent"/>
+          <input ${isAbsent ? 'checked' : ''} class="a-radio" id="a-${escapeHtml(id)}" name="status-${escapeHtml(id)}" type="radio" value="absent"/>
           <label for="a-${escapeHtml(id)}">
             <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
             Not Present
@@ -354,7 +356,9 @@ function renderRows(students, statusMap) {
     const id = student.id;
     const rowNo = String(index + 1).padStart(2, '0');
     const initial = (student.name || 'S').trim().charAt(0).toUpperCase();
-    const status = statusMap[id] || 'present';
+    const status = statusMap[id];
+    const isPresent = status === 'present';
+    const isAbsent = status === 'absent';
     return `<div class="att-row-card">
       <div class="arc-top">
         <div class="student-cell">
@@ -366,12 +370,12 @@ function renderRows(students, statusMap) {
         </div>
       </div>
       <div class="status-toggle">
-        <input ${status === 'present' ? 'checked' : ''} class="p-radio" id="mp-${escapeHtml(id)}" name="mstatus-${escapeHtml(id)}" type="radio" value="present"/>
+        <input ${isPresent ? 'checked' : ''} class="p-radio" id="mp-${escapeHtml(id)}" name="mstatus-${escapeHtml(id)}" type="radio" value="present"/>
         <label for="mp-${escapeHtml(id)}">
           <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
           Present
         </label>
-        <input ${status === 'absent' ? 'checked' : ''} class="a-radio" id="ma-${escapeHtml(id)}" name="mstatus-${escapeHtml(id)}" type="radio" value="absent"/>
+        <input ${isAbsent ? 'checked' : ''} class="a-radio" id="ma-${escapeHtml(id)}" name="mstatus-${escapeHtml(id)}" type="radio" value="absent"/>
         <label for="ma-${escapeHtml(id)}">
           <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
           Not Present
