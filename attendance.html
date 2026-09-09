@@ -78,6 +78,12 @@
         .btn-outline:hover{border-color:var(--caramel);color:var(--caramel)}
         .btn-outline svg{width:16px;height:16px}
 
+        .loading-spinner{display:none;width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;animation:spin .8s linear infinite;vertical-align:middle}
+        .btn-primary.loading .loading-spinner{display:inline-block}
+        .btn-primary.loading .action-icon{display:none}
+        .btn-primary.loading .btn-label{opacity:.95}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
         /* ── CARD ── */
         .card{background:var(--card);border-radius:20px;border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden}
         .ch{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
@@ -226,9 +232,10 @@ My Students
 <option disabled selected value="">Select batch</option>
 </select>
 </div>
-<button class="btn-primary" type="submit">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linewidth="2.5" viewbox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
-Find Students
+<button class="btn-primary" type="submit" id="findStudentsBtn">
+<svg class="action-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linewidth="2.5" viewbox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+<span class="loading-spinner" aria-hidden="true"></span>
+<span class="btn-label">Find Students</span>
 </button>
 </form>
 </div>
@@ -258,9 +265,10 @@ Find Students
 <div class="action-footer">
 <span class="action-note" id="attendanceCount">0 students shown</span>
 <button class="btn-outline" type="button" onclick="window.location.reload()">Cancel</button>
-<button class="btn-primary" type="submit">
-<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-Submit Attendance
+<button class="btn-primary" type="submit" id="submitAttendanceBtn">
+<svg class="action-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+<span class="loading-spinner" aria-hidden="true"></span>
+<span class="btn-label">Submit Attendance</span>
 </button>
 </div>
 </form>
@@ -276,6 +284,22 @@ const attendanceCards = document.getElementById('attendanceCards');
 const attendanceCount = document.getElementById('attendanceCount');
 const titleEl = document.getElementById('attendanceBatchTitle');
 const subtitleEl = document.getElementById('attendanceSubTitle');
+const findStudentsBtn = document.getElementById('findStudentsBtn');
+const submitAttendanceBtn = document.getElementById('submitAttendanceBtn');
+
+function setButtonLoading(button, loading, labelText) {
+  if (!button) return;
+  button.disabled = loading;
+  button.classList.toggle('loading', loading);
+  const label = button.querySelector('.btn-label');
+  if (label && loading) {
+    button.dataset.defaultLabel = label.textContent.trim();
+    label.textContent = labelText || 'Working...';
+  }
+  if (label && !loading && button.dataset.defaultLabel) {
+    label.textContent = button.dataset.defaultLabel;
+  }
+}
 
 function escapeHtml(value) {
   return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
@@ -414,9 +438,14 @@ async function loadAttendance() {
   }
 }
 
-attendanceFilterForm.addEventListener('submit', function (event) {
+attendanceFilterForm.addEventListener('submit', async function (event) {
   event.preventDefault();
-  loadAttendance();
+  setButtonLoading(findStudentsBtn, true, 'Finding...');
+  try {
+    await loadAttendance();
+  } finally {
+    setButtonLoading(findStudentsBtn, false);
+  }
 });
 
 populateBatchDropdown();
@@ -445,6 +474,7 @@ attendanceForm.addEventListener('submit', function (event) {
     records.push({ student_id: studentId, status });
   }
 
+  setButtonLoading(submitAttendanceBtn, true, 'Saving...');
   SubmitAttendance({ batch_code: batchCode, date, records })
     .then((payload) => {
       alert(payload.message || 'Attendance saved');
@@ -452,6 +482,9 @@ attendanceForm.addEventListener('submit', function (event) {
     .catch((err) => {
       console.error(err);
       alert(err.message || 'Attendance could not be saved');
+    })
+    .finally(() => {
+      setButtonLoading(submitAttendanceBtn, false);
     });
 });
 
