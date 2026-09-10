@@ -1300,7 +1300,7 @@ def create_new_notice(
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
-    if is_pro(teacher):
+    if not is_pro(teacher):
         dhaka = ZoneInfo("Asia/Dhaka")
 
         now = datetime.now(dhaka)
