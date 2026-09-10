@@ -731,7 +731,14 @@ def enroll_in_batch(batch_code, db: Session = Depends(get_db), current_user = De
             "Batch not found. Make sure that your teacher has created this batch or check the batch code again.",
         )
 
-    teacher_plan = get_teacher_plan(get_user_by_id(batch.teacher_id))
+    teacher = db.query(models.User).filter(
+        models.User.id == batch.teacher_id
+    ).first()
+
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+
+    teacher_plan = get_teacher_plan(teacher)
     if teacher_plan == "Free":
         if len(get_students_in_batch(batch.code)) > PLAN_LIMITS["Free"]["max_students"]:
             raise HTTPException(status_code=403, detail="Free plan limit reached. Upgrade to Pro to add more students.")
