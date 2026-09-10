@@ -332,6 +332,7 @@
   window.doLogout = doLogout;
   window.showPageLoading = showPageLoading;
   window.hidePageLoading = hidePageLoading;
+  window.showActiveAdPopup = showActiveAdPopup;
 
   window.toggleSidebar = function () {
     const sidebar = document.getElementById("sidebar");

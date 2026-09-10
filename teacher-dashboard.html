@@ -429,7 +429,12 @@ function renderNoticePreview(notices) {
 }
 
 showPageLoading('Loading dashboard…');
-initDashboard().finally(hidePageLoading);
+initDashboard().finally(() => {
+    hidePageLoading();
+    if (typeof showActiveAdPopup === 'function') {
+        showActiveAdPopup();
+    }
+});
 function toggleSB() {
     document.getElementById('sidebar').classList.toggle('mopen');
     document.getElementById('mov').classList.toggle('open');

@@ -943,7 +943,12 @@ document.getElementById('joinModal').addEventListener('click', e => {
 });
 
 showPageLoading('Loading your dashboard…');
-init().finally(hidePageLoading);
+init().finally(() => {
+    hidePageLoading();
+    if (typeof showActiveAdPopup === 'function') {
+        showActiveAdPopup();
+    }
+});
 </script>
 </body>
 </html>
