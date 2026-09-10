@@ -25,6 +25,8 @@ from models import (
     Payment,
     Attendance,
     PushSubscription,
+    AdCampaign,
+    AdImpression,
 )
 
 #Base.metadata.create_all(bind=engine)
@@ -109,8 +111,28 @@ def ensure_attendance_table() -> None:
         raise
 
 
+def ensure_ad_campaign_table() -> None:
+    """Create the ad campaign table if the deployment is missing the ad model."""
+    try:
+        AdCampaign.__table__.create(bind=engine, checkfirst=True)
+    except Exception:
+        logger.exception("Could not create the ad campaign table")
+        raise
+
+
+def ensure_ad_impression_table() -> None:
+    """Create the one-day ad impression table if the deployment is missing the ad impression model."""
+    try:
+        AdImpression.__table__.create(bind=engine, checkfirst=True)
+    except Exception:
+        logger.exception("Could not create the ad impression table")
+        raise
+
+
 ensure_push_subscription_table()
 ensure_attendance_table()
+ensure_ad_campaign_table()
+ensure_ad_impression_table()
 
 def bootstrap_admin() -> None:
     """Create the first admin from private Render environment variables."""
