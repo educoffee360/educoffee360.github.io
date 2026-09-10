@@ -632,6 +632,49 @@ async function GetBillingConfig() {
   return requestJson("/billing/config");
 }
 
+async function GetAds() {
+  return requestJson("/ads");
+}
+
+async function GetActiveAds() {
+  return requestJson("/ads/active");
+}
+
+async function CreateAd(payload = {}) {
+  return requestJson("/ads", {
+    method: "POST",
+    body: {
+      title: payload.title,
+      body: payload.body,
+      image_url: payload.image_url || null,
+      target_role: payload.target_role || "all",
+      target_plan: payload.target_plan || "free",
+      active: payload.active ?? true,
+      starts_at: payload.starts_at || null,
+      ends_at: payload.ends_at || null,
+    },
+  });
+}
+
+async function UpdateAd(adId, payload = {}) {
+  return requestJson(`/ads/${requireId(adId, "ad id", null)}`, {
+    method: "PUT",
+    body: payload,
+  });
+}
+
+async function DeleteAd(adId) {
+  return requestJson(`/ads/${requireId(adId, "ad id", null)}`, {
+    method: "DELETE",
+  });
+}
+
+async function MarkAdSeen(adId) {
+  return requestJson(`/ads/${requireId(adId, "ad id", null)}/seen`, {
+    method: "POST",
+  });
+}
+
 async function CreateUpgradeRequest(request = {}) {
   return requestJson("/upgrade-requests", {
     method: "POST",
@@ -809,6 +852,12 @@ function bindGlobals() {
     GetAllResults,
     GetAllNotices,
     GetBillingConfig,
+    GetAds,
+    GetActiveAds,
+    CreateAd,
+    UpdateAd,
+    DeleteAd,
+    MarkAdSeen,
     CreateUpgradeRequest,
     GetMyUpgradeRequests,
     GetStaffUsers,

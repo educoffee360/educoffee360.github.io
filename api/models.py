@@ -25,6 +25,36 @@ class User(Base):
     # FIX: Added name='user_plan'
     plan = Column(Enum('Starter', 'Professional', 'Elite', name='user_plan'), nullable=True)
 
+
+class AdCampaign(Base):
+    __tablename__ = 'ad_campaigns'
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    title = Column(String, nullable=False)
+    body = Column(String, nullable=False)
+    image_url = Column(String, nullable=True)
+    target_role = Column(String, nullable=False, default='all')
+    target_plan = Column(String, nullable=False, default='free')
+    active = Column(Boolean, nullable=False, default=True)
+    created_by = Column(String, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    starts_at = Column(DateTime, nullable=True)
+    ends_at = Column(DateTime, nullable=True)
+
+
+class AdImpression(Base):
+    __tablename__ = 'ad_impressions'
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey('users.id'), nullable=False)
+    ad_id = Column(String, ForeignKey('ad_campaigns.id'), nullable=False)
+    seen_date = Column(String, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'ad_id', 'seen_date', name='uq_ad_impression_day'),
+    )
+
 class Batch(Base):
     __tablename__ = 'batches'
 

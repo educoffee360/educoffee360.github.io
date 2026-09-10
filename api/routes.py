@@ -1015,6 +1015,211 @@ def get_all_notices(db: Session = Depends(get_db), current_user = Depends(requir
     return db.query(models.Notice).all()
 
 
+@router.get("/ads", response_model=List[schemas.AdCampaignOut], status_code=200)
+def list_ads(db: Session = Depends(get_db), current_user = Depends(require_role("admin", "moderator"))):
+    ads = db.query(models.AdCampaign).order_by(models.AdCampaign.created_at.desc()).all()
+    return [
+        {
+            "id": ad.id,
+            "title": ad.title,
+            "body": ad.body,
+            "image_url": ad.image_url,
+            "target_role": ad.target_role,
+            "target_plan": ad.target_plan,
+            "active": ad.active,
+            "created_by": ad.created_by,
+            "created_at": ad.created_at,
+            "starts_at": ad.starts_at,
+            "ends_at": ad.ends_at,
+        }
+        for ad in ads
+    ]
+
+
+@router.get("/ads/active", response_model=List[schemas.AdCampaignOut], status_code=200)
+def active_ads(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    user = db.query(models.User).filter(models.User.id == current_user["user_id"]).first()
+    if not user:
+        raise HTTPException(404, "User Not Found")
+
+    now = datetime.utcnow()
+    day = now.date().isoformat()
+    seen_ids = {
+        row.ad_id
+        for row in db.query(models.AdImpression).filter(
+            models.AdImpression.user_id == current_user["user_id"],
+            models.AdImpression.seen_date == day,
+        ).all()
+    }
+
+    ads = db.query(models.AdCampaign).filter(models.AdCampaign.active.is_(True)).all()
+    visible = []
+
+    for ad in ads:
+        if ad.id in seen_ids:
+            continue
+        if ad.starts_at and ad.starts_at > now:
+            continue
+        if ad.ends_at and ad.ends_at < now:
+            continue
+
+        if ad.target_role != "all" and ad.target_role != user.role:
+            continue
+
+        # Free/paid plan gate.
+        if ad.target_plan != "all":
+            if user.role == "teacher":
+                teacher_plan = user.plan or "Starter"
+                if ad.target_plan == "free" and teacher_plan != "Starter":
+                    continue
+                if ad.target_plan == "Professional" and teacher_plan != "Professional":
+                    continue
+                if ad.target_plan == "Elite" and teacher_plan != "Elite":
+                    continue
+            elif user.role == "student":
+                student_codes = list(user.batch_codes or [])
+                if student_codes:
+                    related_batches = db.query(models.Batch).filter(models.Batch.code.in_(student_codes)).all()
+                    related_teacher_ids = {batch.teacher_id for batch in related_batches}
+                    teachers = db.query(models.User).filter(models.User.id.in_(related_teacher_ids)).all()
+                    has_paid_teacher = any(t.plan in ("Professional", "Elite") for t in teachers)
+                    has_free_teacher = any(t.plan in (None, "Starter") for t in teachers)
+                    if ad.target_plan == "free" and has_paid_teacher and not has_free_teacher:
+                        continue
+                    if ad.target_plan in ("Professional", "Elite") and not has_paid_teacher:
+                        continue
+
+        visible.append(ad)
+
+    return [
+        {
+            "id": ad.id,
+            "title": ad.title,
+            "body": ad.body,
+            "image_url": ad.image_url,
+            "target_role": ad.target_role,
+            "target_plan": ad.target_plan,
+            "active": ad.active,
+            "created_by": ad.created_by,
+            "created_at": ad.created_at,
+            "starts_at": ad.starts_at,
+            "ends_at": ad.ends_at,
+        }
+        for ad in visible
+    ]
+
+
+@router.post("/ads", status_code=201)
+def create_ad(payload: schemas.AdCampaignCreate, db: Session = Depends(get_db), current_user = Depends(require_role("admin", "moderator"))):
+    ad = models.AdCampaign(
+        title=payload.title.strip(),
+        body=payload.body.strip(),
+        image_url=payload.image_url.strip() if payload.image_url else None,
+        target_role=payload.target_role,
+        target_plan=payload.target_plan,
+        active=payload.active,
+        created_by=current_user["user_id"],
+        starts_at=payload.starts_at,
+        ends_at=payload.ends_at,
+    )
+    db.add(ad)
+    db.commit()
+    db.refresh(ad)
+    return {
+        "id": ad.id,
+        "title": ad.title,
+        "body": ad.body,
+        "image_url": ad.image_url,
+        "target_role": ad.target_role,
+        "target_plan": ad.target_plan,
+        "active": ad.active,
+        "created_by": ad.created_by,
+        "created_at": ad.created_at,
+        "starts_at": ad.starts_at,
+        "ends_at": ad.ends_at,
+    }
+
+
+@router.put("/ads/{ad_id}", status_code=200)
+def update_ad(ad_id: str, payload: schemas.AdCampaignUpdate, db: Session = Depends(get_db), current_user = Depends(require_role("admin", "moderator"))):
+    ad = db.query(models.AdCampaign).filter(models.AdCampaign.id == ad_id).first()
+    if not ad:
+        raise HTTPException(404, "Ad campaign not found")
+
+    for field in ("title", "body", "image_url", "target_role", "target_plan", "active", "starts_at", "ends_at"):
+        value = getattr(payload, field, None)
+        if value is None:
+            continue
+        if field == "title" and value:
+            ad.title = value.strip()
+        elif field == "body" and value:
+            ad.body = value.strip()
+        elif field == "image_url":
+            ad.image_url = value.strip() if value else None
+        elif field == "target_role":
+            ad.target_role = value
+        elif field == "target_plan":
+            ad.target_plan = value
+        elif field == "active":
+            ad.active = value
+        elif field == "starts_at":
+            ad.starts_at = value
+        elif field == "ends_at":
+            ad.ends_at = value
+
+    db.commit()
+    db.refresh(ad)
+    return {
+        "id": ad.id,
+        "title": ad.title,
+        "body": ad.body,
+        "image_url": ad.image_url,
+        "target_role": ad.target_role,
+        "target_plan": ad.target_plan,
+        "active": ad.active,
+        "created_by": ad.created_by,
+        "created_at": ad.created_at,
+        "starts_at": ad.starts_at,
+        "ends_at": ad.ends_at,
+    }
+
+
+@router.delete("/ads/{ad_id}", status_code=204)
+def delete_ad(ad_id: str, db: Session = Depends(get_db), current_user = Depends(require_role("admin", "moderator"))):
+    ad = db.query(models.AdCampaign).filter(models.AdCampaign.id == ad_id).first()
+    if not ad:
+        raise HTTPException(404, "Ad campaign not found")
+    db.delete(ad)
+    db.commit()
+    return None
+
+
+@router.post("/ads/{ad_id}/seen", status_code=201)
+def mark_ad_seen(ad_id: str, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    ad = db.query(models.AdCampaign).filter(models.AdCampaign.id == ad_id).first()
+    if not ad:
+        raise HTTPException(404, "Ad campaign not found")
+
+    today = datetime.utcnow().date().isoformat()
+    existing = db.query(models.AdImpression).filter(
+        models.AdImpression.user_id == current_user["user_id"],
+        models.AdImpression.ad_id == ad_id,
+        models.AdImpression.seen_date == today,
+    ).first()
+
+    if existing:
+        return {"message": "already_seen_today"}
+
+    impression = models.AdImpression(
+        user_id=current_user["user_id"],
+        ad_id=ad_id,
+        seen_date=today,
+    )
+    db.add(impression)
+    db.commit()
+    return {"message": "seen"}
+
+
 @router.get(
     "/notices/{student_id}", response_model=List[schemas.Notice], status_code=200
 )

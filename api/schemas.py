@@ -71,6 +71,49 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
+class AdCampaignCreate(BaseModel):
+    title: str
+    body: str
+    image_url: Optional[str] = None
+    target_role: Literal['teacher', 'student', 'all'] = 'all'
+    target_plan: Literal['free', 'Professional', 'Elite', 'all'] = 'free'
+    active: bool = True
+    starts_at: Optional[datetime] = None
+    ends_at: Optional[datetime] = None
+
+
+class AdCampaignUpdate(BaseModel):
+    title: Optional[str] = None
+    body: Optional[str] = None
+    image_url: Optional[str] = None
+    target_role: Optional[Literal['teacher', 'student', 'all']] = None
+    target_plan: Optional[Literal['free', 'Professional', 'Elite', 'all']] = None
+    active: Optional[bool] = None
+    starts_at: Optional[datetime] = None
+    ends_at: Optional[datetime] = None
+
+
+class AdCampaignOut(BaseModel):
+    id: str
+    title: str
+    body: str
+    image_url: Optional[str] = None
+    target_role: str
+    target_plan: str
+    active: bool
+    created_by: Optional[str] = None
+    created_at: Optional[datetime] = None
+    starts_at: Optional[datetime] = None
+    ends_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AdImpressionCreate(BaseModel):
+    ad_id: str
+
+
 class UserProfileUpdate(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     phone: str = Field(min_length=1, max_length=40)
