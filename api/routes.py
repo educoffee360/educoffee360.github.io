@@ -22,7 +22,8 @@ from pywebpush import webpush, WebPushException
 import logging
 logger = logging.getLogger(__name__)
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
+from zoneinfo import ZoneInfo
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 
@@ -38,6 +39,25 @@ class BatchUpdate(BaseModel):
     custom_period_start: datetime | None = None
     custom_period_end: datetime | None = None
 
+PLAN_LIMITS = {
+    "Free": {
+        "max_students": 10,
+        "max_notices_per_day": 5,
+    },
+    "Pro": {
+        "max_students": None,
+        "max_notices_per_day": None,
+    },
+}
+
+def get_teacher_plan(user):
+    return user.plan or "Free"
+
+def is_pro(user):
+    return get_teacher_plan(user) == "Pro"
+
+def get_plan_limit(user, limit_name):
+    return PLAN_LIMITS[get_teacher_plan(user)][limit_name]
 
 def _looks_like_argon_hash(value: str) -> bool:
     return isinstance(value, str) and value.startswith("$argon2")
@@ -399,7 +419,7 @@ def register(user: schemas.User, db: Session = Depends(get_db)):
         role=user.role,
         batch_codes=student_batch_codes,
         center_name=user.center_name if user.role == "teacher" else None,
-        plan="Starter" if user.role == "teacher" else None,
+        plan="Free" if user.role == "teacher" else None,
     )
 
     db.add(new_user)
@@ -710,6 +730,11 @@ def enroll_in_batch(batch_code, db: Session = Depends(get_db), current_user = De
             404,
             "Batch not found. Make sure that your teacher has created this batch or check the batch code again.",
         )
+
+    teacher_plan = get_teacher_plan(get_user_by_id(batch.teacher_id))
+    if teacher_plan == "Free":
+        if len(get_students_in_batch(batch.code)) > PLAN_LIMITS["Free"]["max_students"]:
+            raise HTTPException(status_code=403, detail="Free plan limit reached. Upgrade to Pro to add more students.")
 
     if student.batch_codes:
         if batch_code in list(student.batch_codes):
@@ -1267,6 +1292,29 @@ def create_new_notice(
             403,
             "Cannot publish to a batch you do not own"
         )
+
+    if current_user.plan == "Free":
+        dhaka = ZoneInfo("Asia/Dhaka")
+
+        now = datetime.now(dhaka)
+        start_of_today = datetime.combine(
+            now.date(),
+            time.min,
+            tzinfo=dhaka
+        )
+        start_of_tomorrow = start_of_today + timedelta(days=1)
+
+        notices_today = db.query(models.Notice).filter(
+            models.Notice.teacher_id == current_user.id,
+            models.Notice.created_at >= start_of_today,
+            models.Notice.created_at < start_of_tomorrow
+        ).count()
+
+        if notices_today >= PLAN_LIMITS["Free"]["max_notices_per_day"]:
+            raise HTTPException(
+                status_code=403,
+                detail="Limit for posting notices today is reached. Upgrade to Pro or wait until tomorrow."
+            )
 
     new_notice = models.Notice(
         text=notice.text,

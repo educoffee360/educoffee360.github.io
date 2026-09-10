@@ -22,9 +22,11 @@ class User(Base):
     
     batch_codes = Column(JSON, nullable=True)
     
-    # FIX: Added name='user_plan'
-    plan = Column(Enum('Starter', 'Professional', 'Elite', name='user_plan'), nullable=True)
-
+    plan = Column(
+    Enum('Free', 'Pro', name='user_plan'),
+    nullable=False,
+    default='Free'
+    )
 
 class AdCampaign(Base):
     __tablename__ = 'ad_campaigns'
