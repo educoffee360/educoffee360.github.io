@@ -1,4 +1,4 @@
-const CACHE_NAME = 'educoffee-cache-v3';
+const CACHE_NAME = 'educoffee-cache-v4';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache immediately for offline capability
@@ -97,33 +97,20 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Fetch Event - Handle offline fallback and performant cache strategy
 self.addEventListener('fetch', (event) => {
   // Only intercept GET requests
   if (event.request.method !== 'GET') return;
 
-  // Bypass API requests to handle them with fresh network calls
+  // API requests must always go directly to the network.
+  // Do not intercept or fabricate 503 responses.
   if (event.request.url.includes('/api') || event.request.url.includes('onrender.com')) {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        // If API call fails offline, we can intercept and return a JSON error structure if expected
-        if ((event.request.headers.get('accept') || '').includes('application/json')) {
-          return new Response(JSON.stringify({ detail: "You are currently offline. Check your internet connection." }), {
-            status: 503,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
-        return new Response('You are currently offline.', { status: 503 });
-      })
-    );
     return;
   }
 
-  // Handle static page / assets caching strategy (Network falling back to cache, then offline fallback page)
+  // Handle static page / assets caching strategy
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // If response is valid, clone and put it into static cache
         if (response.status === 200 && response.type === 'basic') {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -133,16 +120,18 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(() => {
-        // Network failed, look in cache first
         return caches.match(event.request).then((cachedResponse) => {
           if (cachedResponse) {
             return cachedResponse;
           }
-          // If request is an HTML page and not in cache, fallback to offline.html
+
           if ((event.request.headers.get('accept') || '').includes('text/html')) {
             return caches.match(OFFLINE_URL);
           }
-          return new Response('Resource unavailable while offline.', { status: 503 });
+
+          return new Response('Resource unavailable while offline.', {
+            status: 503
+          });
         });
       })
   );
