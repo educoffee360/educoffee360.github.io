@@ -1312,7 +1312,7 @@ def create_new_notice(
         start_of_tomorrow = start_of_today + timedelta(days=1)
 
         notices_today = db.query(models.Notice).filter(
-            models.Notice.teacher_id == current_user.id,
+            models.Notice.teacher_id == current_user["user_id"],
             models.Notice.created_at >= start_of_today,
             models.Notice.created_at < start_of_tomorrow
         ).count()
