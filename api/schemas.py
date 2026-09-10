@@ -65,7 +65,7 @@ class UserResponse(BaseModel):
     phone: str
     role: Literal['teacher', 'student', 'admin', 'moderator']
     batch_codes: Optional[List] = None
-    plan: Optional[Literal['Starter', 'Professional', 'Elite']] = None
+    plan: Optional[Literal["Free", "Pro"]] = None
 
     class Config:
         from_attributes = True
@@ -177,7 +177,7 @@ class StaffDecision(BaseModel):
 
 
 class PlanSet(BaseModel):
-    plan: Literal['Starter', 'Professional', 'Elite']
+    plan: Literal["Free", "Pro"]
 
 
 class BanAction(BaseModel):
