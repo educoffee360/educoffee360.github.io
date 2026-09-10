@@ -738,10 +738,12 @@ def enroll_in_batch(batch_code, db: Session = Depends(get_db), current_user = De
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
-    teacher_plan = get_teacher_plan(teacher)
-    if teacher_plan == "Free":
-        if len(get_students_in_batch(batch.code)) > PLAN_LIMITS["Free"]["max_students"]:
-            raise HTTPException(status_code=403, detail="Free plan limit reached. Upgrade to Pro to add more students.")
+    if not is_pro(teacher):
+        if len(get_students_in_batch(batch.code, db)) >= PLAN_LIMITS["Free"]["max_students"]:
+            raise HTTPException(
+                status_code=403,
+                detail="Free plan limit reached. Upgrade to Pro to add more students."
+            )
 
     if student.batch_codes:
         if batch_code in list(student.batch_codes):
