@@ -248,11 +248,22 @@
   async function showActiveAdPopup() {
     try {
       const session = typeof getCurrentSession === "function" ? getCurrentSession() : null;
-      if (!session || !session.token) return;
-      if (typeof GetActiveAds !== "function") return;
+      if (!session || !session.token) {
+        console.log("[ad-popup] no session/token");
+        return;
+      }
+      if (typeof GetActiveAds !== "function") {
+        console.log("[ad-popup] GetActiveAds not available");
+        return;
+      }
 
+      console.log("[ad-popup] fetching /ads/active");
       const ads = await GetActiveAds();
-      if (!Array.isArray(ads) || ads.length === 0) return;
+      console.log("[ad-popup] raw ads", ads);
+      if (!Array.isArray(ads) || ads.length === 0) {
+        console.log("[ad-popup] no active ads returned");
+        return;
+      }
 
       const ad = ads[0];
       const modal = ensureAdModal();
@@ -266,8 +277,9 @@
       body.textContent = ad.body || "";
 
       modal.classList.add("ec-ad-open");
+      console.log("[ad-popup] opened", ad);
     } catch (e) {
-      // Quietly skip ad popup when the API route is unavailable or auth is missing.
+      console.log("[ad-popup] error", e?.message || e);
     }
   }
 
