@@ -1293,7 +1293,7 @@ def create_new_notice(
             "Cannot publish to a batch you do not own"
         )
 
-    if is_pro(current_user)
+    if is_pro(current_user):
         dhaka = ZoneInfo("Asia/Dhaka")
 
         now = datetime.now(dhaka)
