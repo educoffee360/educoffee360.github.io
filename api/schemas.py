@@ -12,7 +12,7 @@ class User(BaseModel):
     password: str = Field(min_length=6, max_length=128)
     role: Literal['teacher', 'student', 'admin', 'moderator']
     batch_codes: Optional[List] = None
-    plan: Optional[Literal['Starter', 'Professional', 'Elite']] = None
+    plan: Optional[Literal['Free', 'Pro']] = None
     verification_token: str
     location: Optional[str] = Field(default=None, max_length=120)
     grade: Optional[str] = Field(default=None, max_length=80)
@@ -165,7 +165,7 @@ class OTPVerifyRequest(BaseModel):
 
 
 class PlanUpgradeCreate(BaseModel):
-    requested_plan: Literal['Professional', 'Elite']
+    requested_plan: "Pro"
     method: Literal['nagad', 'offline'] = 'nagad'
     trx_id: Optional[str] = Field(default=None, min_length=5, max_length=80)
     payment_phone: Optional[str] = Field(default=None, min_length=8, max_length=30)
