@@ -176,8 +176,104 @@
     }
   }
 
+  function ensureAdModalStyles() {
+    if (document.getElementById("ec-ad-modal-style")) return;
+    const style = document.createElement("style");
+    style.id = "ec-ad-modal-style";
+    style.textContent = `
+      #ec-ad-modal {
+        position: fixed; inset: 0; z-index: 2000;
+        display: none; align-items: center; justify-content: center;
+        padding: 20px; background: rgba(62,39,35,.45);
+      }
+      #ec-ad-modal.ec-ad-open { display: flex; }
+      #ec-ad-dialog {
+        position: relative; width: min(560px, calc(100vw - 40px));
+        background: var(--card, #fffaf3); color: var(--text, #2d241e);
+        border-radius: 22px; border: 1px solid var(--border, #eadfd6);
+        box-shadow: 0 24px 80px rgba(62,39,35,.34);
+        padding: 22px; overflow: hidden;
+      }
+      #ec-ad-dialog .ec-ad-close {
+        position: absolute; right: 14px; top: 14px;
+        width: 34px; height: 34px; border-radius: 50%; border: 0;
+        background: rgba(62,39,35,.08); color: var(--coffee, #3e2723);
+        font-size: 22px; line-height: 1; cursor: pointer;
+      }
+      #ec-ad-image-wrap { display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+      #ec-ad-image-wrap img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 14px; border: 1px solid var(--border, #eadfd6); background: #fff; }
+      #ec-ad-title { font: 700 1.15rem 'DM Serif Display', serif; color: var(--coffee, #3e2723); margin-bottom: 8px; }
+      #ec-ad-body { font: 500 .9rem 'DM Sans', sans-serif; color: var(--muted, #786b64); line-height: 1.6; margin-bottom: 16px; }
+      #ec-ad-continue { width: 100%; border: none; border-radius: 999px; padding: 12px 20px; background: var(--coffee, #3e2723); color: #fff; font: 700 .85rem 'DM Sans', sans-serif; cursor: pointer; }
+      @media (max-width: 600px) { #ec-ad-dialog { padding: 18px; } }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function ensureAdModal() {
+    ensureAdModalStyles();
+    let modal = document.getElementById("ec-ad-modal");
+    if (modal) return modal;
+
+    modal = document.createElement("div");
+    modal.id = "ec-ad-modal";
+    modal.innerHTML = `
+      <div id="ec-ad-dialog">
+        <button class="ec-ad-close" id="ec-ad-close" aria-label="Close">×</button>
+        <div id="ec-ad-image-wrap" class="ec-ad-image-wrap"></div>
+        <div id="ec-ad-content">
+          <div id="ec-ad-title" class="ec-ad-title"></div>
+          <div id="ec-ad-body" class="ec-ad-body"></div>
+          <button id="ec-ad-continue" class="ec-ad-continue">Continue</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.querySelector("#ec-ad-close").addEventListener("click", () => closeAdModal(modal));
+    modal.querySelector("#ec-ad-continue").addEventListener("click", () => closeAdModal(modal));
+    return modal;
+  }
+
+  function closeAdModal(modal) {
+    if (!modal) return;
+    const adId = modal.dataset.adId;
+    if (adId && typeof MarkAdSeen === "function") {
+      MarkAdSeen(adId).catch(() => {});
+    }
+    modal.classList.remove("ec-ad-open");
+    modal.dataset.adId = "";
+  }
+
+  async function showActiveAdPopup() {
+    try {
+      const session = typeof getCurrentSession === "function" ? getCurrentSession() : null;
+      if (!session || !session.token) return;
+      if (typeof GetActiveAds !== "function") return;
+
+      const ads = await GetActiveAds();
+      if (!Array.isArray(ads) || ads.length === 0) return;
+
+      const ad = ads[0];
+      const modal = ensureAdModal();
+      modal.dataset.adId = ad.id || "";
+
+      const imageWrap = modal.querySelector("#ec-ad-image-wrap");
+      const title = modal.querySelector("#ec-ad-title");
+      const body = modal.querySelector("#ec-ad-body");
+      imageWrap.innerHTML = ad.image_url ? `<img src="${ad.image_url}" alt="${(ad.title || "Ad").replace(/</g, "&lt;")}" />` : "";
+      title.textContent = ad.title || "Offer from EduCoffee";
+      body.textContent = ad.body || "";
+
+      modal.classList.add("ec-ad-open");
+    } catch (e) {
+      // Quietly skip ad popup when the API route is unavailable or auth is missing.
+    }
+  }
+
   function initNow() {
     insertShell();
+    showActiveAdPopup();
   }
 
   function ensurePageLoader() {
