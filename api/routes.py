@@ -1293,7 +1293,14 @@ def create_new_notice(
             "Cannot publish to a batch you do not own"
         )
 
-    if is_pro(current_user):
+    teacher = db.query(models.User).filter(
+        models.User.id == current_user["user_id"]
+    ).first()
+
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+
+    if is_pro(teacher):
         dhaka = ZoneInfo("Asia/Dhaka")
 
         now = datetime.now(dhaka)
