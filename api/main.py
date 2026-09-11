@@ -88,12 +88,9 @@ def migrate_user_plans() -> None:
         # Users are the critical table: normalize legacy values before any ORM query.
         with engine.begin() as connection:
             connection.execute(text("""
-                UPDATE users
-                SET plan = CASE
-                    WHEN plan IN ('Professional', 'Elite', 'Pro') THEN 'Pro'
-                    ELSE 'Free'
-                END
-                WHERE plan IS NULL OR plan IN ('Starter', 'Professional', 'Elite', 'Free', 'Pro')
+            UPDATE users
+            SET plan = 'Free'::user_plan
+            WHERE plan IS NULL
             """))
 
             if engine.dialect.name == "postgresql":
