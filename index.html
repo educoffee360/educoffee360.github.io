@@ -648,17 +648,10 @@
 <div class="pi-title">📲 Send Payment To</div>
 <div class="pi-methods">
 <div class="pi-method">
-<div class="pi-method-icon pm-bkash">💳</div>
-<div class="pi-method-info">
-<div class="pi-method-name">bKash Personal</div>
-<div class="pi-method-num" onclick="copyNum('01700-000000')">01700-000000 <span class="copy-icon">📋</span></div>
-</div>
-</div>
-<div class="pi-method">
 <div class="pi-method-icon pm-nagad">🟠</div>
 <div class="pi-method-info">
 <div class="pi-method-name">Nagad Personal</div>
-<div class="pi-method-num" onclick="copyNum('01700-000001')">01700-000001 <span class="copy-icon">📋</span></div>
+<div class="pi-method-num" id="publicNagadNumber">Loading…</div>
 </div>
 </div>
 </div>
@@ -698,16 +691,14 @@
 <div class="select-wrap">
 <select class="form-select" id="payMethod">
 <option value="">পদ্ধতি বেছে নিন...</option>
-<option value="bkash">bKash (Personal)</option>
 <option value="nagad">Nagad (Personal)</option>
-<option value="rocket">Rocket (DBBL)</option>
 </select>
 </div>
 </div>
 <div class="form-group">
 <label class="form-label">Transaction ID (TrxID) *</label>
 <input class="form-input" id="payTrxId" placeholder="e.g. 8K9J2XA1R5" required="" style="font-family:monospace;letter-spacing:1px;text-transform:uppercase" type="text"/>
-<div class="trx-hint">bKash/Nagad থেকে পাওয়া TrxID লিখুন।</div>
+<div class="trx-hint">Nagad থেকে পাওয়া TrxID লিখুন।</div>
 </div>
 <div class="form-group full">
 <label class="form-label">Coaching Center Name (Optional)</label>
@@ -883,6 +874,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+document.addEventListener('DOMContentLoaded', async () => {
+    const numberEl = document.getElementById('publicNagadNumber');
+    if (!numberEl) return;
+    try {
+        const config = await GetPublicBillingConfig();
+        const number = config?.payment_number || '';
+        if (number) { numberEl.textContent = number; numberEl.onclick = () => copyNum(number); numberEl.title = 'Click to copy'; }
+        else numberEl.textContent = 'Payment number not configured';
+    } catch { numberEl.textContent = 'Payment number unavailable'; }
+});
+
 // PRICING
 function buyPlan(planName, price) {
     if (planName === 'Starter') { window.location.href = 'auth.html?role=teacher'; return; }
@@ -909,30 +911,45 @@ function switchPayTab(tab) {
 }
 
 // ONLINE PAYMENT SUBMIT
-function submitPayment() {
-    const name   = document.getElementById('payName').value.trim();
-    const email  = document.getElementById('payEmail').value.trim();
-    const phone  = document.getElementById('payPhone').value.trim();
+async function submitPayment() {
+    const name = document.getElementById('payName').value.trim();
+    const email = document.getElementById('payEmail').value.trim();
+    const phone = document.getElementById('payPhone').value.trim();
     const method = document.getElementById('payMethod').value;
-    const trxId  = document.getElementById('payTrxId').value.trim();
-
-    if (!name || !email || !phone || !method || !trxId) { showToast('⚠️ সমস্ত প্রয়োজনীয় ঘর পূরণ করুন।'); return; }
+    const trxId = document.getElementById('payTrxId').value.trim();
+    const plan = document.getElementById('payPackage').value;
+    const centerName = document.getElementById('payCenter').value.trim();
+    if (!name || !email || !phone || !method || !trxId || !['Professional','Elite'].includes(plan)) { showToast('⚠️ সমস্ত প্রয়োজনীয় ঘর পূরণ করুন।'); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('⚠️ সঠিক ইমেইল ঠিকানা দিন।'); return; }
-
-    const ref = 'EDCF-' + Math.floor(100000 + Math.random() * 900000);
-    document.getElementById('paymentFormOnline').style.display = 'none';
-    document.getElementById('successRef').textContent = ref;
-    document.getElementById('paymentSuccess').classList.add('show');
-    showToast('✓ পেমেন্ট তথ্য জমা হয়েছে!');
+    const button = document.querySelector('#paymentFormOnline .btn-verify');
+    button.disabled = true;
+    try {
+        const result = await CreatePublicPaymentSubmission({name, email, phone, plan, method, trx_id: trxId, center_name: centerName || null});
+        document.getElementById('paymentFormOnline').style.display = 'none';
+        document.getElementById('successRef').textContent = result.id || 'Received';
+        document.getElementById('paymentSuccess').classList.add('show');
+        showToast('✓ পেমেন্ট তথ্য জমা হয়েছে!');
+    } catch (error) {
+        showToast(error?.message || 'পেমেন্ট জমা দেওয়া যায়নি।');
+    } finally { button.disabled = false; }
 }
 
 // OFFLINE APPOINTMENT SUBMIT
-function submitOfflineAppointment() {
-    const name  = document.getElementById('offName').value.trim();
+async function submitOfflineAppointment() {
+    const name = document.getElementById('offName').value.trim();
     const phone = document.getElementById('offPhone').value.trim();
+    const plan = document.getElementById('offPackage').value;
+    const visitDate = document.getElementById('offDate').value || null;
     if (!name || !phone) { showToast('⚠️ নাম এবং ফোন নম্বর দিন।'); return; }
-    showToast('✓ অ্যাপয়েন্টমেন্ট রিকোয়েস্ট পাঠানো হয়েছে! আমরা শীঘ্রই যোগাযোগ করবো।');
-    setTimeout(() => showPricing(), 2500);
+    const button = document.querySelector('#panelOffline .btn-verify');
+    button.disabled = true;
+    try {
+        await CreateOfficeAppointment({name, phone, plan, visit_date: visitDate});
+        showToast('✓ অ্যাপয়েন্টমেন্ট রিকোয়েস্ট পাঠানো হয়েছে!');
+        setTimeout(() => showPricing(), 1800);
+    } catch (error) {
+        showToast(error?.message || 'অ্যাপয়েন্টমেন্ট জমা দেওয়া যায়নি।');
+    } finally { button.disabled = false; }
 }
 
 // COPY NUMBER

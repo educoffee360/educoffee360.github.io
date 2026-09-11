@@ -27,6 +27,8 @@ from models import (
     PushSubscription,
     AdCampaign,
     AdImpression,
+    PublicPaymentSubmission,
+    OfficeAppointment,
 )
 
 #Base.metadata.create_all(bind=engine)
@@ -64,6 +66,23 @@ def migrate_user_roles() -> None:
                 connection.execute(text(f"ALTER TYPE user_role ADD VALUE '{role_name}'"))
 
 migrate_user_roles()
+
+def migrate_user_plans() -> None:
+    """Add canonical plan values and normalize legacy Free/Pro records."""
+    if engine.dialect.name != "postgresql":
+        return
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as connection:
+        existing = {row[0] for row in connection.execute(text(
+            "SELECT e.enumlabel FROM pg_type t JOIN pg_enum e ON t.oid=e.enumtypid WHERE t.typname='user_plan'"
+        ))}
+        for plan in ("Starter", "Professional", "Elite"):
+            if plan not in existing:
+                connection.execute(text(f"ALTER TYPE user_plan ADD VALUE '{plan}'"))
+    with engine.begin() as connection:
+        connection.execute(text("UPDATE users SET plan='Starter' WHERE plan='Free'"))
+        connection.execute(text("UPDATE users SET plan='Professional' WHERE plan='Pro'"))
+
+migrate_user_plans()
 
 def migrate_legacy_plaintext_passwords() -> None:
     db = SessionLocal()
@@ -132,6 +151,12 @@ def ensure_ad_impression_table() -> None:
 ensure_push_subscription_table()
 ensure_attendance_table()
 ensure_ad_campaign_table()
+
+def ensure_public_request_tables() -> None:
+    PublicPaymentSubmission.__table__.create(bind=engine, checkfirst=True)
+    OfficeAppointment.__table__.create(bind=engine, checkfirst=True)
+
+ensure_public_request_tables()
 ensure_ad_impression_table()
 
 def bootstrap_admin() -> None:

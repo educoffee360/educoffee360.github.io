@@ -12,7 +12,7 @@ class User(BaseModel):
     password: str = Field(min_length=6, max_length=128)
     role: Literal['teacher', 'student', 'admin', 'moderator']
     batch_codes: Optional[List] = None
-    plan: Optional[Literal['Free', 'Pro']] = None
+    plan: Optional[Literal['Starter', 'Professional', 'Elite']] = None
     verification_token: str
     location: Optional[str] = Field(default=None, max_length=120)
     grade: Optional[str] = Field(default=None, max_length=80)
@@ -65,7 +65,7 @@ class UserResponse(BaseModel):
     phone: str
     role: Literal['teacher', 'student', 'admin', 'moderator']
     batch_codes: Optional[List] = None
-    plan: Optional[Literal["Free", "Pro"]] = None
+    plan: Optional[Literal["Starter", "Professional", "Elite"]] = None
 
     class Config:
         from_attributes = True
@@ -76,7 +76,7 @@ class AdCampaignCreate(BaseModel):
     body: str
     image_url: Optional[str] = None
     target_role: Literal['teacher', 'student', 'all'] = 'all'
-    target_plan: Literal['free', 'Professional', 'Elite', 'all'] = 'free'
+    target_plan: Literal['free', 'Starter', 'Professional', 'Elite', 'all'] = 'free'
     active: bool = True
     starts_at: Optional[datetime] = None
     ends_at: Optional[datetime] = None
@@ -87,7 +87,7 @@ class AdCampaignUpdate(BaseModel):
     body: Optional[str] = None
     image_url: Optional[str] = None
     target_role: Optional[Literal['teacher', 'student', 'all']] = None
-    target_plan: Optional[Literal['free', 'Professional', 'Elite', 'all']] = None
+    target_plan: Optional[Literal['free', 'Starter', 'Professional', 'Elite', 'all']] = None
     active: Optional[bool] = None
     starts_at: Optional[datetime] = None
     ends_at: Optional[datetime] = None
@@ -165,7 +165,7 @@ class OTPVerifyRequest(BaseModel):
 
 
 class PlanUpgradeCreate(BaseModel):
-    requested_plan: "Pro"
+    requested_plan: Literal["Professional", "Elite"]
     method: Literal['nagad', 'offline'] = 'nagad'
     trx_id: Optional[str] = Field(default=None, min_length=5, max_length=80)
     payment_phone: Optional[str] = Field(default=None, min_length=8, max_length=30)
@@ -177,7 +177,7 @@ class StaffDecision(BaseModel):
 
 
 class PlanSet(BaseModel):
-    plan: Literal["Free", "Pro"]
+    plan: Literal["Starter", "Professional", "Elite"]
 
 
 class BanAction(BaseModel):
@@ -233,3 +233,23 @@ class AttendanceUpdate(BaseModel):
 
 class PaymentUpdate(BaseModel):
     status: Literal["paid", "unpaid", "overdue"]
+
+
+class PublicPaymentCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=120)
+    email: EmailStr
+    phone: str = Field(min_length=8, max_length=30)
+    plan: Literal['Professional', 'Elite']
+    method: Literal['nagad']
+    trx_id: str = Field(min_length=5, max_length=80)
+    center_name: Optional[str] = Field(default=None, max_length=160)
+
+class OfficeAppointmentCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=120)
+    phone: str = Field(min_length=8, max_length=30)
+    plan: Literal['Starter', 'Professional', 'Elite']
+    visit_date: Optional[str] = None
+
+
+class StatusUpdate(BaseModel):
+    status: Literal["pending", "processed", "rejected"]

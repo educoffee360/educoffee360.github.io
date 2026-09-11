@@ -41,6 +41,7 @@
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.55;min-height:100vh}
 
+.student-account-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:28px 0}.account-card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:20px}.account-card h3{font-family:'DM Serif Display',serif;font-size:1.15rem;color:var(--coffee);margin-bottom:12px}.account-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);font-size:.82rem}.account-row:last-child{border-bottom:0}.account-muted{color:var(--muted)}.account-status{font-weight:700;text-transform:capitalize}.account-status.paid,.account-status.present{color:#2E7D32}.account-status.unpaid{color:#A15C00}.account-status.overdue,.account-status.absent{color:#C62828}@media(max-width:760px){.student-account-grid{grid-template-columns:1fr}}
         /* ── SIDEBAR (desktop) ── */
         .sidebar{
             position:fixed;top:0;left:0;height:100%;width:240px;
@@ -506,6 +507,11 @@
 <div><div class="stat-num" id="statExams">—</div><div class="stat-lbl">Total Exams</div></div>
 </div>
 </div>
+<!-- Fees & Attendance -->
+<div class="student-account-grid animate-in delay-2">
+<div class="account-card"><h3>Fee Status</h3><div id="studentPayments"><span class="account-muted">Loading…</span></div></div>
+<div class="account-card"><h3>Attendance</h3><div id="studentAttendance"><span class="account-muted">Loading…</span></div></div>
+</div>
 <!-- Batches / Teachers Section -->
 <div class="animate-in delay-2">
 <div class="sec-head">
@@ -603,6 +609,8 @@ let noticesData = [];   // from API
 let scoresData = [];    // student scores from API
 let currentBatchCode = null;
 let resultLookup = {};
+let paymentData = [];
+let attendanceData = [];
 
 function safeNumber(value) {
     return value === null || value === undefined ? null : Number(value);
@@ -630,8 +638,13 @@ async function init() {
     const allBatches = await GetAllBatches() || [];
     batchData = allBatches.filter(b => batchCodes.includes(b.code));
 
-    noticesData = await GetNoticesForStudent(studentId) || [];
-    scoresData = await GetStudentResults() || [];
+    [noticesData, scoresData, paymentData, attendanceData] = await Promise.all([
+        GetNoticesForStudent(studentId).catch(() => []),
+        GetStudentResults().catch(() => []),
+        GetStudentPayments(studentId).catch(() => []),
+        GetStudentAttendance(studentId).catch(() => [])
+    ]);
+    renderAccountStatus();
 
     const uniqueResultIds = [...new Set(scoresData.map(s => s.result_id).filter(Boolean))];
     resultLookup = {};
@@ -661,6 +674,17 @@ async function init() {
     renderRecentResults();
 }
 
+
+
+function renderAccountStatus() {
+    const payments = document.getElementById('studentPayments');
+    payments.innerHTML = paymentData.length ? paymentData.map(p => `<div class="account-row"><span><b>${p.batch_code}</b><br><span class="account-muted">৳${Number(p.amount || 0)} · ${new Date(p.period_start).toLocaleDateString()}–${new Date(p.period_end).toLocaleDateString()}</span></span><span class="account-status ${p.status}">${p.status}</span></div>`).join('') : '<span class="account-muted">No fee records yet.</span>';
+    const attendance = document.getElementById('studentAttendance');
+    if (!attendanceData.length) { attendance.innerHTML = '<span class="account-muted">No attendance records yet.</span>'; return; }
+    const present = attendanceData.filter(r => r.status === 'present').length;
+    const pct = Math.round((present / attendanceData.length) * 100);
+    attendance.innerHTML = `<div class="account-row"><span>Attendance rate</span><b>${pct}%</b></div>` + attendanceData.slice(0,5).map(r => `<div class="account-row"><span><b>${r.batch_code}</b><br><span class="account-muted">${new Date(r.date).toLocaleDateString()}</span></span><span class="account-status ${r.status}">${r.status}</span></div>`).join('');
+}
 
 // ── STATS ──
 function renderStats() {

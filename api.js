@@ -632,6 +632,10 @@ async function GetBillingConfig() {
   return requestJson("/billing/config");
 }
 
+async function GetPublicBillingConfig() {
+  return requestJson("/billing/public-config");
+}
+
 async function GetAds() {
   return requestJson("/ads");
 }
@@ -673,6 +677,27 @@ async function MarkAdSeen(adId) {
   return requestJson(`/ads/${requireId(adId, "ad id", null)}/seen`, {
     method: "POST",
   });
+}
+
+
+async function CreatePublicPaymentSubmission(payload = {}) {
+  return requestJson("/public-payment-submissions", { method: "POST", body: payload });
+}
+
+async function CreateOfficeAppointment(payload = {}) {
+  return requestJson("/public-office-appointments", { method: "POST", body: payload });
+}
+
+async function UpdateStaffPublicPaymentStatus(id, status) { return requestJson(`/staff/public-payment-submissions/${requireId(id, "submission id", null)}/status`, { method: "PUT", body: { status } }); }
+async function UpdateStaffOfficeAppointmentStatus(id, status) { return requestJson(`/staff/office-appointments/${requireId(id, "appointment id", null)}/status`, { method: "PUT", body: { status } }); }
+async function GetStaffPublicPaymentSubmissions() { return requestJson("/staff/public-payment-submissions"); }
+async function GetStaffOfficeAppointments() { return requestJson("/staff/office-appointments"); }
+
+async function GetStudentPayments(student_id = getCurrentUserId()) {
+  return requestJson(`/payments/student/${requireId(student_id, "student id")}`);
+}
+async function GetStudentAttendance(student_id = getCurrentUserId()) {
+  return requestJson(`/attendance/student/${requireId(student_id, "student id")}`);
 }
 
 async function CreateUpgradeRequest(request = {}) {
@@ -859,6 +884,15 @@ function bindGlobals() {
     DeleteAd,
     MarkAdSeen,
     CreateUpgradeRequest,
+    CreatePublicPaymentSubmission,
+    CreateOfficeAppointment,
+    GetPublicBillingConfig,
+    GetStaffPublicPaymentSubmissions,
+    UpdateStaffPublicPaymentStatus,
+    UpdateStaffOfficeAppointmentStatus,
+    GetStaffOfficeAppointments,
+    GetStudentPayments,
+    GetStudentAttendance,
     GetMyUpgradeRequests,
     GetStaffUsers,
     GetStaffAnalytics,

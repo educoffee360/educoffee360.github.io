@@ -40,21 +40,18 @@ class BatchUpdate(BaseModel):
     custom_period_end: datetime | None = None
 
 PLAN_LIMITS = {
-    "Free": {
-        "max_students": 10,
-        "max_notices_per_day": 5,
-    },
-    "Pro": {
-        "max_students": None,
-        "max_notices_per_day": None,
-    },
+    "Starter": {"max_students": 10, "max_notices_per_day": 5},
+    "Professional": {"max_students": None, "max_notices_per_day": None},
+    "Elite": {"max_students": None, "max_notices_per_day": None},
 }
 
+LEGACY_PLAN_MAP = {"Free": "Starter", "Pro": "Professional"}
+
 def get_teacher_plan(user):
-    return user.plan or "Free"
+    return LEGACY_PLAN_MAP.get(user.plan, user.plan) if user.plan else "Starter"
 
 def is_pro(user):
-    return get_teacher_plan(user) == "Pro"
+    return get_teacher_plan(user) in ("Professional", "Elite")
 
 def get_plan_limit(user, limit_name):
     return PLAN_LIMITS[get_teacher_plan(user)][limit_name]
@@ -419,7 +416,7 @@ def register(user: schemas.User, db: Session = Depends(get_db)):
         role=user.role,
         batch_codes=student_batch_codes,
         center_name=user.center_name if user.role == "teacher" else None,
-        plan="Free" if user.role == "teacher" else None,
+        plan="Starter" if user.role == "teacher" else None,
     )
 
     db.add(new_user)
@@ -739,10 +736,10 @@ def enroll_in_batch(batch_code, db: Session = Depends(get_db), current_user = De
         raise HTTPException(status_code=404, detail="Teacher not found")
 
     if not is_pro(teacher):
-        if len(get_students_in_batch(batch.code, db)) >= PLAN_LIMITS["Free"]["max_students"]:
+        if len(get_students_in_batch(batch.code, db)) >= PLAN_LIMITS["Starter"]["max_students"]:
             raise HTTPException(
                 status_code=403,
-                detail="Free plan limit reached. Upgrade to Pro to add more students."
+                detail="Free plan limit reached. Upgrade to Professional to add more students."
             )
 
     if student.batch_codes:
@@ -1103,7 +1100,7 @@ def active_ads(db: Session = Depends(get_db), current_user = Depends(get_current
         # Free/paid plan gate.
         if ad.target_plan != "all":
             if user.role == "teacher":
-                teacher_plan = user.plan or "Starter"
+                teacher_plan = get_teacher_plan(user)
                 if ad.target_plan == "free" and teacher_plan != "Starter":
                     continue
                 if ad.target_plan == "Professional" and teacher_plan != "Professional":
@@ -1116,8 +1113,8 @@ def active_ads(db: Session = Depends(get_db), current_user = Depends(get_current
                     related_batches = db.query(models.Batch).filter(models.Batch.code.in_(student_codes)).all()
                     related_teacher_ids = {batch.teacher_id for batch in related_batches}
                     teachers = db.query(models.User).filter(models.User.id.in_(related_teacher_ids)).all()
-                    has_paid_teacher = any(t.plan in ("Professional", "Elite") for t in teachers)
-                    has_free_teacher = any(t.plan in (None, "Starter") for t in teachers)
+                    has_paid_teacher = any(get_teacher_plan(t) in ("Professional", "Elite") for t in teachers)
+                    has_free_teacher = any(get_teacher_plan(t) == "Starter" for t in teachers)
                     if ad.target_plan == "free" and has_paid_teacher and not has_free_teacher:
                         continue
                     if ad.target_plan in ("Professional", "Elite") and not has_paid_teacher:
@@ -1326,10 +1323,10 @@ def create_new_notice(
             models.Notice.created_at < start_of_tomorrow
         ).count()
 
-        if notices_today >= PLAN_LIMITS["Free"]["max_notices_per_day"]:
+        if notices_today >= PLAN_LIMITS["Starter"]["max_notices_per_day"]:
             raise HTTPException(
                 status_code=403,
-                detail="Limit for posting notices today is reached. Upgrade to Pro or wait until tomorrow."
+                detail="Limit for posting notices today is reached. Upgrade to Professional or wait until tomorrow."
             )
 
     new_notice = models.Notice(
@@ -1637,7 +1634,7 @@ def _staff_user_response(user, demographics, restrictions, include_phone=False):
     return {
         "id": user.id, "name": user.name, "email": user.email,
         "phone": user.phone if include_phone else None,
-        "role": user.role, "plan": user.plan, "center_name": user.center_name,
+        "role": user.role, "plan": get_teacher_plan(user) if user.role == "teacher" else None, "center_name": user.center_name,
         "location": demographic.location if demographic else None,
         "grade": demographic.grade if demographic else None,
         "banned": bool(restriction and restriction.banned),
@@ -1659,7 +1656,7 @@ def staff_analytics(db: Session = Depends(get_db), current_user = Depends(requir
     demographics = db.query(models.UserDemographic).all()
     locations = Counter(row.location for row in demographics if row.location)
     grades = Counter(row.grade for row in demographics if row.grade)
-    plans = Counter((user.plan or "None") for user in users if user.role == "teacher")
+    plans = Counter(get_teacher_plan(user) for user in users if user.role == "teacher")
     roles = Counter(user.role for user in users)
     return {
         "total_users": len(users), "roles": dict(roles), "plans": dict(plans),
@@ -1668,6 +1665,14 @@ def staff_analytics(db: Session = Depends(get_db), current_user = Depends(requir
         "profiled_users": len({row.user_id for row in demographics if row.location or row.grade}),
     }
 
+
+@router.get("/billing/public-config", status_code=200)
+def public_billing_config():
+    return {
+        "provider": "Nagad",
+        "payment_number": os.getenv("NAGAD_PAYMENT_NUMBER", "").strip(),
+        "plans": {"Professional": {"amount": 150, "period": "1 month"}, "Elite": {"amount": 600, "period": "6 months"}},
+    }
 
 @router.get("/billing/config", status_code=200)
 def billing_config(current_user = Depends(require_role("teacher", "admin"))):
@@ -1691,6 +1696,56 @@ def _upgrade_response(request, db):
         "requested_at": request.requested_at, "reviewed_at": request.reviewed_at,
     }
 
+
+@router.post("/public-payment-submissions", status_code=201)
+def create_public_payment_submission(payload: schemas.PublicPaymentCreate, db: Session = Depends(get_db)):
+    trx_id = payload.trx_id.strip().upper()
+    if db.query(models.PublicPaymentSubmission).filter(models.PublicPaymentSubmission.trx_id == trx_id).first():
+        raise HTTPException(409, "This TrxID has already been submitted")
+    submission = models.PublicPaymentSubmission(
+        name=payload.name.strip(), email=str(payload.email).lower(), phone=payload.phone.strip(),
+        plan=payload.plan, method=payload.method, trx_id=trx_id, center_name=(payload.center_name or '').strip() or None
+    )
+    db.add(submission); db.commit(); db.refresh(submission)
+    return {"id": submission.id, "status": submission.status, "created_at": submission.created_at, "message": "Payment submission received"}
+
+@router.post("/public-office-appointments", status_code=201)
+def create_public_office_appointment(payload: schemas.OfficeAppointmentCreate, db: Session = Depends(get_db)):
+    parsed_date = None
+    if payload.visit_date:
+        try:
+            parsed_date = datetime.strptime(payload.visit_date, '%Y-%m-%d').date()
+        except ValueError:
+            raise HTTPException(400, "Use YYYY-MM-DD for the appointment date")
+    appointment = models.OfficeAppointment(
+        name=payload.name.strip(), phone=payload.phone.strip(), plan=payload.plan, visit_date=parsed_date
+    )
+    db.add(appointment); db.commit(); db.refresh(appointment)
+    return {"id": appointment.id, "status": appointment.status, "created_at": appointment.created_at, "message": "Appointment request received"}
+
+@router.put("/staff/public-payment-submissions/{submission_id}/status", status_code=200)
+def update_public_payment_status(submission_id: str, payload: schemas.StatusUpdate, db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    row = db.query(models.PublicPaymentSubmission).filter(models.PublicPaymentSubmission.id == submission_id).first()
+    if not row: raise HTTPException(404, "Payment submission not found")
+    row.status = payload.status; db.commit(); db.refresh(row)
+    return {"id": row.id, "status": row.status}
+
+@router.put("/staff/office-appointments/{appointment_id}/status", status_code=200)
+def update_office_appointment_status(appointment_id: str, payload: schemas.StatusUpdate, db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    row = db.query(models.OfficeAppointment).filter(models.OfficeAppointment.id == appointment_id).first()
+    if not row: raise HTTPException(404, "Appointment not found")
+    row.status = payload.status; db.commit(); db.refresh(row)
+    return {"id": row.id, "status": row.status}
+
+@router.get("/staff/public-payment-submissions", status_code=200)
+def staff_public_payment_submissions(db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    rows = db.query(models.PublicPaymentSubmission).order_by(models.PublicPaymentSubmission.created_at.desc()).all()
+    return [{"id": r.id, "name": r.name, "email": r.email, "phone": r.phone, "plan": r.plan, "method": r.method, "trx_id": r.trx_id, "center_name": r.center_name, "status": r.status, "created_at": r.created_at} for r in rows]
+
+@router.get("/staff/office-appointments", status_code=200)
+def staff_office_appointments(db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    rows = db.query(models.OfficeAppointment).order_by(models.OfficeAppointment.created_at.desc()).all()
+    return [{"id": r.id, "name": r.name, "phone": r.phone, "plan": r.plan, "visit_date": r.visit_date, "status": r.status, "created_at": r.created_at} for r in rows]
 
 @router.post("/upgrade-requests", status_code=201)
 def create_upgrade_request(payload: schemas.PlanUpgradeCreate, db: Session = Depends(get_db), current_user = Depends(require_role("teacher"))):
@@ -1826,6 +1881,31 @@ def create_moderator(payload: schemas.ModeratorCreate, db: Session = Depends(get
     db.add(moderator); db.commit(); db.refresh(moderator)
     return {"id": moderator.id, "name": moderator.name, "email": moderator.email, "role": moderator.role}
 
+
+@router.get("/payments/student/{student_id}", response_model=List[schemas.Payment], status_code=200)
+def get_student_payments(student_id: str, db: Session = Depends(get_db), current_user = Depends(require_student_self_or_admin)):
+    if current_user["role"] == "student":
+        student_id = current_user["user_id"]
+    student = db.query(models.User).filter(models.User.id == student_id, models.User.role == "student").first()
+    if not student:
+        raise HTTPException(404, "Student not found")
+    payments = []
+    for code in (student.batch_codes or []):
+        batch = db.query(models.Batch).filter(models.Batch.code == code).first()
+        if batch:
+            payment = _get_or_create_current_payment(student.id, batch, db)
+            if payment: payments.append(payment)
+    db.commit()
+    return payments
+
+@router.get("/attendance/student/{student_id}", status_code=200)
+def get_student_attendance(student_id: str, db: Session = Depends(get_db), current_user = Depends(require_student_self_or_admin)):
+    if current_user["role"] == "student":
+        student_id = current_user["user_id"]
+    student = db.query(models.User).filter(models.User.id == student_id, models.User.role == "student").first()
+    if not student: raise HTTPException(404, "Student not found")
+    records = db.query(models.Attendance).filter(models.Attendance.student_id == student_id).order_by(models.Attendance.attendance_date.desc()).all()
+    return [{"batch_code": r.batch_code, "date": r.attendance_date.isoformat(), "status": r.status} for r in records]
 
 @router.get("/payments/teacher/{teacher_id}", response_model=List[schemas.Payment], status_code=200)
 def get_teacher_payments(

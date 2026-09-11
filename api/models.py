@@ -23,7 +23,7 @@ class User(Base):
     batch_codes = Column(JSON, nullable=True)
     
     plan = Column(
-    Enum('Free', 'Pro', name='user_plan'),
+    Enum('Free', 'Pro', 'Starter', 'Professional', 'Elite', name='user_plan'),
     nullable=False,
     default='Free'
     )
@@ -261,3 +261,30 @@ class Payment(Base):
     period_start = Column(DateTime, nullable=False)
     period_end = Column(DateTime, nullable=False)
 
+
+
+class PublicPaymentSubmission(Base):
+    __tablename__ = 'public_payment_submissions'
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False)
+    email = Column(String, nullable=False)
+    phone = Column(String, nullable=False)
+    plan = Column(String, nullable=False)
+    method = Column(String, nullable=False)
+    trx_id = Column(String, nullable=False)
+    center_name = Column(String, nullable=True)
+    status = Column(String, nullable=False, default='pending')
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+
+class OfficeAppointment(Base):
+    __tablename__ = 'office_appointments'
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False)
+    phone = Column(String, nullable=False)
+    plan = Column(String, nullable=False)
+    visit_date = Column(Date, nullable=True)
+    status = Column(String, nullable=False, default='pending')
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
