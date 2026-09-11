@@ -298,44 +298,19 @@
 <div class="section-label">📦 Choose Your Plan</div>
 <div class="plan-selection">
 <div class="plan-options">
-<!-- Starter -->
-<div class="plan-option" id="planOptStarter" onclick="selectPlan('Starter')">
+<div class="plan-option selected" id="planOptFree" onclick="selectPlan('Free')">
 <div class="plan-radio"><div class="plan-radio-dot"></div></div>
 <div class="plan-info">
-<div class="plan-info-top">
-<span class="plan-info-name">Starter</span>
-<span class="plan-info-price">Free</span>
-<span class="plan-info-badge badge-free">Free</span>
-</div>
-<div class="plan-info-desc">10 students · 5 notices/day · Batch management · Result publishing</div>
-</div>
-</div>
-<!-- Professional -->
-<div class="plan-option" id="planOptProfessional" onclick="selectPlan('Professional')">
+<div class="plan-info-top"><span class="plan-info-name">Free</span><span class="plan-info-price">Free</span><span class="plan-info-badge badge-free">Free</span></div>
+<div class="plan-info-desc">Up to 10 students · 5 notices/day · Batch management · Results · Attendance</div>
+</div></div>
+<div class="plan-option" id="planOptPro" onclick="selectPlan('Pro')">
 <div class="plan-radio"><div class="plan-radio-dot"></div></div>
 <div class="plan-info">
-<div class="plan-info-top">
-<span class="plan-info-name">Professional</span>
-<span class="plan-info-price">৳150/month</span>
-<span class="plan-info-badge badge-pop">Popular</span>
-</div>
-<div class="plan-info-desc">Unlimited students · Full analytics · Parent communication · 1 monthly book reward</div>
-</div>
-</div>
-<!-- Elite -->
-<div class="plan-option" id="planOptElite" onclick="selectPlan('Elite')">
-<div class="plan-radio"><div class="plan-radio-dot"></div></div>
-<div class="plan-info">
-<div class="plan-info-top">
-<span class="plan-info-name">Elite</span>
-<span class="plan-info-price">৳600/6 months</span>
-<span class="plan-info-badge badge-best">Best Value</span>
-</div>
-<div class="plan-info-desc">Everything in Professional · 6 book rewards · Special gift · 24/7 WhatsApp support</div>
-</div>
-</div>
-</div>
-</div>
+<div class="plan-info-top"><span class="plan-info-name">Pro</span><span class="plan-info-price">৳150/month</span><span class="plan-info-badge badge-pop">Upgrade later</span></div>
+<div class="plan-info-desc">Unlimited students and notices · Full analytics · Parent communication</div>
+</div></div>
+</div></div>
 <!-- Payment section: shown only if paid plan selected -->
 <div id="paymentSection" style="display:none">
 <div class="section-label">💳 Payment</div>
@@ -394,7 +369,7 @@
 </div>
 <!-- Free plan note -->
 <div class="free-plan-note" id="freePlanNote" style="display:none;margin-bottom:16px">
-                    ✓ Starter plan সম্পূর্ণ বিনামূল্যে। কোনো পেমেন্ট লাগবে না — শুধু অ্যাকাউন্ট তৈরি করুন!
+                    ✓ Free plan সম্পূর্ণ বিনামূল্যে। কোনো পেমেন্ট লাগবে না — শুধু অ্যাকাউন্ট তৈরি করুন!
                 </div>
 <div class="section-label">Security</div>
 <div class="form-row">
@@ -532,11 +507,11 @@
 <div class="otp-error" id="recoveryError"></div>
 </div>
 </div>
-<script src="api.js"></script>
+<script src="api.js?v=20260911c"></script>
 <script>
     let currentRole = 'teacher';
     let currentTab  = 'login';
-    let selectedPlan = null;
+    let selectedPlan = 'Free';
     let authPayTab = 'online';
 
     // INIT
@@ -612,27 +587,20 @@
 
     // PLAN SELECTION
     function selectPlan(plan) {
-        if (plan !== 'Starter') {
-            alert('Create your free Starter account first, then submit a Nagad upgrade request from your profile.');
-            plan = 'Starter';
+        // Registration always creates a Free account; Pro is requested after signup.
+        if (plan !== 'Free') {
+            alert('Create your free account first. You can upgrade to Pro from your teacher profile.');
+            plan = 'Free';
         }
-        selectedPlan = plan;
-        ['Starter','Professional','Elite'].forEach(p => {
+        selectedPlan = 'Free';
+        ['Free','Pro'].forEach(p => {
             const el = document.getElementById('planOpt' + p);
-            el.classList.remove('selected', 'selected-elite');
+            if (el) el.classList.toggle('selected', p === 'Free');
         });
-        const el = document.getElementById('planOpt' + plan);
-        el.classList.add(plan === 'Elite' ? 'selected-elite' : 'selected');
-
         const paySection = document.getElementById('paymentSection');
-        const freeNote   = document.getElementById('freePlanNote');
-        if (plan === 'Starter') {
-            paySection.style.display = 'none';
-            freeNote.style.display   = 'block';
-        } else {
-            paySection.style.display = '';
-            freeNote.style.display   = 'none';
-        }
+        const freeNote = document.getElementById('freePlanNote');
+        if (paySection) paySection.style.display = 'none';
+        if (freeNote) freeNote.style.display = 'block';
     }
 
     // AUTH PAYMENT TAB
@@ -960,7 +928,7 @@ async function handleLogin() {
         if (password.length < 6) { pwErr.textContent = 'Password must be at least 6 characters.'; pwErr.style.display = 'block'; return; }
 
         await requestRegistrationOTP(
-            { name, email, phone: '+880' + phone, center_name: center, location: city, password, role: 'teacher', plan: 'Starter' },
+            { name, email, phone: '+880' + phone, center_name: center, location: city, password, role: 'teacher', plan: 'Free' },
             document.getElementById('teacherRegisterBtn')
         );
     }

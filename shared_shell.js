@@ -188,10 +188,10 @@
       }
       #ec-ad-modal.ec-ad-open { display: flex; }
       #ec-ad-dialog {
-        position: relative; width: min(460px, calc(100vw - 32px));
+        position: relative; width: min(480px, calc(100vw - 36px));
         background: var(--card, #fffaf3); color: var(--text, #2d241e);
-        border-radius: 18px; border: 1px solid var(--border, #eadfd6);
-        box-shadow: 0 18px 55px rgba(62,39,35,.28);
+        border-radius: 22px; border: 1px solid var(--border, #eadfd6);
+        box-shadow: 0 24px 80px rgba(62,39,35,.34);
         padding: 20px; overflow: hidden;
       }
       #ec-ad-dialog .ec-ad-close {
@@ -200,11 +200,11 @@
         background: rgba(62,39,35,.08); color: var(--coffee, #3e2723);
         font-size: 22px; line-height: 1; cursor: pointer;
       }
-      #ec-ad-image-wrap { display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
-      #ec-ad-image-wrap img { width: 100%; max-height: 190px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border, #eadfd6); background: #fff; }
-      #ec-ad-title { font: 700 1.08rem 'DM Serif Display', serif; color: var(--coffee, #3e2723); margin-bottom: 7px; }
-      #ec-ad-body { font: 500 .88rem 'DM Sans', sans-serif; color: var(--muted, #786b64); line-height: 1.55; margin-bottom: 14px; }
-      #ec-ad-continue { display: block; width: auto; min-width: 96px; margin-left: auto; border: 0; border-radius: 9px; padding: 9px 15px; background: var(--coffee, #3e2723); color: #fff; font: 700 .82rem 'DM Sans', sans-serif; cursor: pointer; }
+      #ec-ad-image-wrap { display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+      #ec-ad-image-wrap img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 14px; border: 1px solid var(--border, #eadfd6); background: #fff; }
+      #ec-ad-title { font: 700 1.15rem 'DM Serif Display', serif; color: var(--coffee, #3e2723); margin-bottom: 8px; }
+      #ec-ad-body { font: 500 .9rem 'DM Sans', sans-serif; color: var(--muted, #786b64); line-height: 1.6; margin-bottom: 16px; }
+      #ec-ad-continue { width: auto; min-width: 0; border: none; border-radius: 9px; padding: 8px 14px; background: var(--coffee, #3e2723); color: #fff; font: 700 .85rem 'DM Sans', sans-serif; cursor: pointer; }
       @media (max-width: 600px) { #ec-ad-dialog { padding: 18px; } }
     `;
     document.head.appendChild(style);
@@ -224,7 +224,7 @@
         <div id="ec-ad-content">
           <div id="ec-ad-title" class="ec-ad-title"></div>
           <div id="ec-ad-body" class="ec-ad-body"></div>
-          <button id="ec-ad-continue" class="ec-ad-continue">Close</button>
+          <button id="ec-ad-continue" class="ec-ad-continue">Continue</button>
         </div>
       </div>
     `;

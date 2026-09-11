@@ -350,7 +350,7 @@
     }
     </style>
 <script defer="True" src="/shared_head.js"></script>
-<script src="/api.js?v=20260911"></script>
+<script src="/api.js?v=20260911c"></script>
 <script>
   const existingSession = getCurrentSession();
   if (existingSession?.role === 'teacher') {
@@ -547,47 +547,47 @@
 <div class="section-header reveal" style="margin-bottom:60px">
 <div class="section-tag">✦ Pricing</div>
 <h2 class="section-title">Simple, transparent<br/>pricing for teachers</h2>
-<p class="section-sub">Start free. Upgrade when you need more power. Cancel anytime.</p>
+<p class="section-sub">Start free. Upgrade to Pro when you need unlimited capacity.</p>
 </div>
 <div class="pricing-grid reveal">
-<!-- FREE -->
 <div class="plan-card">
-<div class="plan-badge">For New Teachers</div>
+<div class="plan-badge">Free to start</div>
 <div class="plan-body">
 <div class="plan-icon">☕</div>
 <div class="plan-name">Free</div>
-<div class="plan-tagline">Everything you need to get started</div>
+<div class="plan-tagline">Everything you need to get your classes online</div>
 <div class="plan-price"><span class="plan-amount">Free</span></div>
-<div class="plan-period">No credit card</div>
+<div class="plan-period">No payment required</div>
 <div class="plan-divider"></div>
 <ul class="plan-features">
 <li><div class="pf-check pf-yes">✓</div><span>Up to <strong>10 students</strong></span></li>
 <li><div class="pf-check pf-yes">✓</div><span>Up to <strong>5 notices/day</strong></span></li>
 <li><div class="pf-check pf-yes">✓</div><span>Batch management</span></li>
 <li><div class="pf-check pf-yes">✓</div><span>Result publishing</span></li>
+<li><div class="pf-check pf-yes">✓</div><span>Attendance tracking</span></li>
+<li><div class="pf-check pf-yes">✓</div><span>Parent communication</span></li>
 </ul>
 <button class="plan-cta cta-outline" onclick="buyPlan('Free','Free')">Start for Free →</button>
 </div>
 </div>
-<!-- PRO -->
 <div class="plan-card featured">
-<div class="plan-badge elite">Pro</div>
+<div class="plan-badge">Most Popular</div>
 <div class="plan-body">
 <div class="plan-icon">🏆</div>
 <div class="plan-name">Pro</div>
-<div class="plan-tagline">Unlimited access for growing coaching centers</div>
-<div class="plan-price">
-<span class="plan-currency">৳</span>
-<span class="plan-amount">150</span>
-</div>
+<div class="plan-tagline">For teachers who need unlimited capacity</div>
+<div class="plan-price"><span class="plan-currency">৳</span><span class="plan-amount">150</span></div>
 <div class="plan-period">per month</div>
 <div class="plan-divider"></div>
 <ul class="plan-features">
 <li><div class="pf-check pf-yes">✓</div><span><strong>Unlimited</strong> students</span></li>
 <li><div class="pf-check pf-yes">✓</div><span><strong>Unlimited</strong> notices</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Batch management &amp; results</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Performance analytics</span></li>
+<li><div class="pf-check pf-yes">✓</div><span>Batch management</span></li>
+<li><div class="pf-check pf-yes">✓</div><span>Result publishing</span></li>
+<li><div class="pf-check pf-yes">✓</div><span>Attendance tracking</span></li>
 <li><div class="pf-check pf-yes">✓</div><span>Parent communication</span></li>
+<li><div class="pf-check pf-yes">✓</div><span>Full performance analytics</span></li>
+<li><div class="pf-check pf-yes">✓</div><span>Priority support</span></li>
 </ul>
 <button class="plan-cta cta-filled" onclick="buyPlan('Pro','৳150/month')">Get Pro →</button>
 </div>
@@ -602,7 +602,7 @@
 <button class="ph-back" onclick="showPricing()">← Back to Pricing</button>
 <div class="ph-selected-plan">📦 Selected: <strong id="selectedPlanDisplay">Pro</strong></div>
 <h2>Complete Your Payment</h2>
-<p>অনলাইনে Nagad অথবা আমাদের অফিসে সরাসরি পেমেন্ট করুন।</p>
+<p>অনলাইনে (bKash/Nagad) অথবা আমাদের অফিসে সরাসরি পেমেন্ট করুন।</p>
 </div>
 <!-- Payment Method Tabs -->
 <div class="pay-method-tabs">
@@ -647,9 +647,7 @@
 <label class="form-label">Selected Package</label>
 <div class="select-wrap">
 <select class="form-select" id="payPackage">
-<option value="Free">Free</option>
 <option value="Pro">Pro — ৳150/month</option>
-<option </option>
 </select>
 </div>
 </div>
@@ -704,7 +702,7 @@
 </div>
 <ol class="offline-steps">
 <li>আমাদের অফিসে সরাসরি আসুন অথবা আগে ফোনে যোগাযোগ করুন।</li>
-<li>আপনার পছন্দের প্যাকেজটি (Free / Pro / Pro) জানান।</li>
+<li>আপনার পছন্দের প্যাকেজটি (Pro) জানান।</li>
 <li>ক্যাশ, bKash, Nagad বা অন্য যেকোনো মাধ্যমে সুবিধামতো পেমেন্ট করুন।</li>
 <li>পেমেন্টের সাথে সাথেই আমরা আপনার অ্যাকাউন্ট সক্রিয় করে দেবো।</li>
 </ol>
@@ -727,9 +725,7 @@
 <label class="form-label">Preferred Package</label>
 <div class="select-wrap">
 <select class="form-select" id="offPackage">
-<option value="Free">Free</option>
 <option value="Pro">Pro — ৳150/month</option>
-<option </option>
 </select>
 </div>
 </div>

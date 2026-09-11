@@ -68,19 +68,70 @@ def migrate_user_roles() -> None:
 migrate_user_roles()
 
 def migrate_user_plans() -> None:
-    """Add canonical plan values and normalize legacy Free/Pro records."""
-    if engine.dialect.name != "postgresql":
-        return
-    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as connection:
-        existing = {row[0] for row in connection.execute(text(
-            "SELECT e.enumlabel FROM pg_type t JOIN pg_enum e ON t.oid=e.enumtypid WHERE t.typname='user_plan'"
-        ))}
-        for plan in ("Starter", "Professional", "Elite"):
-            if plan not in existing:
-                connection.execute(text(f"ALTER TYPE user_plan ADD VALUE '{plan}'"))
-    with engine.begin() as connection:
-        connection.execute(text("UPDATE users SET plan='Starter' WHERE plan='Free'"))
-        connection.execute(text("UPDATE users SET plan='Professional' WHERE plan='Pro'"))
+    """Normalize legacy subscription names before SQLAlchemy reads User rows.
+
+    Older deployments used Starter/Professional/Elite.  The canonical plans are
+    now Free/Pro.  This migration deliberately uses raw SQL so a legacy value
+    cannot crash SQLAlchemy's Enum result processor during application startup.
+    """
+    try:
+        if engine.dialect.name == "postgresql":
+            with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as connection:
+                existing = {row[0] for row in connection.execute(text(
+                    "SELECT e.enumlabel FROM pg_type t JOIN pg_enum e ON t.oid=e.enumtypid "
+                    "WHERE t.typname='user_plan'"
+                ))}
+                for plan in ("Free", "Pro"):
+                    if existing and plan not in existing:
+                        connection.execute(text(f"ALTER TYPE user_plan ADD VALUE '{plan}'"))
+
+        # Users are the critical table: normalize legacy values before any ORM query.
+        with engine.begin() as connection:
+            connection.execute(text("""
+                UPDATE users
+                SET plan = CASE
+                    WHEN plan IN ('Professional', 'Elite', 'Pro') THEN 'Pro'
+                    ELSE 'Free'
+                END
+                WHERE plan IS NULL OR plan IN ('Starter', 'Professional', 'Elite', 'Free', 'Pro')
+            """))
+
+            if engine.dialect.name == "postgresql":
+                ad_exists = connection.execute(text(
+                    "SELECT to_regclass('public.ad_campaigns') IS NOT NULL"
+                )).scalar()
+                upgrades_exist = connection.execute(text(
+                    "SELECT to_regclass('public.plan_upgrade_requests') IS NOT NULL"
+                )).scalar()
+            else:
+                ad_exists = connection.execute(text(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name='ad_campaigns'"
+                )).first() is not None
+                upgrades_exist = connection.execute(text(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name='plan_upgrade_requests'"
+                )).first() is not None
+
+            if ad_exists:
+                connection.execute(text("""
+                    UPDATE ad_campaigns
+                    SET target_plan = CASE
+                        WHEN target_plan IN ('Professional', 'Elite', 'Pro', 'pro') THEN 'pro'
+                        WHEN target_plan IN ('Starter', 'Free', 'free') THEN 'free'
+                        ELSE target_plan
+                    END
+                    WHERE target_plan IN ('Starter', 'Professional', 'Elite', 'Free', 'Pro', 'free', 'pro')
+                """))
+            if upgrades_exist:
+                connection.execute(text("""
+                    UPDATE plan_upgrade_requests
+                    SET requested_plan = 'Pro'
+                    WHERE requested_plan IN ('Professional', 'Elite', 'Pro')
+                """))
+    except Exception:
+        # Do not hide the original database failure, but make startup resilient on
+        # older/local databases where optional legacy tables may not exist yet.
+        logger.exception("Could not normalize legacy subscription plan data")
+        raise
 
 migrate_user_plans()
 

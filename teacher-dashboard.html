@@ -301,7 +301,7 @@
 <div class="plan-strip">
 <div>
 <div style="font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px">Current Plan</div>
-<div class="plan-name" id="planName">Starter</div>
+<div class="plan-name" id="planName">Free</div>
 <div class="plan-detail" id="planDetail">Free · Up to 10 students</div>
 </div>
 <a class="btn-upgrade" href="teacher-profile.html">Upgrade ⬆</a>
@@ -332,7 +332,7 @@
 </main>
 <!-- FAB (mobile) -->
 <!-- BOTTOM NAV -->
-<script src="api.js"></script><script src="/shared_shell.js"></script><script>
+<script src="api.js?v=20260911c"></script><script src="/shared_shell.js"></script><script>
 async function initDashboard() {
     const session = getCurrentSession();
     if (!session || session.role !== 'teacher') {
@@ -363,12 +363,8 @@ async function initDashboard() {
         document.getElementById('sTotalResults').textContent = results.length;
         document.getElementById('sTotalNotices').textContent = notices.length;
 
-        const plan = userData?.plan || 'Starter';
-        const planLimits = {
-            Starter: 'Free · Up to 10 students',
-            Professional: 'Up to 100 students',
-            Elite: 'Unlimited students'
-        };
+        const plan = userData?.plan === 'Pro' ? 'Pro' : 'Free';
+        const planLimits = { Free: 'Free · Up to 10 students · 5 notices/day', Pro: 'Pro · Unlimited students and notices' };
         document.getElementById('planName').textContent = plan;
         document.getElementById('planDetail').textContent = planLimits[plan] || plan;
         renderBatchPreview(batches);

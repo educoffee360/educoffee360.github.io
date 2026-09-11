@@ -76,7 +76,7 @@ class AdCampaignCreate(BaseModel):
     body: str
     image_url: Optional[str] = None
     target_role: Literal['teacher', 'student', 'all'] = 'all'
-    target_plan: Literal['free', 'Pro', 'all'] = 'free'
+    target_plan: Literal['free', 'pro', 'all'] = 'free'
     active: bool = True
     starts_at: Optional[datetime] = None
     ends_at: Optional[datetime] = None
@@ -87,7 +87,7 @@ class AdCampaignUpdate(BaseModel):
     body: Optional[str] = None
     image_url: Optional[str] = None
     target_role: Optional[Literal['teacher', 'student', 'all']] = None
-    target_plan: Optional[Literal['free', 'Pro', 'all']] = None
+    target_plan: Optional[Literal['free', 'pro', 'all']] = None
     active: Optional[bool] = None
     starts_at: Optional[datetime] = None
     ends_at: Optional[datetime] = None

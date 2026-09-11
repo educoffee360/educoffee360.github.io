@@ -40,18 +40,27 @@ class BatchUpdate(BaseModel):
     custom_period_end: datetime | None = None
 
 PLAN_LIMITS = {
-    "Free": {"max_students": 10, "max_notices_per_day": 5},
-    "Pro": {"max_students": None, "max_notices_per_day": None},
+    "Free": {
+        "max_students": 10,
+        "max_notices_per_day": 5,
+    },
+    "Pro": {
+        "max_students": None,
+        "max_notices_per_day": None,
+    },
 }
 
+LEGACY_PLAN_MAP = {"Starter": "Free", "Professional": "Pro", "Elite": "Pro"}
+
 def get_teacher_plan(user):
-    return user.plan or "Free"
+    return LEGACY_PLAN_MAP.get(user.plan, user.plan) if user.plan else "Free"
 
 def is_pro(user):
     return get_teacher_plan(user) == "Pro"
 
 def get_plan_limit(user, limit_name):
     return PLAN_LIMITS[get_teacher_plan(user)][limit_name]
+
 
 def _looks_like_argon_hash(value: str) -> bool:
     return isinstance(value, str) and value.startswith("$argon2")
@@ -1094,13 +1103,17 @@ def active_ads(db: Session = Depends(get_db), current_user = Depends(get_current
         if ad.target_role != "all" and ad.target_role != user.role:
             continue
 
-        # Free/paid plan gate.
+        # Free/paid plan gate. Canonical targets are free/pro/all; legacy
+        # campaign values are still understood for old database rows.
         if ad.target_plan != "all":
+            target_plan = {
+                "free": "Free", "Free": "Free",
+                "pro": "Pro", "Pro": "Pro",
+                "Starter": "Free", "Professional": "Pro", "Elite": "Pro",
+            }.get(ad.target_plan, ad.target_plan)
             if user.role == "teacher":
                 teacher_plan = get_teacher_plan(user)
-                if ad.target_plan == "free" and teacher_plan != "Free":
-                    continue
-                if ad.target_plan == "Pro" and teacher_plan != "Pro":
+                if target_plan in ("Free", "Pro") and teacher_plan != target_plan:
                     continue
             elif user.role == "student":
                 student_codes = list(user.batch_codes or [])
@@ -1110,9 +1123,9 @@ def active_ads(db: Session = Depends(get_db), current_user = Depends(get_current
                     teachers = db.query(models.User).filter(models.User.id.in_(related_teacher_ids)).all()
                     has_paid_teacher = any(get_teacher_plan(t) == "Pro" for t in teachers)
                     has_free_teacher = any(get_teacher_plan(t) == "Free" for t in teachers)
-                    if ad.target_plan == "free" and has_paid_teacher and not has_free_teacher:
+                    if target_plan == "Free" and has_paid_teacher and not has_free_teacher:
                         continue
-                    if ad.target_plan == "Pro" and not has_paid_teacher:
+                    if target_plan == "Pro" and not has_paid_teacher:
                         continue
 
         visible.append(ad)
@@ -1666,7 +1679,7 @@ def public_billing_config():
     return {
         "provider": "Nagad",
         "payment_number": os.getenv("NAGAD_PAYMENT_NUMBER", "").strip(),
-        "plans": {"Free": {"amount": 0, "period": "free"}, "Pro": {"amount": 150, "period": "1 month"}},
+        "plans": {"Pro": {"amount": 150, "period": "1 month"}},
     }
 
 @router.get("/billing/config", status_code=200)
@@ -1674,7 +1687,7 @@ def billing_config(current_user = Depends(require_role("teacher", "admin"))):
     return {
         "provider": "Nagad", "payment_number": os.getenv("NAGAD_PAYMENT_NUMBER", "").strip(),
         "review_window": "within 24 hours",
-        "plans": {"Free": {"amount": 0, "period": "free"}, "Pro": {"amount": 150, "period": "1 month"}},
+        "plans": {"Pro": {"amount": 150, "period": "1 month"}},
     }
 
 

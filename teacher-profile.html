@@ -339,32 +339,14 @@
 <div class="plan-cards">
 <!-- Free -->
 <div class="plan-card" id="planCardFree">
-<div class="pc-top">
-<div class="pc-icon">☕</div>
-<div class="pc-name">Free</div>
-<div class="pc-price">Free</div>
-</div>
-<div class="pc-features">
-<div class="pc-feat">Up to 10 students</div>
-<div class="pc-feat">5 notices per day</div>
-<div class="pc-feat">Batch management &amp; results</div>
-</div>
+<div class="pc-top"><div class="pc-icon">☕</div><div class="pc-name">Free</div><div class="pc-price">Free</div></div>
+<div class="pc-features"><div class="pc-feat">Up to 10 students</div><div class="pc-feat">5 notices per day</div><div class="pc-feat">Batch management &amp; results</div><div class="pc-feat">Attendance &amp; parent communication</div><div class="pc-feat no">Unlimited students &amp; notices</div><div class="pc-feat no">Full performance analytics</div></div>
 </div>
 <!-- Pro -->
 <div class="plan-card" id="planCardPro" onclick="openUpgradeModal('Pro')">
-<div class="pc-top">
-<div class="pc-icon">🏆</div>
-<div class="pc-name">Pro</div>
-<div class="pc-price">৳150/month</div>
-</div>
-<div class="pc-features">
-<div class="pc-feat">Unlimited students &amp; notices</div>
-<div class="pc-feat">Full performance analytics</div>
-<div class="pc-feat">Parent communication</div>
-<div class="pc-feat">All teacher features</div>
-</div>
-</div>
-</div>
+<div class="pc-top"><div class="pc-icon">🏆</div><div class="pc-name">Pro</div><div class="pc-price">৳150/month</div></div>
+<div class="pc-features"><div class="pc-feat">Unlimited students &amp; notices</div><div class="pc-feat">Full performance analytics</div><div class="pc-feat">Attendance &amp; parent communication</div><div class="pc-feat">Batch management &amp; results</div><div class="pc-feat">Priority support</div></div>
+</div></div>
 </div>
 <button class="btn-upgrade" onclick="openUpgradeModal(null)">
 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><polyline points="17 11 12 6 7 11"></polyline><line x1="12" x2="12" y1="6" y2="18"></line></svg>
@@ -547,19 +529,11 @@
 </div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="api.js?v=20260911"></script><script src="shared_shell.js"></script><script>
+<script src="api.js?v=20260911c"></script><script src="shared_shell.js"></script><script>
 // ── PLANS CONFIG ──────────────────────────────────
 const PLANS = {
-    Free: {
-        icon: '☕',
-        price: 'Free',
-        detail: 'Free · Up to 10 students, 5 notices/day'
-    },
-    Pro: {
-        icon: '🏆',
-        price: '৳150/month',
-        detail: '৳150/month · Unlimited students & notices'
-    }
+    Free: { icon: '☕', price: 'Free', detail: 'Free · Up to 10 students, 5 notices/day' },
+    Pro: { icon: '🏆', price: '৳150/month', detail: '৳150/month · Unlimited students & notices' }
 };
 let billingConfig = null;
 let currentTeacherUser = null;
@@ -654,13 +628,9 @@ function markCurrentPlanCard(plan) {
     ['Free','Pro'].forEach(p => {
         const card = document.getElementById('planCard' + p);
         if (!card) return;
-        card.classList.remove('current-plan');
-        // Keep the single Pro highlight consistent with the two-plan model
-        if (p !== 'Pro') card.classList.remove('elite-plan');
-        if (p === plan) {
-            card.classList.add('current-plan');
-            card.onclick = null; // no action on current plan
-        }
+        card.classList.toggle('current-plan', p === plan);
+        if (p === plan) card.onclick = null;
+        else if (p === 'Pro') card.onclick = () => openUpgradeModal('Pro');
     });
 }
 
