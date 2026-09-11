@@ -23,7 +23,7 @@ class User(Base):
     batch_codes = Column(JSON, nullable=True)
     
     plan = Column(
-    Enum('Free', 'Pro', 'Starter', 'Professional', 'Elite', name='user_plan'),
+    Enum('Free', 'Pro', name='user_plan'),
     nullable=False,
     default='Free'
     )

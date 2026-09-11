@@ -40,18 +40,15 @@ class BatchUpdate(BaseModel):
     custom_period_end: datetime | None = None
 
 PLAN_LIMITS = {
-    "Starter": {"max_students": 10, "max_notices_per_day": 5},
-    "Professional": {"max_students": None, "max_notices_per_day": None},
-    "Elite": {"max_students": None, "max_notices_per_day": None},
+    "Free": {"max_students": 10, "max_notices_per_day": 5},
+    "Pro": {"max_students": None, "max_notices_per_day": None},
 }
 
-LEGACY_PLAN_MAP = {"Free": "Starter", "Pro": "Professional"}
-
 def get_teacher_plan(user):
-    return LEGACY_PLAN_MAP.get(user.plan, user.plan) if user.plan else "Starter"
+    return user.plan or "Free"
 
 def is_pro(user):
-    return get_teacher_plan(user) in ("Professional", "Elite")
+    return get_teacher_plan(user) == "Pro"
 
 def get_plan_limit(user, limit_name):
     return PLAN_LIMITS[get_teacher_plan(user)][limit_name]
@@ -416,7 +413,7 @@ def register(user: schemas.User, db: Session = Depends(get_db)):
         role=user.role,
         batch_codes=student_batch_codes,
         center_name=user.center_name if user.role == "teacher" else None,
-        plan="Starter" if user.role == "teacher" else None,
+        plan="Free" if user.role == "teacher" else None,
     )
 
     db.add(new_user)
@@ -736,10 +733,10 @@ def enroll_in_batch(batch_code, db: Session = Depends(get_db), current_user = De
         raise HTTPException(status_code=404, detail="Teacher not found")
 
     if not is_pro(teacher):
-        if len(get_students_in_batch(batch.code, db)) >= PLAN_LIMITS["Starter"]["max_students"]:
+        if len(get_students_in_batch(batch.code, db)) >= PLAN_LIMITS["Free"]["max_students"]:
             raise HTTPException(
                 status_code=403,
-                detail="Free plan limit reached. Upgrade to Professional to add more students."
+                detail="Free plan limit reached. Upgrade to Pro to add more students."
             )
 
     if student.batch_codes:
@@ -1101,11 +1098,9 @@ def active_ads(db: Session = Depends(get_db), current_user = Depends(get_current
         if ad.target_plan != "all":
             if user.role == "teacher":
                 teacher_plan = get_teacher_plan(user)
-                if ad.target_plan == "free" and teacher_plan != "Starter":
+                if ad.target_plan == "free" and teacher_plan != "Free":
                     continue
-                if ad.target_plan == "Professional" and teacher_plan != "Professional":
-                    continue
-                if ad.target_plan == "Elite" and teacher_plan != "Elite":
+                if ad.target_plan == "Pro" and teacher_plan != "Pro":
                     continue
             elif user.role == "student":
                 student_codes = list(user.batch_codes or [])
@@ -1113,11 +1108,11 @@ def active_ads(db: Session = Depends(get_db), current_user = Depends(get_current
                     related_batches = db.query(models.Batch).filter(models.Batch.code.in_(student_codes)).all()
                     related_teacher_ids = {batch.teacher_id for batch in related_batches}
                     teachers = db.query(models.User).filter(models.User.id.in_(related_teacher_ids)).all()
-                    has_paid_teacher = any(get_teacher_plan(t) in ("Professional", "Elite") for t in teachers)
-                    has_free_teacher = any(get_teacher_plan(t) == "Starter" for t in teachers)
+                    has_paid_teacher = any(get_teacher_plan(t) == "Pro" for t in teachers)
+                    has_free_teacher = any(get_teacher_plan(t) == "Free" for t in teachers)
                     if ad.target_plan == "free" and has_paid_teacher and not has_free_teacher:
                         continue
-                    if ad.target_plan in ("Professional", "Elite") and not has_paid_teacher:
+                    if ad.target_plan == "Pro" and not has_paid_teacher:
                         continue
 
         visible.append(ad)
@@ -1323,10 +1318,10 @@ def create_new_notice(
             models.Notice.created_at < start_of_tomorrow
         ).count()
 
-        if notices_today >= PLAN_LIMITS["Starter"]["max_notices_per_day"]:
+        if notices_today >= PLAN_LIMITS["Free"]["max_notices_per_day"]:
             raise HTTPException(
                 status_code=403,
-                detail="Limit for posting notices today is reached. Upgrade to Professional or wait until tomorrow."
+                detail="Limit for posting notices today is reached. Upgrade to Pro or wait until tomorrow."
             )
 
     new_notice = models.Notice(
@@ -1671,7 +1666,7 @@ def public_billing_config():
     return {
         "provider": "Nagad",
         "payment_number": os.getenv("NAGAD_PAYMENT_NUMBER", "").strip(),
-        "plans": {"Professional": {"amount": 150, "period": "1 month"}, "Elite": {"amount": 600, "period": "6 months"}},
+        "plans": {"Free": {"amount": 0, "period": "free"}, "Pro": {"amount": 150, "period": "1 month"}},
     }
 
 @router.get("/billing/config", status_code=200)
@@ -1679,7 +1674,7 @@ def billing_config(current_user = Depends(require_role("teacher", "admin"))):
     return {
         "provider": "Nagad", "payment_number": os.getenv("NAGAD_PAYMENT_NUMBER", "").strip(),
         "review_window": "within 24 hours",
-        "plans": {"Professional": {"amount": 150, "period": "1 month"}, "Elite": {"amount": 600, "period": "6 months"}},
+        "plans": {"Free": {"amount": 0, "period": "free"}, "Pro": {"amount": 150, "period": "1 month"}},
     }
 
 

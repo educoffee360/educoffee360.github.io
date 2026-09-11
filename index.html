@@ -350,7 +350,7 @@
     }
     </style>
 <script defer="True" src="/shared_head.js"></script>
-<script src="/api.js"></script>
+<script src="/api.js?v=20260911"></script>
 <script>
   const existingSession = getCurrentSession();
   if (existingSession?.role === 'teacher') {
@@ -550,35 +550,32 @@
 <p class="section-sub">Start free. Upgrade when you need more power. Cancel anytime.</p>
 </div>
 <div class="pricing-grid reveal">
-<!-- STARTER -->
+<!-- FREE -->
 <div class="plan-card">
 <div class="plan-badge">For New Teachers</div>
 <div class="plan-body">
 <div class="plan-icon">☕</div>
-<div class="plan-name">Starter</div>
-<div class="plan-tagline">Perfect to get started — completely free</div>
+<div class="plan-name">Free</div>
+<div class="plan-tagline">Everything you need to get started</div>
 <div class="plan-price"><span class="plan-amount">Free</span></div>
-<div class="plan-period">12 months · No credit card</div>
+<div class="plan-period">No credit card</div>
 <div class="plan-divider"></div>
 <ul class="plan-features">
 <li><div class="pf-check pf-yes">✓</div><span>Up to <strong>10 students</strong></span></li>
 <li><div class="pf-check pf-yes">✓</div><span>Up to <strong>5 notices/day</strong></span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Advanced batch management</span></li>
+<li><div class="pf-check pf-yes">✓</div><span>Batch management</span></li>
 <li><div class="pf-check pf-yes">✓</div><span>Result publishing</span></li>
-<li><div class="pf-check pf-no">✗</div><span style="color:var(--muted)">Monthly magazine / book reward</span></li>
-<li><div class="pf-check pf-no">✗</div><span style="color:var(--muted)">Performance analytics</span></li>
-<li><div class="pf-check pf-no">✗</div><span style="color:var(--muted)">Parent communication</span></li>
 </ul>
-<button class="plan-cta cta-outline" onclick="buyPlan('Starter','Free')">Start for Free →</button>
+<button class="plan-cta cta-outline" onclick="buyPlan('Free','Free')">Start for Free →</button>
 </div>
 </div>
-<!-- PROFESSIONAL -->
-<div class="plan-card">
-<div class="plan-badge">Most Popular</div>
+<!-- PRO -->
+<div class="plan-card featured">
+<div class="plan-badge elite">Pro</div>
 <div class="plan-body">
 <div class="plan-icon">🏆</div>
-<div class="plan-name">Professional</div>
-<div class="plan-tagline">For growing coaching centers</div>
+<div class="plan-name">Pro</div>
+<div class="plan-tagline">Unlimited access for growing coaching centers</div>
 <div class="plan-price">
 <span class="plan-currency">৳</span>
 <span class="plan-amount">150</span>
@@ -588,41 +585,11 @@
 <ul class="plan-features">
 <li><div class="pf-check pf-yes">✓</div><span><strong>Unlimited</strong> students</span></li>
 <li><div class="pf-check pf-yes">✓</div><span><strong>Unlimited</strong> notices</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Advanced batch management</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Full performance analytics</span></li>
+<li><div class="pf-check pf-yes">✓</div><span>Batch management &amp; results</span></li>
+<li><div class="pf-check pf-yes">✓</div><span>Performance analytics</span></li>
 <li><div class="pf-check pf-yes">✓</div><span>Parent communication</span></li>
-<li><div class="pf-check pf-yes">✓</div><span><strong>1 monthly magazine/book</strong> for top student</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Priority support</span></li>
-<li><div class="pf-check pf-no">✗</div><span style="color:var(--muted)">Special gift reward</span></li>
 </ul>
-<button class="plan-cta cta-filled" onclick="buyPlan('Professional','৳150/month')">Get Professional →</button>
-</div>
-</div>
-<!-- ELITE -->
-<div class="plan-card featured">
-<div class="plan-badge elite">Best Value — Elite</div>
-<div class="plan-body">
-<div class="plan-icon">👑</div>
-<div class="plan-name">Elite</div>
-<div class="plan-tagline">The ultimate package for serious educators</div>
-<div class="plan-price">
-<span class="plan-currency">৳</span>
-<span class="plan-amount">600</span>
-</div>
-<div class="plan-period">per 6 months</div>
-<div class="plan-original">৳ 900 if paid monthly</div>
-<div class="plan-divider"></div>
-<ul class="plan-features">
-<li><div class="pf-check pf-yes">✓</div><span><strong>Everything in Professional</strong></span></li>
-<li><div class="pf-check pf-yes">✓</div><span><strong>6 monthly books/magazines</strong> for top performer</span></li>
-<li><div class="pf-check pf-yes">✓</div><span><strong>1 Special Gift</strong> for top performer</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Dedicated account manager</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Custom center branding</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Batch export &amp; reports</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Early access to new features</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>24/7 WhatsApp support</span></li>
-</ul>
-<button class="plan-cta cta-gold" onclick="buyPlan('Elite','৳600/6 months')">Get Elite — Best Value →</button>
+<button class="plan-cta cta-filled" onclick="buyPlan('Pro','৳150/month')">Get Pro →</button>
 </div>
 </div>
 </div>
@@ -633,9 +600,9 @@
 <div class="payment-card">
 <div class="payment-header">
 <button class="ph-back" onclick="showPricing()">← Back to Pricing</button>
-<div class="ph-selected-plan">📦 Selected: <strong id="selectedPlanDisplay">Professional</strong></div>
+<div class="ph-selected-plan">📦 Selected: <strong id="selectedPlanDisplay">Pro</strong></div>
 <h2>Complete Your Payment</h2>
-<p>অনলাইনে (bKash/Nagad) অথবা আমাদের অফিসে সরাসরি পেমেন্ট করুন।</p>
+<p>অনলাইনে Nagad অথবা আমাদের অফিসে সরাসরি পেমেন্ট করুন।</p>
 </div>
 <!-- Payment Method Tabs -->
 <div class="pay-method-tabs">
@@ -680,9 +647,9 @@
 <label class="form-label">Selected Package</label>
 <div class="select-wrap">
 <select class="form-select" id="payPackage">
-<option value="Starter">Starter — Free</option>
-<option value="Professional">Professional — ৳150/month</option>
-<option value="Elite">Elite — ৳600/6 months</option>
+<option value="Free">Free</option>
+<option value="Pro">Pro — ৳150/month</option>
+<option </option>
 </select>
 </div>
 </div>
@@ -737,7 +704,7 @@
 </div>
 <ol class="offline-steps">
 <li>আমাদের অফিসে সরাসরি আসুন অথবা আগে ফোনে যোগাযোগ করুন।</li>
-<li>আপনার পছন্দের প্যাকেজটি (Starter / Professional / Elite) জানান।</li>
+<li>আপনার পছন্দের প্যাকেজটি (Free / Pro / Pro) জানান।</li>
 <li>ক্যাশ, bKash, Nagad বা অন্য যেকোনো মাধ্যমে সুবিধামতো পেমেন্ট করুন।</li>
 <li>পেমেন্টের সাথে সাথেই আমরা আপনার অ্যাকাউন্ট সক্রিয় করে দেবো।</li>
 </ol>
@@ -760,9 +727,9 @@
 <label class="form-label">Preferred Package</label>
 <div class="select-wrap">
 <select class="form-select" id="offPackage">
-<option value="Starter">Starter — Free</option>
-<option value="Professional">Professional — ৳150/month</option>
-<option value="Elite">Elite — ৳600/6 months</option>
+<option value="Free">Free</option>
+<option value="Pro">Pro — ৳150/month</option>
+<option </option>
 </select>
 </div>
 </div>
@@ -887,7 +854,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // PRICING
 function buyPlan(planName, price) {
-    if (planName === 'Starter') { window.location.href = 'auth.html?role=teacher'; return; }
+    if (planName === 'Free') { window.location.href = 'auth.html?role=teacher'; return; }
     document.getElementById('selectedPlanDisplay').textContent = planName + ' — ' + price;
     document.getElementById('payPackage').value = planName;
     document.getElementById('offPackage').value = planName;
@@ -919,7 +886,7 @@ async function submitPayment() {
     const trxId = document.getElementById('payTrxId').value.trim();
     const plan = document.getElementById('payPackage').value;
     const centerName = document.getElementById('payCenter').value.trim();
-    if (!name || !email || !phone || !method || !trxId || !['Professional','Elite'].includes(plan)) { showToast('⚠️ সমস্ত প্রয়োজনীয় ঘর পূরণ করুন।'); return; }
+    if (!name || !email || !phone || !method || !trxId || plan !== 'Pro') { showToast('⚠️ সমস্ত প্রয়োজনীয় ঘর পূরণ করুন।'); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('⚠️ সঠিক ইমেইল ঠিকানা দিন।'); return; }
     const button = document.querySelector('#paymentFormOnline .btn-verify');
     button.disabled = true;

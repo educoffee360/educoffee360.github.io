@@ -264,7 +264,7 @@
 <div class="hero-center" id="heroCenter">Coaching Center</div>
 <div class="hero-badges">
 <span class="hbadge hb-role">👨‍🏫 Teacher</span>
-<span class="hbadge hb-plan" id="heroPlanBadge">☕ Starter</span>
+<span class="hbadge hb-plan" id="heroPlanBadge">☕ Free</span>
 </div>
 </div>
 <div class="hero-actions">
@@ -331,55 +331,38 @@
 <!-- Current Plan -->
 <div class="upgrade-current">
 <div class="uc-label">Current Plan</div>
-<div class="uc-plan" id="currentPlanName">Starter</div>
+<div class="uc-plan" id="currentPlanName">Free</div>
 <div class="uc-detail" id="currentPlanDetail">Free — Up to 10 students, 5 notices/day</div>
 <div class="uc-badge ucb-starter" id="currentPlanStatus">Active</div>
 </div>
 <!-- Plan Options -->
 <div class="plan-cards">
-<!-- Starter -->
-<div class="plan-card" id="planCardStarter">
+<!-- Free -->
+<div class="plan-card" id="planCardFree">
 <div class="pc-top">
 <div class="pc-icon">☕</div>
-<div class="pc-name">Starter</div>
+<div class="pc-name">Free</div>
 <div class="pc-price">Free</div>
 </div>
 <div class="pc-features">
 <div class="pc-feat">Up to 10 students</div>
 <div class="pc-feat">5 notices per day</div>
 <div class="pc-feat">Batch management &amp; results</div>
-<div class="pc-feat no">Analytics &amp; parent communication</div>
-<div class="pc-feat no">Monthly book/magazine reward</div>
 </div>
 </div>
-<!-- Professional -->
-<div class="plan-card" id="planCardProfessional" onclick="openUpgradeModal('Professional')">
+<!-- Pro -->
+<div class="plan-card" id="planCardPro" onclick="openUpgradeModal('Pro')">
 <div class="pc-top">
 <div class="pc-icon">🏆</div>
-<div class="pc-name">Professional</div>
+<div class="pc-name">Pro</div>
 <div class="pc-price">৳150/month</div>
 </div>
 <div class="pc-features">
 <div class="pc-feat">Unlimited students &amp; notices</div>
 <div class="pc-feat">Full performance analytics</div>
 <div class="pc-feat">Parent communication</div>
-<div class="pc-feat">1 monthly book/magazine reward</div>
-<div class="pc-feat no">Special gift reward</div>
+<div class="pc-feat">All teacher features</div>
 </div>
-</div>
-<!-- Elite -->
-<div class="plan-card elite-plan" id="planCardElite" onclick="openUpgradeModal('Elite')">
-<div class="pc-top">
-<div class="pc-icon">👑</div>
-<div class="pc-name">Elite</div>
-<div class="pc-price">৳600/6 months</div>
-</div>
-<div class="pc-features">
-<div class="pc-feat">Everything in Professional</div>
-<div class="pc-feat">6 monthly books/magazines</div>
-<div class="pc-feat">1 special gift for top student</div>
-<div class="pc-feat">Dedicated account manager</div>
-<div class="pc-feat">24/7 WhatsApp support</div>
 </div>
 </div>
 </div>
@@ -500,7 +483,7 @@
 <button class="mcl" onclick="closeUpgradeModal()">✕</button>
 </div>
 <div class="mbody">
-<div class="selected-plan-tag" id="modalPlanTag">📦 Professional — ৳150/month</div>
+<div class="selected-plan-tag" id="modalPlanTag">📦 Pro — ৳150/month</div>
 <!-- Payment Method Tabs -->
 <div class="pay-tabs">
 <button class="pay-tab active" onclick="switchPayTab('online',this)">📲 Nagad</button>
@@ -564,24 +547,18 @@
 </div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="api.js"></script><script src="shared_shell.js"></script><script>
+<script src="api.js?v=20260911"></script><script src="shared_shell.js"></script><script>
 // ── PLANS CONFIG ──────────────────────────────────
 const PLANS = {
-    Starter: {
+    Free: {
         icon: '☕',
         price: 'Free',
         detail: 'Free · Up to 10 students, 5 notices/day'
     },
-
-    Professional: {
+    Pro: {
         icon: '🏆',
         price: '৳150/month',
         detail: '৳150/month · Unlimited students & notices'
-    },
-    Elite: {
-        icon: '👑',
-        price: '৳600/6 months',
-        detail: '৳600/6 months · Unlimited students & notices + rewards'
     }
 };
 let billingConfig = null;
@@ -600,8 +577,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const email = backendUser?.email || '';
     const user  = backendUser || {};
     currentTeacherUser = user;
-    const rawPlan = backendUser?.plan || localStorage.getItem('teacherPlan') || 'Starter';
-    const plan = ({Free:'Starter', Pro:'Professional'})[rawPlan] || rawPlan;
+    const rawPlan = backendUser?.plan || localStorage.getItem('teacherPlan') || 'Free';
+    const plan = rawPlan === 'Pro' ? 'Pro' : 'Free';
 
     // Sidebar
     document.getElementById('sidebarAvatar').textContent = name[0].toUpperCase();
@@ -665,21 +642,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // ── SUBSCRIPTION PLAN ─────────────────────────────
 function renderCurrentPlan(plan) {
-    const p = PLANS[plan] || PLANS.Starter;
+    const p = PLANS[plan] || PLANS.Free;
     document.getElementById('currentPlanName').textContent   = plan;
     document.getElementById('currentPlanDetail').textContent = p.detail;
     const statusEl = document.getElementById('currentPlanStatus');
     statusEl.textContent = 'Active';
-    statusEl.className   = plan === 'Starter' ? 'uc-badge ucb-starter' : 'uc-badge ucb-active';
+    statusEl.className   = plan === 'Free' ? 'uc-badge ucb-starter' : 'uc-badge ucb-active';
 }
 
 function markCurrentPlanCard(plan) {
-    ['Starter','Professional','Elite'].forEach(p => {
+    ['Free','Pro'].forEach(p => {
         const card = document.getElementById('planCard' + p);
         if (!card) return;
         card.classList.remove('current-plan');
-        // Remove 'Best Value' label only for non-Elite
-        if (p !== 'Elite') card.classList.remove('elite-plan');
+        // Keep the single Pro highlight consistent with the two-plan model
+        if (p !== 'Pro') card.classList.remove('elite-plan');
         if (p === plan) {
             card.classList.add('current-plan');
             card.onclick = null; // no action on current plan
@@ -688,14 +665,14 @@ function markCurrentPlanCard(plan) {
 }
 
 // ── UPGRADE MODAL ─────────────────────────────────
-let selectedUpgradePlan = 'Professional';
+let selectedUpgradePlan = 'Pro';
 
 function openUpgradeModal(plan) {
     if (!billingConfig?.payment_number) {
         showToast('Nagad payment is not configured yet. Please contact support.');
         return;
     }
-    if (!plan) plan = 'Professional';
+    if (!plan) plan = 'Pro';
     selectedUpgradePlan = plan;
     const p = PLANS[plan];
     document.getElementById('modalPlanTag').textContent = (p.icon || '📦') + ' ' + plan + ' — ' + p.price;
