@@ -364,7 +364,7 @@ async function initDashboard() {
         document.getElementById('sTotalNotices').textContent = notices.length;
 
         const plan = userData?.plan === 'Pro' ? 'Pro' : 'Free';
-        const planLimits = { Free: 'Free · Up to 10 students · 5 notices/day', Pro: 'Pro · Unlimited students and notices' };
+        const planLimits = { Free: 'Free · Up to 10 students · 1 notice/day', Pro: 'Pro · Unlimited students and notices' };
         document.getElementById('planName').textContent = plan;
         document.getElementById('planDetail').textContent = planLimits[plan] || plan;
         renderBatchPreview(batches);

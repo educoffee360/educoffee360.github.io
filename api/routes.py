@@ -1680,7 +1680,7 @@ def public_billing_config():
     return {
         "provider": "Nagad",
         "payment_number": os.getenv("NAGAD_PAYMENT_NUMBER", "").strip(),
-        "plans": {"Pro": {"amount": 150, "period": "1 month"}},
+        "plans": {"Pro": {"amount": 200, "period": "1 month"}},
     }
 
 @router.get("/billing/config", status_code=200)
@@ -1688,7 +1688,7 @@ def billing_config(current_user = Depends(require_role("teacher", "admin"))):
     return {
         "provider": "Nagad", "payment_number": os.getenv("NAGAD_PAYMENT_NUMBER", "").strip(),
         "review_window": "within 24 hours",
-        "plans": {"Pro": {"amount": 150, "period": "1 month"}},
+        "plans": {"Pro": {"amount": 200, "period": "1 month"}},
     }
 
 

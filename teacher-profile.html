@@ -332,7 +332,7 @@
 <div class="upgrade-current">
 <div class="uc-label">Current Plan</div>
 <div class="uc-plan" id="currentPlanName">Free</div>
-<div class="uc-detail" id="currentPlanDetail">Free — Up to 10 students, 5 notices/day</div>
+<div class="uc-detail" id="currentPlanDetail">Free — Up to 10 students, 1 notice/day</div>
 <div class="uc-badge ucb-starter" id="currentPlanStatus">Active</div>
 </div>
 <!-- Plan Options -->
@@ -340,11 +340,11 @@
 <!-- Free -->
 <div class="plan-card" id="planCardFree">
 <div class="pc-top"><div class="pc-icon">☕</div><div class="pc-name">Free</div><div class="pc-price">Free</div></div>
-<div class="pc-features"><div class="pc-feat">Up to 10 students</div><div class="pc-feat">5 notices per day</div><div class="pc-feat">Batch management &amp; results</div><div class="pc-feat">Attendance &amp; parent communication</div><div class="pc-feat no">Unlimited students &amp; notices</div><div class="pc-feat no">Full performance analytics</div></div>
+<div class="pc-features"><div class="pc-feat">Up to 10 students</div><div class="pc-feat">1 notice per day</div><div class="pc-feat">Batch management &amp; results</div><div class="pc-feat">Attendance &amp; parent communication</div><div class="pc-feat no">Unlimited students &amp; notices</div><div class="pc-feat no">Full performance analytics</div></div>
 </div>
 <!-- Pro -->
 <div class="plan-card" id="planCardPro" onclick="openUpgradeModal('Pro')">
-<div class="pc-top"><div class="pc-icon">🏆</div><div class="pc-name">Pro</div><div class="pc-price">৳150/month</div></div>
+<div class="pc-top"><div class="pc-icon">🏆</div><div class="pc-name">Pro</div><div class="pc-price">৳200/month</div></div>
 <div class="pc-features"><div class="pc-feat">Unlimited students &amp; notices</div><div class="pc-feat">Full performance analytics</div><div class="pc-feat">Attendance &amp; parent communication</div><div class="pc-feat">Batch management &amp; results</div><div class="pc-feat">Priority support</div></div>
 </div></div>
 </div>
@@ -465,7 +465,7 @@
 <button class="mcl" onclick="closeUpgradeModal()">✕</button>
 </div>
 <div class="mbody">
-<div class="selected-plan-tag" id="modalPlanTag">📦 Pro — ৳150/month</div>
+<div class="selected-plan-tag" id="modalPlanTag">📦 Pro — ৳200/month</div>
 <!-- Payment Method Tabs -->
 <div class="pay-tabs">
 <button class="pay-tab active" onclick="switchPayTab('online',this)">📲 Nagad</button>
@@ -532,8 +532,8 @@
 <script src="api.js?v=20260911c"></script><script src="shared_shell.js"></script><script>
 // ── PLANS CONFIG ──────────────────────────────────
 const PLANS = {
-    Free: { icon: '☕', price: 'Free', detail: 'Free · Up to 10 students, 5 notices/day' },
-    Pro: { icon: '🏆', price: '৳150/month', detail: '৳150/month · Unlimited students & notices' }
+    Free: { icon: '☕', price: 'Free', detail: 'Free · Up to 10 students, 1 notice/day' },
+    Pro: { icon: '🏆', price: '৳200/month', detail: '৳200/month · Unlimited students & notices' }
 };
 let billingConfig = null;
 let currentTeacherUser = null;
