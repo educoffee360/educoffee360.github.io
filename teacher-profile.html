@@ -178,6 +178,43 @@
         .mcl:hover{background:var(--bg);color:var(--coffee)}
         .mbody{padding:0 26px 26px}
         .selected-plan-tag{display:inline-flex;align-items:center;gap:8px;background:var(--cl);border:1px solid rgba(198,134,66,.25);border-radius:10px;padding:8px 14px;font-size:.82rem;font-weight:600;color:var(--caramel);margin-bottom:18px}
+        .billing-toggle{
+        display:flex;
+        gap:5px;
+        padding:5px;
+        background:#EDE8E4;
+        border-radius:10px;
+        margin-bottom:16px;
+    }
+
+    .billing-option{
+        flex:1;
+        border:none;
+        background:transparent;
+        color:var(--muted);
+        padding:9px 8px;
+        border-radius:8px;
+        font-family:'DM Sans',sans-serif;
+        font-size:.78rem;
+        font-weight:700;
+        cursor:pointer;
+        transition:all .25s;
+    }
+
+    .billing-option.active{
+        background:var(--coffee);
+        color:#fff;
+    }
+
+    .save-badge{
+        display:inline-block;
+        margin-left:4px;
+        padding:2px 5px;
+        border-radius:5px;
+        background:rgba(46,125,50,.1);
+        color:#2E7D32;
+        font-size:.6rem;
+    }
 
         /* Payment tabs */
         .pay-tabs{display:flex;background:#EDE8E4;border-radius:10px;padding:4px;gap:4px;margin-bottom:16px}
@@ -344,9 +381,20 @@
 </div>
 <!-- Pro -->
 <div class="plan-card" id="planCardPro" onclick="openUpgradeModal('Pro')">
-<div class="pc-top"><div class="pc-icon">🏆</div><div class="pc-name">Pro</div><div class="pc-price">৳200/month</div></div>
-<div class="pc-features"><div class="pc-feat">Unlimited students &amp; notices</div><div class="pc-feat">Full performance analytics</div><div class="pc-feat">Attendance &amp; parent communication</div><div class="pc-feat">Batch management &amp; results</div><div class="pc-feat">Priority support</div></div>
-</div></div>
+    <div class="pc-top">
+        <div class="pc-icon">🏆</div>
+        <div class="pc-name">Pro</div>
+        <div class="pc-price" id="proCardPrice">৳200/month</div>
+    </div>
+    <div class="pc-features">
+        <div class="pc-feat">Unlimited students &amp; notices</div>
+        <div class="pc-feat">Full performance analytics</div>
+        <div class="pc-feat">Attendance &amp; parent communication</div>
+        <div class="pc-feat">Batch management &amp; results</div>
+        <div class="pc-feat">Priority support</div>
+    </div>
+</div>
+</div>
 </div>
 <button class="btn-upgrade" onclick="openUpgradeModal(null)">
 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><polyline points="17 11 12 6 7 11"></polyline><line x1="12" x2="12" y1="6" y2="18"></line></svg>
@@ -466,13 +514,30 @@
 </div>
 <div class="mbody">
 <div class="selected-plan-tag" id="modalPlanTag">📦 Pro — ৳200/month</div>
+<div class="billing-toggle">
+    <button
+        class="billing-option active"
+        id="monthlyBilling"
+        onclick="setSubscriptionDuration('monthly')">
+        ৳200 / month
+    </button>
+
+    <button
+        class="billing-option"
+        id="sixMonthBilling"
+        onclick="setSubscriptionDuration('six_month')">
+        ৳1,000 / 6 months
+        <span class="save-badge">Save 17%</span>
+    </button>
+</div>
 <!-- Payment Method Tabs -->
 <div class="pay-tabs">
-<button class="pay-tab active" onclick="switchPayTab('online',this)">📲 Nagad</button>
-<button class="pay-tab" onclick="switchPayTab('offline',this)" style="display:none">🏢 Office / Offline</button>
+    <button class="pay-tab active" onclick="switchPayTab('nagad',this)">📲 Nagad</button>
+    <button class="pay-tab" onclick="switchPayTab('bkash',this)">💜 bKash</button>
+    <button class="pay-tab" onclick="switchPayTab('offline',this)" style="display:none">🏢 Office</button>
 </div>
 <!-- Online Tab -->
-<div class="pay-content active" id="payOnline">
+<div class="pay-content active" id="payNagad">
 <div class="online-instruction">
 <div class="oi-title">Send Payment To</div>
 <div class="oi-numbers">
@@ -493,6 +558,52 @@
 <input id="payPhone" placeholder="01XXXXXXXXX" type="tel"/>
 </div>
 <button class="btn-submit-pay" onclick="submitUpgrade('online', this)">Submit &amp; Request Upgrade</button>
+</div>
+<div class="pay-content" id="payBkash">
+    <div class="online-instruction">
+        <div class="oi-title">Send Payment To</div>
+
+        <div class="oi-numbers">
+            <div class="oi-num-item">
+                <div class="oi-num-label">💗 bKash</div>
+                <div class="oi-num-val"
+                     id="bkashPaymentNumber"
+                     onclick="copyToClip(this.dataset.number || '')"
+                     data-number="">
+                    Set in Render
+                    <span style="opacity:.5;font-size:.7rem">📋</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="oi-note">
+            Send money then fill in the Transaction ID below.
+            Your account will be activated within 24 hours after verification.
+        </div>
+    </div>
+
+    <div class="modal-fg">
+        <label>Transaction ID (TrxID) *</label>
+        <input class="mono"
+               id="bkashTrxId"
+               placeholder="e.g. 8K9J2XA1R5"
+               type="text"/>
+        <p class="modal-fg-hint">
+            Enter the TrxID from your bKash confirmation message.
+        </p>
+    </div>
+
+    <div class="modal-fg">
+        <label>Your Phone Number *</label>
+        <input id="bkashPhone"
+               placeholder="01XXXXXXXXX"
+               type="tel"/>
+    </div>
+
+    <button class="btn-submit-pay"
+            onclick="submitUpgrade('bkash', this)">
+        Submit &amp; Request Upgrade
+    </button>
 </div>
 <!-- Offline Tab -->
 <div class="pay-content" id="payOffline">
@@ -594,6 +705,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     billingConfig = await GetBillingConfig().catch(() => null);
     const paymentNumber = billingConfig?.payment_number || '';
     const paymentNumberEl = document.getElementById('nagadPaymentNumber');
+    const bkashNumber = billingConfig?.bkash_number || '';
+    const bkashNumberEl = document.getElementById('bkashPaymentNumber');
+
+    bkashNumberEl.dataset.number = bkashNumber;
+    bkashNumberEl.innerHTML = bkashNumber
+        ? `${bkashNumber} <span style="opacity:.5;font-size:.7rem">📋</span>`
+        : 'Payment number not configured';
     paymentNumberEl.dataset.number = paymentNumber;
     paymentNumberEl.innerHTML = paymentNumber ? `${paymentNumber} <span style="opacity:.5;font-size:.7rem">📋</span>` : 'Payment number not configured';
     const upgradeRequests = await GetMyUpgradeRequests().catch(() => []);
@@ -636,23 +754,67 @@ function markCurrentPlanCard(plan) {
 
 // ── UPGRADE MODAL ─────────────────────────────────
 let selectedUpgradePlan = 'Pro';
+let selectedSubscriptionDuration = 'monthly';
+
+function setSubscriptionDuration(duration) {
+    selectedSubscriptionDuration = duration;
+
+    document.getElementById('monthlyBilling').classList.toggle(
+        'active',
+        duration === 'monthly'
+    );
+
+    document.getElementById('sixMonthBilling').classList.toggle(
+        'active',
+        duration === 'six_month'
+    );
+
+    const tag = document.getElementById('modalPlanTag');
+
+    if (duration === 'six_month') {
+        tag.textContent = '🏆 Pro — ৳1,000 / 6 months';
+    } else {
+        tag.textContent = '🏆 Pro — ৳200 / month';
+    }
+}
 
 function openUpgradeModal(plan) {
-    if (!billingConfig?.payment_number) {
-        showToast('Nagad payment is not configured yet. Please contact support.');
+    if (!billingConfig?.payment_number && !billingConfig?.bkash_number) {
+        showToast('No online payment method is configured yet. Please contact support.');
         return;
     }
+
     if (!plan) plan = 'Pro';
+
     selectedUpgradePlan = plan;
+    selectedSubscriptionDuration = 'monthly';
+
     const p = PLANS[plan];
-    document.getElementById('modalPlanTag').textContent = (p.icon || '📦') + ' ' + plan + ' — ' + p.price;
+
+    document.getElementById('modalPlanTag').textContent =
+        (p.icon || '📦') + ' ' + plan + ' — ৳200/month';
+
+    document.getElementById('monthlyBilling').classList.add('active');
+    document.getElementById('sixMonthBilling').classList.remove('active');
+
     document.getElementById('upgradeModal').classList.add('open');
-    // Reset tabs
-    document.querySelectorAll('.pay-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
-    document.getElementById('payOnline').classList.add('active');
+
+    // Reset payment tabs
+    document.querySelectorAll('.pay-tab').forEach((t, i) => {
+        t.classList.toggle('active', i === 0);
+    });
+
+    document.getElementById('payNagad').classList.add('active');
+    document.getElementById('payBkash').classList.remove('active');
     document.getElementById('payOffline').classList.remove('active');
+
     document.getElementById('payTrxId').value = '';
-    document.getElementById('payPhone').value = currentTeacherUser?.phone || '';
+    document.getElementById('payPhone').value =
+        currentTeacherUser?.phone || '';
+
+    document.getElementById('bkashTrxId').value = '';
+    document.getElementById('bkashPhone').value =
+        currentTeacherUser?.phone || '';
 }
 
 function closeUpgradeModal() {
@@ -664,14 +826,30 @@ document.getElementById('upgradeModal').addEventListener('click', function(e) {
 });
 
 function switchPayTab(tab, btn) {
-    document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.pay-tab').forEach(t => {
+        t.classList.remove('active');
+    });
+
     btn.classList.add('active');
-    document.getElementById('payOnline').classList.toggle('active', tab === 'online');
-    document.getElementById('payOffline').classList.toggle('active', tab === 'offline');
+
+    document.getElementById('payNagad').classList.toggle(
+        'active',
+        tab === 'nagad'
+    );
+
+    document.getElementById('payBkash').classList.toggle(
+        'active',
+        tab === 'bkash'
+    );
+
+    document.getElementById('payOffline').classList.toggle(
+        'active',
+        tab === 'offline'
+    );
 }
 
 async function submitUpgrade(method, button) {
-    if (method === 'online') {
+    if (method === 'nagad' || method === 'bkash') {
         const trx   = document.getElementById('payTrxId').value.trim();
         const phone = document.getElementById('payPhone').value.trim();
         if (!trx || !phone) { showToast('Please fill in all required fields.'); return; }
@@ -683,9 +861,14 @@ async function submitUpgrade(method, button) {
     try {
         await CreateUpgradeRequest({
             requested_plan: selectedUpgradePlan,
-            method: method === 'online' ? 'nagad' : 'offline',
-            trx_id: method === 'online' ? document.getElementById('payTrxId').value.trim() : null,
-            payment_phone: method === 'online' ? document.getElementById('payPhone').value.trim() : null,
+            subscription_duration: selectedSubscriptionDuration,
+            method: method === 'nagad' ? 'nagad' : 'bkash',
+            trx_id: method === 'nagad'
+                ? document.getElementById('payTrxId').value.trim()
+                : document.getElementById('bkashTrxId').value.trim(),
+            payment_phone: method === 'nagad'
+                ? document.getElementById('payPhone').value.trim()
+                : document.getElementById('bkashPhone').value.trim(),
         });
         closeUpgradeModal();
         document.getElementById('currentPlanStatus').textContent = `${selectedUpgradePlan} review pending`;
