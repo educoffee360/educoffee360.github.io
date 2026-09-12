@@ -215,6 +215,55 @@
     .cta-filled:hover { background: var(--caramel); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(198,134,66,.3); }
     .cta-gold { background: linear-gradient(135deg, var(--caramel), var(--caramel2)); color: #fff; box-shadow: 0 6px 20px rgba(198,134,66,.3); }
     .cta-gold:hover { transform: translateY(-2px); box-shadow: 0 12px 35px rgba(198,134,66,.45); }
+    .billing-toggle {
+        display: flex;
+        gap: 5px;
+        padding: 5px;
+        background: rgba(62,39,35,.06);
+        border-radius: 12px;
+        margin-bottom: 22px;
+    }
+
+    .billing-option {
+        flex: 1;
+        position: relative;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        padding: 10px 8px;
+        border-radius: 9px;
+        font-family: 'Sora', sans-serif;
+        font-size: .76rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .25s var(--ease);
+    }
+
+    .billing-option.active {
+        background: #fff;
+        color: var(--coffee);
+        box-shadow: 0 2px 8px rgba(62,39,35,.08);
+    }
+
+    .save-badge {
+        display: inline-block;
+        margin-left: 4px;
+        padding: 2px 5px;
+        border-radius: 5px;
+        background: rgba(46,125,50,.1);
+        color: #2E7D32;
+        font-size: .6rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 480px) {
+        .save-badge {
+            display: block;
+            width: fit-content;
+            margin: 3px auto 0;
+        }
+    }
 
     /* PAYMENT SECTION */
     #payment-section { display: none; padding: 80px 6vw 100px; background: var(--cream); animation: fadeIn .5s var(--ease); }
@@ -571,26 +620,51 @@
 </div>
 </div>
 <div class="plan-card featured">
-<div class="plan-badge">Most Popular</div>
-<div class="plan-body">
-<div class="plan-icon">🏆</div>
-<div class="plan-name">Pro</div>
-<div class="plan-tagline">For teachers who need unlimited capacity</div>
-<div class="plan-price"><span class="plan-currency">৳</span><span class="plan-amount">150</span></div>
-<div class="plan-period">per month</div>
-<div class="plan-divider"></div>
-<ul class="plan-features">
-<li><div class="pf-check pf-yes">✓</div><span><strong>Unlimited</strong> students</span></li>
-<li><div class="pf-check pf-yes">✓</div><span><strong>Unlimited</strong> notices</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Batch management</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Result publishing</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Attendance tracking</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Parent communication</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Full performance analytics</span></li>
-<li><div class="pf-check pf-yes">✓</div><span>Priority support</span></li>
-</ul>
-<button class="plan-cta cta-filled" onclick="buyPlan('Pro','৳150/month')">Get Pro →</button>
-</div>
+    <div class="plan-badge">Most Popular</div>
+    <div class="plan-body">
+        <div class="plan-icon">🏆</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-tagline">For teachers who need unlimited capacity</div>
+
+        <!-- Billing toggle -->
+        <div class="billing-toggle">
+            <button class="billing-option active" id="monthlyOption" onclick="setBilling('monthly')">
+                Monthly
+            </button>
+            <button class="billing-option" id="sixMonthOption" onclick="setBilling('six_month')">
+                6 Months
+                <span class="save-badge">Save 17%</span>
+            </button>
+        </div>
+
+        <div class="plan-price">
+            <span class="plan-currency">৳</span>
+            <span class="plan-amount" id="proPrice">200</span>
+        </div>
+
+        <div class="plan-period" id="proPeriod">per month</div>
+
+        <div class="plan-original" id="proOriginal" style="display:none">
+            ৳1,200 for 6 months
+        </div>
+
+        <div class="plan-divider"></div>
+
+        <ul class="plan-features">
+            <li><div class="pf-check pf-yes">✓</div><span><strong>Unlimited</strong> students</span></li>
+            <li><div class="pf-check pf-yes">✓</div><span><strong>Unlimited</strong> notices</span></li>
+            <li><div class="pf-check pf-yes">✓</div><span>Batch management</span></li>
+            <li><div class="pf-check pf-yes">✓</div><span>Result publishing</span></li>
+            <li><div class="pf-check pf-yes">✓</div><span>Attendance tracking</span></li>
+            <li><div class="pf-check pf-yes">✓</div><span>Parent communication</span></li>
+            <li><div class="pf-check pf-yes">✓</div><span>Full performance analytics</span></li>
+            <li><div class="pf-check pf-yes">✓</div><span>Priority support</span></li>
+        </ul>
+
+        <button class="plan-cta cta-filled" onclick="buySelectedProPlan()">
+            Get Pro →
+        </button>
+    </div>
 </div>
 </div>
 </section>
@@ -647,7 +721,7 @@
 <label class="form-label">Selected Package</label>
 <div class="select-wrap">
 <select class="form-select" id="payPackage">
-<option value="Pro">Pro — ৳150/month</option>
+<option value="Pro">Pro</option>
 </select>
 </div>
 </div>
@@ -725,7 +799,7 @@
 <label class="form-label">Preferred Package</label>
 <div class="select-wrap">
 <select class="form-select" id="offPackage">
-<option value="Pro">Pro — ৳150/month</option>
+<option value="Pro">Pro</option>
 </select>
 </div>
 </div>
@@ -849,17 +923,65 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // PRICING
-function buyPlan(planName, price) {
-    if (planName === 'Free') { window.location.href = 'auth.html?role=teacher'; return; }
-    document.getElementById('selectedPlanDisplay').textContent = planName + ' — ' + price;
+let selectedBilling = 'monthly';
+
+function setBilling(duration) {
+    selectedBilling = duration;
+
+    const monthly = document.getElementById('monthlyOption');
+    const sixMonth = document.getElementById('sixMonthOption');
+    const price = document.getElementById('proPrice');
+    const period = document.getElementById('proPeriod');
+    const original = document.getElementById('proOriginal');
+
+    monthly.classList.toggle('active', duration === 'monthly');
+    sixMonth.classList.toggle('active', duration === 'six_month');
+
+    if (duration === 'six_month') {
+        price.textContent = '1,000';
+        period.textContent = 'for 6 months';
+        original.style.display = 'block';
+    } else {
+        price.textContent = '200';
+        period.textContent = 'per month';
+        original.style.display = 'none';
+    }
+}
+
+function buySelectedProPlan() {
+    const price = selectedBilling === 'six_month'
+        ? '৳1,000/6 months'
+        : '৳200/month';
+
+    buyPlan('Pro', price, selectedBilling);
+}
+
+function buyPlan(planName, price, duration = 'monthly') {
+    if (planName === 'Free') {
+        window.location.href = 'auth.html?role=teacher';
+        return;
+    }
+
+    document.getElementById('selectedPlanDisplay').textContent =
+        planName + ' — ' + price;
+
     document.getElementById('payPackage').value = planName;
     document.getElementById('offPackage').value = planName;
+
+    // Store selected subscription duration
+    document.getElementById('payPackage').dataset.duration = duration;
+    document.getElementById('offPackage').dataset.duration = duration;
+
     document.getElementById('pricing').style.display = 'none';
+
     const ps = document.getElementById('payment-section');
     ps.classList.add('visible');
+
     document.getElementById('paymentSuccess').classList.remove('show');
+
     ps.scrollIntoView({ behavior: 'smooth' });
 }
+
 function showPricing() {
     document.getElementById('pricing').style.display = '';
     document.getElementById('payment-section').classList.remove('visible');
@@ -882,12 +1004,13 @@ async function submitPayment() {
     const trxId = document.getElementById('payTrxId').value.trim();
     const plan = document.getElementById('payPackage').value;
     const centerName = document.getElementById('payCenter').value.trim();
-    if (!name || !email || !phone || !method || !trxId || plan !== 'Pro') { showToast('⚠️ সমস্ত প্রয়োজনীয় ঘর পূরণ করুন।'); return; }
+    const duration = document.getElementById('payPackage').dataset.duration || 'monthly';
+    if (!name || !email || !phone || !method || !trxId || plan !== 'Pro' || !duration) { showToast('⚠️ সমস্ত প্রয়োজনীয় ঘর পূরণ করুন।'); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('⚠️ সঠিক ইমেইল ঠিকানা দিন।'); return; }
     const button = document.querySelector('#paymentFormOnline .btn-verify');
     button.disabled = true;
     try {
-        const result = await CreatePublicPaymentSubmission({name, email, phone, plan, method, trx_id: trxId, center_name: centerName || null});
+        const result = await CreatePublicPaymentSubmission({name, email, phone, plan, method, trx_id: trxId, center_name: centerName || null, subscription_duration: duration});
         document.getElementById('paymentFormOnline').style.display = 'none';
         document.getElementById('successRef').textContent = result.id || 'Received';
         document.getElementById('paymentSuccess').classList.add('show');
