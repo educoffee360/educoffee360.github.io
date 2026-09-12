@@ -23,6 +23,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from datetime import datetime, timedelta, time
+from dateutil.relativedelta import relativedelta
 from zoneinfo import ZoneInfo
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
@@ -42,7 +43,7 @@ class BatchUpdate(BaseModel):
 PLAN_LIMITS = {
     "Free": {
         "max_students": 10,
-        "max_notices_per_day": 5,
+        "max_notices_per_day": 1,
     },
     "Pro": {
         "max_students": None,
@@ -1697,9 +1698,13 @@ def _upgrade_response(request, db):
     return {
         "id": request.id, "teacher_id": request.teacher_id,
         "teacher_name": teacher.name if teacher else "Unknown teacher",
-        "teacher_email": teacher.email if teacher else "", "current_plan": teacher.plan if teacher else None,
-        "requested_plan": request.requested_plan, "method": request.method, "trx_id": request.trx_id,
-        "payment_phone": request.payment_phone, "status": request.status, "review_note": request.review_note,
+        "teacher_email": teacher.email if teacher else "",
+        "current_plan": teacher.plan if teacher else None,
+        "requested_plan": request.requested_plan,
+        "subscription_duration": request.subscription_duration,
+        "method": request.method, "trx_id": request.trx_id,
+        "payment_phone": request.payment_phone,
+        "status": request.status, "review_note": request.review_note,
         "reviewed_by_name": reviewer.name if reviewer else None,
         "requested_at": request.requested_at, "reviewed_at": request.reviewed_at,
     }
@@ -1768,7 +1773,14 @@ def create_upgrade_request(payload: schemas.PlanUpgradeCreate, db: Session = Dep
         raise HTTPException(400, "Nagad TrxID and payment phone number are required")
     if trx_id and db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.trx_id == trx_id).first():
         raise HTTPException(409, "This TrxID has already been submitted")
-    request = models.PlanUpgradeRequest(teacher_id=teacher.id, requested_plan=payload.requested_plan, method=payload.method, trx_id=trx_id, payment_phone=payment_phone)
+    request = models.PlanUpgradeRequest(
+        teacher_id=teacher.id,
+        requested_plan=payload.requested_plan,
+        subscription_duration=payload.subscription_duration,
+        method=payload.method,
+        trx_id=trx_id,
+        payment_phone=payment_phone
+    )
     db.add(request); db.commit(); db.refresh(request)
     return _upgrade_response(request, db)
 
@@ -1794,7 +1806,14 @@ def decide_upgrade_request(request_id: str, payload: schemas.StaffDecision, db: 
     request.status = "approved" if payload.approved else "rejected"
     request.review_note = (payload.note or "").strip() or None
     request.reviewed_by = current_user["user_id"]; request.reviewed_at = datetime.utcnow()
-    if payload.approved: teacher.plan = request.requested_plan
+    if payload.approved:
+        teacher.plan = request.requested_plan
+
+        if request.requested_plan == "Pro":
+            if request.subscription_duration == "six_month":
+                teacher.pro_expires_at = datetime.utcnow() + relativedelta(months=6)
+            else:
+                teacher.pro_expires_at = datetime.utcnow() + relativedelta(months=1)
     db.commit(); db.refresh(request)
     return _upgrade_response(request, db)
 

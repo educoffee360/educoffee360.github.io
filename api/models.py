@@ -17,16 +17,18 @@ class User(Base):
     email = Column(String, unique=True)
     phone = Column(String)
     password = Column(String)
-    
+
     role = Column(Enum('teacher', 'student', 'admin', 'moderator', name='user_role'))
-    
+
     batch_codes = Column(JSON, nullable=True)
-    
+
     plan = Column(
-    Enum('Free', 'Pro', name='user_plan'),
-    nullable=False,
-    default='Free'
+        Enum('Free', 'Pro', name='user_plan'),
+        nullable=False,
+        default='Free'
     )
+
+    pro_expires_at = Column(DateTime, nullable=True)
 
 class AdCampaign(Base):
     __tablename__ = 'ad_campaigns'
@@ -191,7 +193,15 @@ class PlanUpgradeRequest(Base):
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     teacher_id = Column(String, ForeignKey('users.id'), nullable=False, index=True)
+
     requested_plan = Column(String, nullable=False)
+
+    subscription_duration = Column(
+        Enum('monthly', 'six_month', name='subscription_duration'),
+        nullable=False,
+        default='monthly'
+    )
+
     method = Column(String, nullable=False, default='nagad')
     trx_id = Column(String, nullable=True, unique=True, index=True)
     payment_phone = Column(String, nullable=True)
@@ -200,7 +210,6 @@ class PlanUpgradeRequest(Base):
     reviewed_by = Column(String, ForeignKey('users.id'), nullable=True)
     requested_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     reviewed_at = Column(DateTime, nullable=True)
-
 
 class BanRequest(Base):
     __tablename__ = 'ban_requests'

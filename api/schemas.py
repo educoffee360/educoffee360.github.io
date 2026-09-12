@@ -169,6 +169,7 @@ class PlanUpgradeCreate(BaseModel):
     method: Literal['nagad', 'offline'] = 'nagad'
     trx_id: Optional[str] = Field(default=None, min_length=5, max_length=80)
     payment_phone: Optional[str] = Field(default=None, min_length=8, max_length=30)
+    subscription_duration: str = "monthly"
 
 
 class StaffDecision(BaseModel):
