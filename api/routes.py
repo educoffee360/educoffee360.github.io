@@ -1678,17 +1678,43 @@ def staff_analytics(db: Session = Depends(get_db), current_user = Depends(requir
 @router.get("/billing/public-config", status_code=200)
 def public_billing_config():
     return {
-        "provider": "Nagad",
+        "provider": "Nagad + bKash",
         "payment_number": os.getenv("NAGAD_PAYMENT_NUMBER", "").strip(),
-        "plans": {"Pro": {"amount": 200, "period": "1 month"}},
+        "bkash_number": os.getenv("BKASH_PAYMENT_NUMBER", "").strip(),
+        "plans": {
+            "Pro": {
+                "monthly": {
+                    "amount": 200,
+                    "period": "1 month"
+                },
+                "six_month": {
+                    "amount": 1000,
+                    "period": "6 months"
+                }
+            }
+        },
     }
 
+
 @router.get("/billing/config", status_code=200)
-def billing_config(current_user = Depends(require_role("teacher", "admin"))):
+def billing_config(current_user=Depends(require_role("teacher", "admin"))):
     return {
-        "provider": "Nagad", "payment_number": os.getenv("NAGAD_PAYMENT_NUMBER", "").strip(),
+        "provider": "Nagad + bKash",
+        "payment_number": os.getenv("NAGAD_PAYMENT_NUMBER", "").strip(),
+        "bkash_number": os.getenv("BKASH_PAYMENT_NUMBER", "").strip(),
         "review_window": "within 24 hours",
-        "plans": {"Pro": {"amount": 200, "period": "1 month"}},
+        "plans": {
+            "Pro": {
+                "monthly": {
+                    "amount": 200,
+                    "period": "1 month"
+                },
+                "six_month": {
+                    "amount": 1000,
+                    "period": "6 months"
+                }
+            }
+        },
     }
 
 
