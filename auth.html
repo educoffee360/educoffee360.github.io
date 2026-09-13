@@ -806,23 +806,44 @@ async function handleLogin() {
 
     // TEACHER REGISTER
     async function handleTeacherRegister() {
-        const name     = document.getElementById('tName').value.trim();
-        const email    = document.getElementById('tEmail').value.trim();
-        const phone    = document.getElementById('tPhone').value.trim();
-        const center   = document.getElementById('tCenter').value.trim();
-        // const subject  = document.getElementById('tSubject').value.trim();
-        const city     = document.getElementById('tCity').value.trim();
-        const password = document.getElementById('tPassword').value;
-        const confirm  = document.getElementById('tConfirmPassword').value;
-        const pwErr    = document.getElementById('tPwError');
+        const name      = document.getElementById('tName').value.trim();
+        const email     = document.getElementById('tEmail').value.trim().toLowerCase();
+        const phoneRaw  = document.getElementById('tPhone').value.trim();
+        const center    = document.getElementById('tCenter').value.trim();
+        const city      = document.getElementById('tCity').value.trim();
+        const password  = document.getElementById('tPassword').value;
+        const confirm   = document.getElementById('tConfirmPassword').value;
+        const pwErr     = document.getElementById('tPwError');
+        const emailField = document.getElementById('tEmail');
         pwErr.style.display = 'none';
 
-        if (!name || !email || !phone || !password) { alert('অনুগ্রহ করে সমস্ত প্রয়োজনীয় তথ্য পূরণ করুন।'); return; }
-        if (password !== confirm) { pwErr.style.display = 'block'; return; }
-        if (password.length < 6) { pwErr.textContent = 'Password must be at least 6 characters.'; pwErr.style.display = 'block'; return; }
+        if (!name || !email || !phoneRaw || !password) {
+            alert('অনুগ্রহ করে সমস্ত প্রয়োজনীয় তথ্য পূরণ করুন।');
+            return;
+        }
+        if (!emailField.checkValidity()) {
+            alert('Enter a valid email address.');
+            return;
+        }
+
+        const phoneDigits = phoneRaw.replace(/\D/g, '');
+        if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+            alert('Enter a valid phone number with the +880 prefix already shown in the field.');
+            return;
+        }
+
+        if (password !== confirm) {
+            pwErr.style.display = 'block';
+            return;
+        }
+        if (password.length < 6) {
+            pwErr.textContent = 'Password must be at least 6 characters.';
+            pwErr.style.display = 'block';
+            return;
+        }
 
         await requestRegistrationOTP(
-            { name, email, phone: '+880' + phone, center_name: center, location: city, password, role: 'teacher', plan: 'Free' },
+            { name, email, phone: '+880' + phoneDigits, center_name: center, location: city, password, role: 'teacher', plan: 'Free' },
             document.getElementById('teacherRegisterBtn')
         );
     }

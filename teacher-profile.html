@@ -557,7 +557,7 @@
 <label>Your Phone Number *</label>
 <input id="payPhone" placeholder="01XXXXXXXXX" type="tel"/>
 </div>
-<button class="btn-submit-pay" onclick="submitUpgrade('online', this)">Submit &amp; Request Upgrade</button>
+<button class="btn-submit-pay" onclick="submitUpgrade('nagad', this)">Submit &amp; Request Upgrade</button>
 </div>
 <div class="pay-content" id="payBkash">
     <div class="online-instruction">
@@ -850,34 +850,40 @@ function switchPayTab(tab, btn) {
 
 async function submitUpgrade(method, button) {
     if (method === 'nagad' || method === 'bkash') {
-        const trx   = document.getElementById('payTrxId').value.trim();
-        const phone = document.getElementById('payPhone').value.trim();
-        if (!trx || !phone) { showToast('Please fill in all required fields.'); return; }
+        const isNagad = method === 'nagad';
+        const trx = (isNagad
+            ? document.getElementById('payTrxId')
+            : document.getElementById('bkashTrxId')).value.trim();
+        const phone = (isNagad
+            ? document.getElementById('payPhone')
+            : document.getElementById('bkashPhone')).value.trim();
+
+        if (!trx || !phone) {
+            showToast('Please fill in all required fields.');
+            return;
+        }
+
+        const originalText = button?.textContent;
+        if (button) { button.disabled = true; button.textContent = 'Submitting...'; }
+        try {
+            await CreateUpgradeRequest({
+                requested_plan: selectedUpgradePlan,
+                subscription_duration: selectedSubscriptionDuration,
+                method,
+                trx_id: trx,
+                payment_phone: phone,
+            });
+            closeUpgradeModal();
+            document.getElementById('currentPlanStatus').textContent = `${selectedUpgradePlan} review pending`;
+            document.getElementById('currentPlanStatus').className = 'uc-badge ucb-starter';
+            showToast('Upgrade request sent to the admin dashboard.');
+        } catch (error) {
+            showToast(error?.message || 'Could not submit the upgrade request.');
+        } finally {
+            if (button) { button.disabled = false; button.textContent = originalText; }
+        }
     } else {
         // Offline: optional code
-    }
-    const originalText = button?.textContent;
-    if (button) { button.disabled = true; button.textContent = 'Submitting...'; }
-    try {
-        await CreateUpgradeRequest({
-            requested_plan: selectedUpgradePlan,
-            subscription_duration: selectedSubscriptionDuration,
-            method: method === 'nagad' ? 'nagad' : 'bkash',
-            trx_id: method === 'nagad'
-                ? document.getElementById('payTrxId').value.trim()
-                : document.getElementById('bkashTrxId').value.trim(),
-            payment_phone: method === 'nagad'
-                ? document.getElementById('payPhone').value.trim()
-                : document.getElementById('bkashPhone').value.trim(),
-        });
-        closeUpgradeModal();
-        document.getElementById('currentPlanStatus').textContent = `${selectedUpgradePlan} review pending`;
-        document.getElementById('currentPlanStatus').className = 'uc-badge ucb-starter';
-        showToast('Upgrade request sent to the admin dashboard.');
-    } catch (error) {
-        showToast(error?.message || 'Could not submit the upgrade request.');
-    } finally {
-        if (button) { button.disabled = false; button.textContent = originalText; }
     }
 }
 
