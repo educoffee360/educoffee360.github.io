@@ -949,11 +949,7 @@ function setBilling(duration) {
 }
 
 function buySelectedProPlan() {
-    const price = selectedBilling === 'six_month'
-        ? '৳1,000/6 months'
-        : '৳200/month';
-
-    buyPlan('Pro', price, selectedBilling);
+    window.location.href = 'auth.html?role=teacher';
 }
 
 function buyPlan(planName, price, duration = 'monthly') {
