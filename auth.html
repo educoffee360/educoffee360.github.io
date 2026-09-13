@@ -294,60 +294,6 @@
 <input id="tCity" placeholder="e.g. Naogaon" type="text"/>
 </div>
 </div>
-
-<!-- Online -->
-<div class="pay-content active" id="authPayOnline">
-<div class="online-instruction">
-<div class="oi-title">Send Money To</div>
-<div class="oi-numbers">
-<div class="oi-num-item">
-<div class="oi-num-label">🟣 bKash</div>
-<div class="oi-num-val">Available after signup</div>
-</div>
-</div>
-<div class="oi-note">পেমেন্টের পর Transaction ID (TrxID) নিচে লিখুন। যাচাইয়ের পর ২৪ ঘন্টায় অ্যাকাউন্ট সক্রিয় হবে।</div>
-</div>
-<div class="form-group">
-<label>Transaction ID (TrxID) *</label>
-<input class="paycode-field" id="tTrxId" placeholder="e.g. 8K9J2XA1R5" type="text"/>
-<p class="field-info">Nagad-এর TrxID লিখুন।</p>
-</div>
-</div>
-<!-- Offline -->
-<div class="pay-content" id="authPayOffline">
-<div class="offline-instruction">
-<div class="oi-title">🏢 আমাদের অফিসে আসুন</div>
-<div class="oi-office-grid">
-<div class="oi-office-item">
-<div class="oi-office-label">📍 Address</div>
-<div class="oi-office-value">EduCoffee Office<br/>Naogaon, Bangladesh</div>
-</div>
-<div class="oi-office-item">
-<div class="oi-office-label">🕐 Hours</div>
-<div class="oi-office-value">Sat–Thu<br/>9 AM – 6 PM</div>
-</div>
-<div class="oi-office-item">
-<div class="oi-office-label">📞 Phone</div>
-<div class="oi-office-value">+880 1700-000000</div>
-</div>
-<div class="oi-office-item">
-<div class="oi-office-label">💬 WhatsApp</div>
-<div class="oi-office-value">+880 1700-000000</div>
-</div>
-</div>
-<div class="offline-note">⚡ অফিসে এলে তাৎক্ষণিক অ্যাকাউন্ট অ্যাক্টিভেশন!</div>
-</div>
-<div class="form-group" style="margin-top:14px">
-<label>Payment Code (Optional)</label>
-<input class="paycode-field" id="tOfflineCode" placeholder="অফিসে পেমেন্টের পর দেওয়া কোড" type="text"/>
-<p class="field-info">অফিসে পেমেন্টের পর আমরা আপনাকে একটি কোড দেবো।</p>
-</div>
-</div>
-</div>
-<!-- Free plan note -->
-<div class="free-plan-note" id="freePlanNote" style="display:none;margin-bottom:16px">
-                    ✓ Free plan সম্পূর্ণ বিনামূল্যে। কোনো পেমেন্ট লাগবে না — শুধু অ্যাকাউন্ট তৈরি করুন!
-                </div>
 <div class="section-label">Security</div>
 <div class="form-row">
 <div class="form-group">
@@ -488,8 +434,6 @@
 <script>
     let currentRole = 'teacher';
     let currentTab  = 'login';
-    let selectedPlan = 'Free';
-    let authPayTab = 'online';
 
     // INIT
     (async function init() {
@@ -560,32 +504,6 @@
         footer.innerHTML = currentTab === 'login'
             ? `Don't have an account? <a onclick="switchTab('register')">Create one</a>`
             : `Already have an account? <a onclick="switchTab('login')">Login</a>`;
-    }
-
-    // PLAN SELECTION
-    function selectPlan(plan) {
-        // Registration always creates a Free account; Pro is requested after signup.
-        if (plan !== 'Free') {
-            alert('Create your free account first. You can upgrade to Pro from your teacher profile.');
-            plan = 'Free';
-        }
-        selectedPlan = 'Free';
-        ['Free','Pro'].forEach(p => {
-            const el = document.getElementById('planOpt' + p);
-            if (el) el.classList.toggle('selected', p === 'Free');
-        });
-        const paySection = document.getElementById('paymentSection');
-        const freeNote = document.getElementById('freePlanNote');
-        if (paySection) paySection.style.display = 'none';
-        if (freeNote) freeNote.style.display = 'block';
-    }
-
-    // AUTH PAYMENT TAB
-    function switchAuthPayTab(tab) {
-        authPayTab = tab;
-        document.querySelectorAll('.pay-tab-btn').forEach((b, i) => b.classList.toggle('active', (tab === 'online' && i === 0) || (tab === 'offline' && i === 1)));
-        document.getElementById('authPayOnline').classList.toggle('active', tab === 'online');
-        document.getElementById('authPayOffline').classList.toggle('active', tab === 'offline');
     }
 
     // PASSWORD TOGGLE
@@ -900,7 +818,6 @@ async function handleLogin() {
         pwErr.style.display = 'none';
 
         if (!name || !email || !phone || !password) { alert('অনুগ্রহ করে সমস্ত প্রয়োজনীয় তথ্য পূরণ করুন।'); return; }
-        if (!selectedPlan) { alert('অনুগ্রহ করে একটি প্ল্যান বেছে নিন।'); return; }
         if (password !== confirm) { pwErr.style.display = 'block'; return; }
         if (password.length < 6) { pwErr.textContent = 'Password must be at least 6 characters.'; pwErr.style.display = 'block'; return; }
 
