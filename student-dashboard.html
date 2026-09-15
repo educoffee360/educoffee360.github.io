@@ -611,6 +611,18 @@ let currentBatchCode = null;
 let resultLookup = {};
 let paymentData = [];
 let attendanceData = [];
+let attendanceError = null;
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function getLocalDateKey(date = new Date()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 
 function safeNumber(value) {
     return value === null || value === undefined ? null : Number(value);
@@ -638,11 +650,16 @@ async function init() {
     const allBatches = await GetAllBatches() || [];
     batchData = allBatches.filter(b => batchCodes.includes(b.code));
 
+    attendanceError = null;
     [noticesData, scoresData, paymentData, attendanceData] = await Promise.all([
         GetNoticesForStudent(studentId).catch(() => []),
         GetStudentResults().catch(() => []),
         GetStudentPayments(studentId).catch(() => []),
-        GetStudentAttendance(studentId).catch(() => [])
+        GetStudentAttendance(studentId).catch(error => {
+            attendanceError = error;
+            console.error('Could not load attendance:', error);
+            return [];
+        })
     ]);
     renderAccountStatus();
 
@@ -680,10 +697,18 @@ function renderAccountStatus() {
     const payments = document.getElementById('studentPayments');
     payments.innerHTML = paymentData.length ? paymentData.map(p => `<div class="account-row"><span><b>${p.batch_code}</b><br><span class="account-muted">৳${Number(p.amount || 0)} · ${new Date(p.period_start).toLocaleDateString()}–${new Date(p.period_end).toLocaleDateString()}</span></span><span class="account-status ${p.status}">${p.status}</span></div>`).join('') : '<span class="account-muted">No fee records yet.</span>';
     const attendance = document.getElementById('studentAttendance');
+    if (attendanceError) {
+        attendance.innerHTML = '<span class="account-muted">Attendance is temporarily unavailable. Please try again later.</span>';
+        return;
+    }
     if (!attendanceData.length) { attendance.innerHTML = '<span class="account-muted">No attendance records yet.</span>'; return; }
     const present = attendanceData.filter(r => r.status === 'present').length;
     const pct = Math.round((present / attendanceData.length) * 100);
-    attendance.innerHTML = `<div class="account-row"><span>Attendance rate</span><b>${pct}%</b></div>` + attendanceData.slice(0,5).map(r => `<div class="account-row"><span><b>${r.batch_code}</b><br><span class="account-muted">${new Date(r.date).toLocaleDateString()}</span></span><span class="account-status ${r.status}">${r.status}</span></div>`).join('');
+    const absentToday = attendanceData.some(record => record.date === getLocalDateKey() && record.status === 'absent');
+    const absentNotice = absentToday
+        ? `<div style="color:#C62828;font-size:.82rem;font-weight:600;margin-bottom:10px">${escapeHtml(studentName)} was marked absent today.</div>`
+        : '';
+    attendance.innerHTML = absentNotice + `<div class="account-row"><span>Attendance rate</span><b>${pct}%</b></div>` + attendanceData.slice(0,5).map(r => `<div class="account-row"><span><b>${r.batch_code}</b><br><span class="account-muted">${new Date(r.date).toLocaleDateString()}</span></span><span class="account-status ${r.status}">${r.status}</span></div>`).join('');
 }
 
 // ── STATS ──
