@@ -252,6 +252,17 @@ def _send_push(subscription, payload):
         logger.exception("Web push delivery failed")
         return False
 
+
+def _send_student_push(db, student_id, payload):
+    subscriptions = db.query(models.PushSubscription).filter(
+        models.PushSubscription.user_id == student_id
+    ).all()
+
+    for subscription in subscriptions:
+        result = _send_push(subscription, payload)
+        if result == "expired":
+            db.delete(subscription)
+
 @router.get("/user/{user_id}", response_model=schemas.UserResponse, status_code=200)
 def get_user_by_id(user_id, db: Session = Depends(get_db), current_user = Depends(require_self_or_admin)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -1566,6 +1577,18 @@ def send_parent_message(payload: schemas.ParentMessageCreate, db: Session = Depe
     db.add(message)
     db.commit()
     db.refresh(message)
+
+    _send_student_push(
+        db,
+        student.id,
+        {
+            "title": subject,
+            "body": body[:180],
+            "url": "/student-notices.html",
+            "tag": f"message-{message.id}",
+        },
+    )
+    db.commit()
     return _parent_message_response(message, teacher.name)
 
 
@@ -1605,6 +1628,19 @@ def broadcast_parent_message(payload: schemas.ParentBroadcastCreate, db: Session
             body=body,
             batch_codes=matching_codes,
         ))
+    db.commit()
+
+    for student, _ in recipients:
+        _send_student_push(
+            db,
+            student.id,
+            {
+                "title": subject,
+                "body": body[:180],
+                "url": "/student-notices.html",
+                "tag": f"broadcast-{teacher.id}-{subject}",
+            },
+        )
     db.commit()
     return {"message": "Broadcast sent", "recipient_count": len(recipients)}
 
