@@ -222,9 +222,9 @@
         <button
             class="save-btn"
             id="enableNotificationsBtn"
-            onclick="enableStudentNotifications()"
+            onclick="toggleStudentNotifications()"
         >
-            Enable Notifications
+            Checking notification status…
         </button>
 
         <p
@@ -349,27 +349,62 @@ async function saveProfile() {
     }
 }
 
-async function enableStudentNotifications() {
+async function refreshStudentNotificationState() {
+    const btn = document.getElementById('enableNotificationsBtn');
+    const status = document.getElementById('notificationStatus');
+    if (!btn || !status) return;
+
+    try {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            throw new Error('Push notifications are not supported by this browser.');
+        }
+
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        const enabled = Boolean(subscription);
+        btn.textContent = enabled ? 'Disable Notifications' : 'Enable Notifications';
+        status.textContent = enabled
+            ? 'Notifications are enabled on this device.'
+            : 'Notifications are currently disabled on this device.';
+        status.style.color = enabled ? '#2E7D32' : '';
+    } catch (error) {
+        btn.textContent = 'Enable Notifications';
+        status.textContent = error?.message || 'Could not check notification status.';
+        status.style.color = '#C62828';
+    }
+}
+
+async function toggleStudentNotifications() {
     const btn = document.getElementById('enableNotificationsBtn');
     const status = document.getElementById('notificationStatus');
 
     btn.disabled = true;
-    btn.textContent = 'Enabling…';
+    const wasEnabled = btn.textContent === 'Disable Notifications';
+    btn.textContent = wasEnabled ? 'Disabling…' : 'Enabling…';
     status.textContent = '';
 
     try {
-        await EnablePushNotifications();
-
-        btn.textContent = 'Notifications Enabled ✓';
-        status.textContent = 'You will now receive EduCoffee notices on this device.';
+        if (wasEnabled) {
+            await DisablePushNotifications();
+            btn.textContent = 'Enable Notifications';
+            status.textContent = 'Notifications disabled on this device.';
+        } else {
+            await EnablePushNotifications();
+            btn.textContent = 'Disable Notifications';
+            status.textContent = 'You will receive EduCoffee notices and messages on this device.';
+        }
         status.style.color = '#2E7D32';
     } catch (error) {
         btn.disabled = false;
-        btn.textContent = 'Enable Notifications';
+        await refreshStudentNotificationState();
         status.textContent = error?.message || 'Could not enable notifications.';
         status.style.color = '#C62828';
     }
+
+    btn.disabled = false;
 }
+
+refreshStudentNotificationState();
 
 function doLogout() {
     logout('auth.html');
