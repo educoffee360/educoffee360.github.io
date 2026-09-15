@@ -805,6 +805,32 @@ def get_my_students(teacher_id, db: Session = Depends(get_db), current_user = De
     return my_students
 
 
+@router.get("/attendance/student/{student_id}", status_code=200)
+def get_student_attendance(student_id: str, db: Session = Depends(get_db), current_user = Depends(require_student_self_or_admin)):
+    if current_user["role"] == "student":
+        student_id = current_user["user_id"]
+    student = db.query(models.User).filter(models.User.id == student_id, models.User.role == "student").first()
+    if not student:
+        raise HTTPException(404, "Student not found")
+    records = db.query(models.Attendance).filter(
+        models.Attendance.student_id == student_id
+    ).order_by(models.Attendance.attendance_date.desc()).all()
+    batch_codes = {record.batch_code for record in records}
+    batches = {
+        batch.code: batch
+        for batch in db.query(models.Batch).filter(models.Batch.code.in_(batch_codes)).all()
+    } if batch_codes else {}
+    return [
+        {
+            "batch_code": record.batch_code,
+            "batch_name": batches.get(record.batch_code).name if batches.get(record.batch_code) else record.batch_code,
+            "date": record.attendance_date.isoformat(),
+            "status": record.status,
+        }
+        for record in records
+    ]
+
+
 @router.get('/attendance/{batch_code}/{attendance_date}', status_code=200)
 def get_attendance_records(batch_code: str, attendance_date: str, db: Session = Depends(get_db), current_user = Depends(require_teacher_or_admin)):
     batch = db.query(models.Batch).filter(models.Batch.code == batch_code).first()
@@ -2014,28 +2040,6 @@ def get_student_payments(student_id: str, db: Session = Depends(get_db), current
             if payment: payments.append(payment)
     db.commit()
     return payments
-
-@router.get("/attendance/student/{student_id}", status_code=200)
-def get_student_attendance(student_id: str, db: Session = Depends(get_db), current_user = Depends(require_student_self_or_admin)):
-    if current_user["role"] == "student":
-        student_id = current_user["user_id"]
-    student = db.query(models.User).filter(models.User.id == student_id, models.User.role == "student").first()
-    if not student: raise HTTPException(404, "Student not found")
-    records = db.query(models.Attendance).filter(models.Attendance.student_id == student_id).order_by(models.Attendance.attendance_date.desc()).all()
-    batch_codes = {record.batch_code for record in records}
-    batches = {
-        batch.code: batch
-        for batch in db.query(models.Batch).filter(models.Batch.code.in_(batch_codes)).all()
-    } if batch_codes else {}
-    return [
-        {
-            "batch_code": record.batch_code,
-            "batch_name": batches.get(record.batch_code).name if batches.get(record.batch_code) else record.batch_code,
-            "date": record.attendance_date.isoformat(),
-            "status": record.status,
-        }
-        for record in records
-    ]
 
 @router.get("/payments/teacher/{teacher_id}", response_model=List[schemas.Payment], status_code=200)
 def get_teacher_payments(
