@@ -865,6 +865,7 @@ def submit_attendance(payload: schemas.AttendancePayload, db: Session = Depends(
         seen.add(student_id)
 
     records_to_upsert = []
+    absence_notifications = []
     for record in payload.records:
         existing = db.query(models.Attendance).filter(
             models.Attendance.batch_code == payload.batch_code,
@@ -872,9 +873,12 @@ def submit_attendance(payload: schemas.AttendancePayload, db: Session = Depends(
             models.Attendance.attendance_date == parsed_date,
         ).first()
         if existing:
+            was_absent = existing.status == 'absent'
             existing.status = record.status
             existing.teacher_id = current_user['user_id']
             existing.updated_at = datetime.utcnow()
+            if record.status == 'absent' and not was_absent:
+                absence_notifications.append(record.student_id)
         else:
             records_to_upsert.append(models.Attendance(
                 batch_code=payload.batch_code,
@@ -883,9 +887,32 @@ def submit_attendance(payload: schemas.AttendancePayload, db: Session = Depends(
                 attendance_date=parsed_date,
                 status=record.status,
             ))
+            if record.status == 'absent':
+                absence_notifications.append(record.student_id)
 
     db.add_all(records_to_upsert)
     db.commit()
+
+    notification_date = (
+        'today'
+        if payload.date == datetime.utcnow().strftime('%Y-%m-%d')
+        else payload.date
+    )
+    for student_id in absence_notifications:
+        student = db.query(models.User).filter(models.User.id == student_id).first()
+        if student:
+            _send_student_push(
+                db,
+                student_id,
+                {
+                    'title': 'Attendance update',
+                    'body': f'You were marked absent on {notification_date}.',
+                    'url': '/student-dashboard.html',
+                    'tag': f'attendance-absent-{payload.batch_code}-{student_id}-{payload.date}',
+                },
+            )
+    db.commit()
+
     return {
         'message': 'Attendance saved successfully',
         'batch_code': payload.batch_code,
