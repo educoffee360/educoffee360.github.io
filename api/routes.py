@@ -893,6 +893,7 @@ def submit_attendance(payload: schemas.AttendancePayload, db: Session = Depends(
     db.add_all(records_to_upsert)
     db.commit()
 
+    batch_name = batch.name or payload.batch_code
     notification_date = (
         'today'
         if payload.date == datetime.utcnow().strftime('%Y-%m-%d')
@@ -906,7 +907,7 @@ def submit_attendance(payload: schemas.AttendancePayload, db: Session = Depends(
                 student_id,
                 {
                     'title': 'Attendance update',
-                    'body': f'You were marked absent on {notification_date}.',
+                    'body': f'You were marked absent in {batch_name} ({payload.batch_code}) on {notification_date}.',
                     'url': '/student-dashboard.html',
                     'tag': f'attendance-absent-{payload.batch_code}-{student_id}-{payload.date}',
                 },
@@ -2021,7 +2022,20 @@ def get_student_attendance(student_id: str, db: Session = Depends(get_db), curre
     student = db.query(models.User).filter(models.User.id == student_id, models.User.role == "student").first()
     if not student: raise HTTPException(404, "Student not found")
     records = db.query(models.Attendance).filter(models.Attendance.student_id == student_id).order_by(models.Attendance.attendance_date.desc()).all()
-    return [{"batch_code": r.batch_code, "date": r.attendance_date.isoformat(), "status": r.status} for r in records]
+    batch_codes = {record.batch_code for record in records}
+    batches = {
+        batch.code: batch
+        for batch in db.query(models.Batch).filter(models.Batch.code.in_(batch_codes)).all()
+    } if batch_codes else {}
+    return [
+        {
+            "batch_code": record.batch_code,
+            "batch_name": batches.get(record.batch_code).name if batches.get(record.batch_code) else record.batch_code,
+            "date": record.attendance_date.isoformat(),
+            "status": record.status,
+        }
+        for record in records
+    ]
 
 @router.get("/payments/teacher/{teacher_id}", response_model=List[schemas.Payment], status_code=200)
 def get_teacher_payments(

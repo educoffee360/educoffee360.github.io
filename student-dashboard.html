@@ -704,11 +704,11 @@ function renderAccountStatus() {
     if (!attendanceData.length) { attendance.innerHTML = '<span class="account-muted">No attendance records yet.</span>'; return; }
     const present = attendanceData.filter(r => r.status === 'present').length;
     const pct = Math.round((present / attendanceData.length) * 100);
-    const absentToday = attendanceData.some(record => record.date === getLocalDateKey() && record.status === 'absent');
-    const absentNotice = absentToday
-        ? `<div style="color:#C62828;font-size:.82rem;font-weight:600;margin-bottom:10px">${escapeHtml(studentName)} was marked absent today.</div>`
+    const absentTodayRecord = attendanceData.find(record => record.date === getLocalDateKey() && record.status === 'absent');
+    const absentNotice = absentTodayRecord
+        ? `<div style="color:#C62828;font-size:.82rem;font-weight:600;margin-bottom:10px">${escapeHtml(studentName)} was marked absent today in ${escapeHtml(absentTodayRecord.batch_name || absentTodayRecord.batch_code)} (${escapeHtml(absentTodayRecord.batch_code)}).</div>`
         : '';
-    attendance.innerHTML = absentNotice + `<div class="account-row"><span>Attendance rate</span><b>${pct}%</b></div>` + attendanceData.slice(0,5).map(r => `<div class="account-row"><span><b>${r.batch_code}</b><br><span class="account-muted">${new Date(r.date).toLocaleDateString()}</span></span><span class="account-status ${r.status}">${r.status}</span></div>`).join('');
+    attendance.innerHTML = absentNotice + `<div class="account-row"><span>Attendance rate</span><b>${pct}%</b></div>` + attendanceData.slice(0,5).map(r => `<div class="account-row"><span><b>${escapeHtml(r.batch_name || r.batch_code)} (${escapeHtml(r.batch_code)})</b><br><span class="account-muted">${new Date(r.date).toLocaleDateString()}</span></span><span class="account-status ${r.status}">${r.status}</span></div>`).join('');
 }
 
 // ── STATS ──
