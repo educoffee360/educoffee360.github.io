@@ -53,6 +53,75 @@ PLAN_LIMITS = {
 
 LEGACY_PLAN_MAP = {"Starter": "Free", "Professional": "Pro", "Elite": "Pro"}
 
+PRO_PLAN_PRICING = {
+    "Pro": {
+        "monthly": {"amount": 200, "months": 1},
+        "six_month": {"amount": 1000, "months": 6},
+    }
+}
+
+
+def normalize_payment_method(method):
+    value = (method or "").strip()
+    if not value:
+        return "offline"
+    lowered = value.lower()
+    if lowered in ("offline", "cash", "manual"):
+        return "offline"
+    if lowered in ("bkash", "b-kash"):
+        return "bKash"
+    if lowered in ("other", "nagad", "bank", "card"):
+        return "other"
+    return "offline" if value.lower() == "offline" else value
+
+
+def normalize_subscription_duration(duration):
+    value = (duration or "monthly").strip().lower().replace(" ", "_")
+    aliases = {
+        "monthly": "monthly",
+        "1_month": "monthly",
+        "1month": "monthly",
+        "one_month": "monthly",
+        "six_month": "six_month",
+        "six-month": "six_month",
+        "6_month": "six_month",
+        "6month": "six_month",
+        "six_months": "six_month",
+        "sixmonths": "six_month",
+    }
+    return aliases.get(value, value if value in PRO_PLAN_PRICING.get("Pro", {}) else "monthly")
+
+
+def normalize_payment_status(status):
+    if status in (None, "", "pending", "unpaid"):
+        return "pending"
+    if status in ("approved", "processed", "paid", "verified"):
+        return "verified"
+    if status in ("rejected", "failed"):
+        return "rejected"
+    return str(status)
+
+
+def get_plan_amount(plan_name: str, duration: str):
+    if plan_name != "Pro":
+        raise HTTPException(400, "Only Pro plan payments are supported")
+    settings = PRO_PLAN_PRICING.get(plan_name, {})
+    duration_key = str(duration or "monthly").strip()
+    if duration_key not in settings:
+        raise HTTPException(400, "Unsupported Pro duration")
+    return settings[duration_key]["amount"]
+
+
+def calculate_pro_expiry(duration: str, current_expiry: datetime | None = None, now: datetime | None = None):
+    settings = PRO_PLAN_PRICING.get("Pro", {}).get(str(duration or "monthly"), {})
+    months = settings.get("months", 1)
+    reference = now or datetime.utcnow()
+    active_expiry = current_expiry if current_expiry and current_expiry > reference else None
+    if active_expiry:
+        return active_expiry + relativedelta(months=months)
+    return reference + relativedelta(months=months)
+
+
 def get_teacher_plan(user):
     return LEGACY_PLAN_MAP.get(user.plan, user.plan) if user.plan else "Free"
 
@@ -61,6 +130,22 @@ def is_pro(user):
 
 def get_plan_limit(user, limit_name):
     return PLAN_LIMITS[get_teacher_plan(user)][limit_name]
+
+
+def is_pro_active(user):
+    if not user or user.plan != "Pro":
+        return False
+    if user.pro_expires_at is None:
+        return True
+    return user.pro_expires_at > (datetime.utcnow())
+
+
+def activate_pro_for_user(user, duration: str, now: datetime | None = None):
+    if user is None:
+        raise HTTPException(404, "User not found")
+    user.plan = "Pro"
+    user.pro_expires_at = calculate_pro_expiry(duration, current_expiry=user.pro_expires_at, now=now)
+    return user
 
 
 def _looks_like_argon_hash(value: str) -> bool:
@@ -1847,10 +1932,69 @@ def _upgrade_response(request, db):
         "subscription_duration": request.subscription_duration,
         "method": request.method, "trx_id": request.trx_id,
         "payment_phone": request.payment_phone,
-        "status": request.status, "review_note": request.review_note,
+        "amount": request.amount,
+        "status": normalize_payment_status(request.status),
+        "review_note": request.review_note,
+        "notes": request.notes,
+        "paid_at": request.paid_at,
         "reviewed_by_name": reviewer.name if reviewer else None,
         "requested_at": request.requested_at, "reviewed_at": request.reviewed_at,
     }
+
+
+def _manual_payment_response(payment, db):
+    user = db.query(models.User).filter(models.User.id == payment.teacher_id).first()
+    reviewer = db.query(models.User).filter(models.User.id == payment.reviewed_by).first() if payment.reviewed_by else None
+    return {
+        "id": payment.id,
+        "user_id": payment.teacher_id,
+        "user_name": user.name if user else "Unknown user",
+        "email": user.email if user else None,
+        "plan": payment.requested_plan,
+        "amount": payment.amount,
+        "duration": payment.subscription_duration,
+        "payment_method": payment.method,
+        "reference_id": payment.trx_id,
+        "status": normalize_payment_status(payment.status),
+        "notes": payment.notes,
+        "paid_at": payment.paid_at,
+        "verified_at": payment.reviewed_at,
+        "verified_by": payment.reviewed_by,
+        "verified_by_name": reviewer.name if reviewer else None,
+        "pro_expires_at": user.pro_expires_at if user else None,
+        "created_at": payment.requested_at,
+    }
+
+
+def verify_payment_and_activate_subscription(payment_id: str, db: Session, current_user_id: str, note: str | None = None):
+    payment = db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.id == payment_id).first()
+    if not payment:
+        raise HTTPException(404, "Payment record not found")
+
+    if payment.status in ("verified", "approved"):
+        raise HTTPException(409, "This payment has already been verified")
+    if payment.status == "rejected":
+        raise HTTPException(409, "This payment was rejected and cannot be verified")
+
+    user = db.query(models.User).filter(models.User.id == payment.teacher_id).first()
+    if not user:
+        raise HTTPException(404, "Payment user not found")
+
+    expected_amount = get_plan_amount(payment.requested_plan, payment.subscription_duration)
+    if payment.amount and payment.amount != expected_amount:
+        raise HTTPException(400, "Payment amount does not match the selected plan duration")
+
+    payment.status = "verified"
+    payment.review_note = (note or payment.review_note or "").strip() or None
+    payment.reviewed_by = current_user_id
+    payment.reviewed_at = datetime.utcnow()
+    payment.paid_at = payment.paid_at or payment.reviewed_at
+
+    user.plan = "Pro"
+    user.pro_expires_at = calculate_pro_expiry(payment.subscription_duration, current_expiry=user.pro_expires_at, now=payment.reviewed_at)
+    db.commit(); db.refresh(payment)
+    db.refresh(user)
+    return _manual_payment_response(payment, db)
 
 
 @router.post("/public-payment-submissions", status_code=201)
@@ -1906,23 +2050,26 @@ def staff_office_appointments(db: Session = Depends(get_db), current_user = Depe
 @router.post("/upgrade-requests", status_code=201)
 def create_upgrade_request(payload: schemas.PlanUpgradeCreate, db: Session = Depends(get_db), current_user = Depends(require_role("teacher"))):
     teacher = db.query(models.User).filter(models.User.id == current_user["user_id"]).first()
-    if teacher.plan == payload.requested_plan:
+    if teacher.plan == payload.requested_plan and is_pro_active(teacher):
         raise HTTPException(400, "This plan is already active")
     if db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.teacher_id == teacher.id, models.PlanUpgradeRequest.status == "pending").first():
         raise HTTPException(409, "You already have a pending upgrade request")
     trx_id = (payload.trx_id or "").strip().upper() or None
     payment_phone = (payload.payment_phone or "").strip() or None
-    if payload.method == "nagad" and (not trx_id or not payment_phone):
-        raise HTTPException(400, "Nagad TrxID and payment phone number are required")
+    if payload.method in ("nagad", "bkash") and (not trx_id or not payment_phone):
+        raise HTTPException(400, "Transaction ID and payment phone number are required")
     if trx_id and db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.trx_id == trx_id).first():
         raise HTTPException(409, "This TrxID has already been submitted")
+    amount = payload.amount if payload.amount is not None else get_plan_amount(payload.requested_plan, payload.subscription_duration)
     request = models.PlanUpgradeRequest(
         teacher_id=teacher.id,
         requested_plan=payload.requested_plan,
-        subscription_duration=payload.subscription_duration,
-        method=payload.method,
+        amount=amount,
+        subscription_duration=normalize_subscription_duration(payload.subscription_duration),
+        method=normalize_payment_method(payload.method),
         trx_id=trx_id,
-        payment_phone=payment_phone
+        payment_phone=payment_phone,
+        notes=(payload.notes or "").strip() or None,
     )
     db.add(request); db.commit(); db.refresh(request)
     return _upgrade_response(request, db)
@@ -1944,21 +2091,85 @@ def decide_upgrade_request(request_id: str, payload: schemas.StaffDecision, db: 
     request = db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.id == request_id).first()
     if not request: raise HTTPException(404, "Upgrade request not found")
     if request.status != "pending": raise HTTPException(409, "This request has already been reviewed")
-    teacher = db.query(models.User).filter(models.User.id == request.teacher_id, models.User.role == "teacher").first()
-    if not teacher: raise HTTPException(404, "Teacher not found")
+    teacher = db.query(models.User).filter(models.User.id == request.teacher_id).first()
+    if not teacher: raise HTTPException(404, "User not found")
     request.status = "approved" if payload.approved else "rejected"
     request.review_note = (payload.note or "").strip() or None
     request.reviewed_by = current_user["user_id"]; request.reviewed_at = datetime.utcnow()
     if payload.approved:
-        teacher.plan = request.requested_plan
-
         if request.requested_plan == "Pro":
-            if request.subscription_duration == "six_month":
-                teacher.pro_expires_at = datetime.utcnow() + relativedelta(months=6)
-            else:
-                teacher.pro_expires_at = datetime.utcnow() + relativedelta(months=1)
-    db.commit(); db.refresh(request)
+            activate_pro_for_user(teacher, request.subscription_duration, now=request.reviewed_at)
+    db.commit(); db.refresh(request); db.refresh(teacher)
     return _upgrade_response(request, db)
+
+
+@router.post("/staff/payments", status_code=201)
+def create_payment_record(payload: schemas.AdminPaymentCreate, db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    user = db.query(models.User).filter(models.User.id == payload.user_id).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+    if payload.plan != "Pro":
+        raise HTTPException(400, "Only Pro plan payment records are supported")
+    if payload.status not in {"pending", "verified", "rejected"}:
+        raise HTTPException(400, "Unsupported payment status")
+    amount = payload.amount if payload.amount is not None else get_plan_amount(payload.plan, payload.duration)
+    payment = models.PlanUpgradeRequest(
+        teacher_id=user.id,
+        requested_plan=payload.plan,
+        amount=amount,
+        subscription_duration=normalize_subscription_duration(payload.duration),
+        method=normalize_payment_method(payload.payment_method),
+        trx_id=(payload.reference_id or "").strip().upper() or None,
+        notes=(payload.notes or "").strip() or None,
+        status="pending",
+        review_note=None,
+        reviewed_by=None,
+        reviewed_at=None,
+    )
+    if payment.trx_id and db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.trx_id == payment.trx_id).first():
+        raise HTTPException(409, "This reference ID has already been used")
+    db.add(payment); db.commit(); db.refresh(payment)
+    if payload.status == "verified":
+        payment = verify_payment_and_activate_subscription(payment.id, db, current_user["user_id"], note=(payload.notes or "").strip() or None)
+    elif payload.status == "rejected":
+        payment = reject_payment(payment.id, payload=schemas.PaymentDecision(note=(payload.notes or "").strip() or None), db=db, current_user=current_user)
+    return _manual_payment_response(db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.id == payment["id"]).first(), db)
+
+
+@router.get("/staff/payments", status_code=200)
+def list_payment_records(db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    payments = db.query(models.PlanUpgradeRequest).order_by(models.PlanUpgradeRequest.requested_at.desc()).all()
+    return [_manual_payment_response(payment, db) for payment in payments]
+
+
+@router.get("/staff/users/{user_id}/payments", status_code=200)
+def get_user_payment_history(user_id: str, db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+    payments = db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.teacher_id == user_id).order_by(models.PlanUpgradeRequest.requested_at.desc()).all()
+    return [_manual_payment_response(payment, db) for payment in payments]
+
+
+@router.post("/staff/payments/{payment_id}/verify", status_code=200)
+def verify_payment(payment_id: str, payload: schemas.PaymentDecision | None = None, db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    note = (payload.note if payload else None) or None
+    return verify_payment_and_activate_subscription(payment_id, db, current_user["user_id"], note=note)
+
+
+@router.post("/staff/payments/{payment_id}/reject", status_code=200)
+def reject_payment(payment_id: str, payload: schemas.PaymentDecision | None = None, db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
+    payment = db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.id == payment_id).first()
+    if not payment:
+        raise HTTPException(404, "Payment record not found")
+    if payment.status in ("verified", "approved"):
+        raise HTTPException(409, "This payment has already been verified")
+    payment.status = "rejected"
+    payment.review_note = ((payload.note if payload else None) or payment.review_note or "").strip() or None
+    payment.reviewed_by = current_user["user_id"]
+    payment.reviewed_at = datetime.utcnow()
+    db.commit(); db.refresh(payment)
+    return _manual_payment_response(payment, db)
 
 
 @router.put("/staff/teachers/{teacher_id}/plan", status_code=200)

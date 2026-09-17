@@ -125,12 +125,52 @@ def migrate_user_plans() -> None:
                     WHERE requested_plan IN ('Professional', 'Elite', 'Pro')
                 """))
     except Exception:
-        # Do not hide the original database failure, but make startup resilient on
-        # older/local databases where optional legacy tables may not exist yet.
         logger.exception("Could not normalize legacy subscription plan data")
         raise
 
+
+def ensure_missing_schema_columns() -> None:
+    """Backfill columns on older local and Supabase databases without breaking startup."""
+    with engine.begin() as connection:
+        if engine.dialect.name == "sqlite":
+            tables = {row[0] for row in connection.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))}
+            columns_by_table = {
+                "users": {row[1] for row in connection.execute(text("PRAGMA table_info(users)"))},
+                "plan_upgrade_requests": {row[1] for row in connection.execute(text("PRAGMA table_info(plan_upgrade_requests)"))},
+            }
+        else:
+            tables = {row[0] for row in connection.execute(text(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+            ))}
+            columns_by_table = {}
+            for table_name in ("users", "plan_upgrade_requests"):
+                if table_name in tables:
+                    columns_by_table[table_name] = {
+                        row[0] for row in connection.execute(text(
+                            f"SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '{table_name}'"
+                        ))
+                    }
+
+        if "users" in tables and "pro_expires_at" not in columns_by_table.get("users", set()):
+            connection.execute(text("ALTER TABLE users ADD COLUMN pro_expires_at TIMESTAMP"))
+
+        if "plan_upgrade_requests" in tables:
+            for column_name, column_def in {
+                "amount": "INTEGER",
+                "notes": "TEXT",
+                "paid_at": "TIMESTAMP",
+                "method": "TEXT",
+                "subscription_duration": "TEXT",
+                "review_note": "TEXT",
+                "reviewed_by": "TEXT",
+                "reviewed_at": "TIMESTAMP",
+                "status": "TEXT",
+            }.items():
+                if column_name not in columns_by_table.get("plan_upgrade_requests", set()):
+                    connection.execute(text(f"ALTER TABLE plan_upgrade_requests ADD COLUMN {column_name} {column_def}"))
+
 migrate_user_plans()
+ensure_missing_schema_columns()
 
 def migrate_legacy_plaintext_passwords() -> None:
     db = SessionLocal()
@@ -158,7 +198,17 @@ def ensure_payment_table() -> None:
         raise
 
 
+def ensure_plan_upgrade_table() -> None:
+    """Create the upgrade/payment review table if the deployment is missing it."""
+    try:
+        PlanUpgradeRequest.__table__.create(bind=engine, checkfirst=True)
+    except Exception:
+        logger.exception("Could not create the plan upgrade requests table")
+        raise
+
+
 ensure_payment_table()
+ensure_plan_upgrade_table()
 
 def ensure_push_subscription_table() -> None:
     """Create the push subscription table if this deployment does not have it yet."""

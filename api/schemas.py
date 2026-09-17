@@ -166,14 +166,32 @@ class OTPVerifyRequest(BaseModel):
 
 class PlanUpgradeCreate(BaseModel):
     requested_plan: Literal["Pro"]
-    method: Literal['nagad', 'bkash', 'offline'] = 'nagad'
+    method: Literal['offline', 'bKash', 'other'] = 'offline'
     trx_id: Optional[str] = Field(default=None, min_length=5, max_length=80)
     payment_phone: Optional[str] = Field(default=None, min_length=8, max_length=30)
     subscription_duration: str = "monthly"
+    amount: Optional[int] = Field(default=None, ge=0)
+    notes: Optional[str] = Field(default=None, max_length=500)
 
 
 class StaffDecision(BaseModel):
     approved: bool
+    note: Optional[str] = Field(default=None, max_length=500)
+
+
+class AdminPaymentCreate(BaseModel):
+    user_id: str
+    plan: Literal["Free", "Pro"] = "Pro"
+    amount: Optional[int] = Field(default=None, ge=0)
+    duration: str = "monthly"
+    payment_method: Literal['offline', 'bKash', 'other'] = 'offline'
+    reference_id: Optional[str] = Field(default=None, min_length=3, max_length=120)
+    notes: Optional[str] = Field(default=None, max_length=500)
+    status: Literal['pending', 'verified', 'rejected'] = 'pending'
+
+
+class PaymentDecision(BaseModel):
+    approved: Optional[bool] = None
     note: Optional[str] = Field(default=None, max_length=500)
 
 
@@ -253,4 +271,4 @@ class OfficeAppointmentCreate(BaseModel):
 
 
 class StatusUpdate(BaseModel):
-    status: Literal["pending", "processed", "rejected"]
+    status: Literal["pending", "verified", "rejected", "processed"]

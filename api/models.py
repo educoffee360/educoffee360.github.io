@@ -194,7 +194,8 @@ class PlanUpgradeRequest(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     teacher_id = Column(String, ForeignKey('users.id'), nullable=False, index=True)
 
-    requested_plan = Column(String, nullable=False)
+    requested_plan = Column(String, nullable=False, default='Pro')
+    amount = Column(Integer, nullable=False, default=0)
 
     subscription_duration = Column(
         Enum('monthly', 'six_month', name='subscription_duration'),
@@ -202,13 +203,15 @@ class PlanUpgradeRequest(Base):
         default='monthly'
     )
 
-    method = Column(String, nullable=False, default='nagad')
+    method = Column(String, nullable=False, default='offline')
     trx_id = Column(String, nullable=True, unique=True, index=True)
     payment_phone = Column(String, nullable=True)
     status = Column(String, nullable=False, default='pending', index=True)
     review_note = Column(String, nullable=True)
+    notes = Column(String, nullable=True)
     reviewed_by = Column(String, ForeignKey('users.id'), nullable=True)
     requested_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    paid_at = Column(DateTime, nullable=True)
     reviewed_at = Column(DateTime, nullable=True)
 
 class BanRequest(Base):

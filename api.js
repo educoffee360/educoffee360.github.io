@@ -692,6 +692,13 @@ async function UpdateStaffPublicPaymentStatus(id, status) { return requestJson(`
 async function UpdateStaffOfficeAppointmentStatus(id, status) { return requestJson(`/staff/office-appointments/${requireId(id, "appointment id", null)}/status`, { method: "PUT", body: { status } }); }
 async function GetStaffPublicPaymentSubmissions() { return requestJson("/staff/public-payment-submissions"); }
 async function GetStaffOfficeAppointments() { return requestJson("/staff/office-appointments"); }
+async function CreateAdminPayment(payload = {}) {
+  return requestJson("/staff/payments", { method: "POST", body: payload });
+}
+async function GetAdminPayments() { return requestJson("/staff/payments"); }
+async function GetUserPayments(userId) { return requestJson(`/staff/users/${requireId(userId, "user id", null)}/payments`); }
+async function VerifyPayment(paymentId, note = "") { return requestJson(`/staff/payments/${requireId(paymentId, "payment id", null)}/verify`, { method: "POST", body: { note } }); }
+async function RejectPayment(paymentId, note = "") { return requestJson(`/staff/payments/${requireId(paymentId, "payment id", null)}/reject`, { method: "POST", body: { note } }); }
 
 async function GetStudentPayments(student_id = getCurrentUserId()) {
   return requestJson(`/payments/student/${requireId(student_id, "student id")}`);
