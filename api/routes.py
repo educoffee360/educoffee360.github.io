@@ -1017,6 +1017,21 @@ def create_result(result: schemas.Result, db: Session = Depends(get_db), current
         ))
 
     db.commit()
+
+    result_notification = {
+        "title": "নতুন ফলাফল প্রকাশিত হয়েছে",
+        "body": f"আপনার {result.title} পরীক্ষার ফলাফল প্রকাশিত হয়েছে। ফলাফল দেখতে ট্যাপ করুন।",
+        "url": "/student-results.html",
+        "tag": f"result-{new_result.id}",
+    }
+    enrolled_students = db.query(models.User).filter(
+        models.User.role == "student"
+    ).all()
+    for student in enrolled_students:
+        if result.batch_code in (student.batch_codes or []):
+            _send_student_push(db, student.id, result_notification)
+    db.commit()
+
     return {'message': 'Results published successfully'}
 
 
