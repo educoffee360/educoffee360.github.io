@@ -1018,18 +1018,30 @@ def create_result(result: schemas.Result, db: Session = Depends(get_db), current
 
     db.commit()
 
-    result_notification = {
-        "title": "নতুন ফলাফল প্রকাশিত হয়েছে",
-        "body": f"আপনার {result.title} পরীক্ষার ফলাফল প্রকাশিত হয়েছে। ফলাফল দেখতে ট্যাপ করুন।",
-        "url": "/student-results.html",
-        "tag": f"result-{new_result.id}",
-    }
     enrolled_students = db.query(models.User).filter(
         models.User.role == "student"
     ).all()
     for student in enrolled_students:
         if result.batch_code in (student.batch_codes or []):
-            _send_student_push(db, student.id, result_notification)
+            student_score = next(
+                (score for score in result.scores if score.student_id == str(student.id)),
+                None,
+            )
+            score_text = (
+                "অনুপস্থিত"
+                if student_score and student_score.absent
+                else f"{student_score.marks if student_score else '-'} / {result.total_marks}"
+            )
+            _send_student_push(
+                db,
+                student.id,
+                {
+                    "title": "নতুন ফলাফল প্রকাশিত হয়েছে",
+                    "body": f"{student.name}, {result.title} বিষয়ে আপনার নম্বর: {score_text}। বিস্তারিত দেখতে ট্যাপ করুন।",
+                    "url": "/student-results.html",
+                    "tag": f"result-{new_result.id}-{student.id}",
+                },
+            )
     db.commit()
 
     return {'message': 'Results published successfully'}
