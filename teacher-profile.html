@@ -384,7 +384,7 @@
     <div class="pc-top">
         <div class="pc-icon">🏆</div>
         <div class="pc-name">Pro</div>
-        <div class="pc-price" id="proCardPrice">৳200/month</div>
+        <div class="pc-price" id="proCardPrice">৳800/month</div>
     </div>
     <div class="pc-features">
         <div class="pc-feat">Unlimited students &amp; notices</div>
@@ -498,20 +498,20 @@
 <button class="mcl" onclick="closeUpgradeModal()">✕</button>
 </div>
 <div class="mbody">
-<div class="selected-plan-tag" id="modalPlanTag">📦 Pro — ৳200/month</div>
+<div class="selected-plan-tag" id="modalPlanTag">📦 Pro — ৳800/month</div>
 <div class="billing-toggle">
     <button
         class="billing-option active"
         id="monthlyBilling"
         onclick="setSubscriptionDuration('monthly')">
-        ৳200 / month
+        ৳800 / month
     </button>
 
     <button
         class="billing-option"
         id="sixMonthBilling"
         onclick="setSubscriptionDuration('six_month')">
-        ৳1,000 / 6 months
+        ৳4,000 / 6 months
         <span class="save-badge">Save 17%</span>
     </button>
 </div>
@@ -629,7 +629,7 @@
 // ── PLANS CONFIG ──────────────────────────────────
 const PLANS = {
     Free: { icon: '☕', price: 'Free', detail: 'Free · Up to 10 students, 1 notice/day' },
-    Pro: { icon: '🏆', price: '৳200/month', detail: '৳200/month · Unlimited students & notices' }
+    Pro: { icon: '🏆', price: '৳800/month', detail: '৳800/month · Unlimited students & notices' }
 };
 let billingConfig = null;
 let currentTeacherUser = null;
@@ -757,9 +757,9 @@ function setSubscriptionDuration(duration) {
     const tag = document.getElementById('modalPlanTag');
 
     if (duration === 'six_month') {
-        tag.textContent = '🏆 Pro — ৳1,000 / 6 months';
+        tag.textContent = '🏆 Pro — ৳4,000 / 6 months';
     } else {
-        tag.textContent = '🏆 Pro — ৳200 / month';
+        tag.textContent = '🏆 Pro — ৳800 / month';
     }
 }
 
@@ -777,7 +777,7 @@ function openUpgradeModal(plan) {
     const p = PLANS[plan];
 
     document.getElementById('modalPlanTag').textContent =
-        (p.icon || '📦') + ' ' + plan + ' — ৳200/month';
+        (p.icon || '📦') + ' ' + plan + ' — ৳800/month';
 
     document.getElementById('monthlyBilling').classList.add('active');
     document.getElementById('sixMonthBilling').classList.remove('active');
