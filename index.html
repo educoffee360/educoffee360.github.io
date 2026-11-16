@@ -633,19 +633,19 @@
             </button>
             <button class="billing-option" id="sixMonthOption" onclick="setBilling('six_month')">
                 6 Months
-                <span class="save-badge">Save 17%</span>
+                <span class="save-badge">Save 16%</span>
             </button>
         </div>
 
         <div class="plan-price">
             <span class="plan-currency">৳</span>
-            <span class="plan-amount" id="proPrice">200</span>
+            <span class="plan-amount" id="proPrice">800</span>
         </div>
 
         <div class="plan-period" id="proPeriod">per month</div>
 
         <div class="plan-original" id="proOriginal" style="display:none">
-            ৳1,200 for 6 months
+            ৳4800 for 6 months
         </div>
 
         <div class="plan-divider"></div>
@@ -938,11 +938,11 @@ function setBilling(duration) {
     sixMonth.classList.toggle('active', duration === 'six_month');
 
     if (duration === 'six_month') {
-        price.textContent = '1,000';
+        price.textContent = '4000';
         period.textContent = 'for 6 months';
         original.style.display = 'block';
     } else {
-        price.textContent = '200';
+        price.textContent = '800';
         period.textContent = 'per month';
         original.style.display = 'none';
     }
