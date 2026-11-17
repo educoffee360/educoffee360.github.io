@@ -472,6 +472,277 @@
 </div>
 </div>
 </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- ============ DEMO & VIDEO SECTION (paste between HOW IT WORKS and PRICING) ============ -->
+<section class="ecd-section reveal" id="demo" aria-labelledby="ecd-title">
+
+<style>
+  .ecd-section{
+    position:relative; overflow:hidden;
+    padding:clamp(56px,9vw,100px) clamp(16px,6vw,80px);
+    background:linear-gradient(160deg,var(--coffee,#3E2723) 0%,var(--coffee2,#5D4037) 100%);
+    color:#fff;
+  }
+  .ecd-section::before,.ecd-section::after{
+    content:"";position:absolute;border-radius:50%;pointer-events:none;filter:blur(70px);
+  }
+  .ecd-section::before{width:380px;height:380px;top:-120px;right:-100px;background:rgba(198,134,66,.25)}
+  .ecd-section::after{width:320px;height:320px;bottom:-120px;left:-80px;background:rgba(232,162,85,.14)}
+  .ecd-inner{position:relative;z-index:1;max-width:940px;margin:0 auto;text-align:center}
+  .ecd-tag{
+    display:inline-block;padding:5px 14px;margin-bottom:18px;border-radius:50px;
+    background:rgba(198,134,66,.18);border:1px solid rgba(232,162,85,.3);
+    color:var(--caramel2,#E8A255);font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  }
+  .ecd-title{
+    font-family:'DM Serif Display',serif;font-weight:400;
+    font-size:clamp(1.7rem,4.5vw,2.7rem);line-height:1.15;margin-bottom:12px;color:#fff;
+  }
+  .ecd-title em{color:var(--caramel2,#E8A255);font-style:italic}
+  .ecd-sub{
+    font-size:clamp(.88rem,2.2vw,.98rem);color:rgba(255,255,255,.68);
+    max-width:560px;margin:0 auto 32px;line-height:1.7;font-weight:300;
+  }
+
+  /* Video */
+  .ecd-video{
+    position:relative;width:100%;aspect-ratio:16/9;border-radius:clamp(14px,2.5vw,24px);
+    overflow:hidden;background:#1f1311 center/cover no-repeat;
+    border:1px solid rgba(255,255,255,.12);
+    box-shadow:0 30px 70px rgba(0,0,0,.4),0 0 0 6px rgba(198,134,66,.1);
+  }
+  .ecd-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .ecd-play{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(31,19,17,.35);border:0;width:100%;cursor:pointer;color:#fff;
+  }
+  .ecd-play span{
+    width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--caramel,#C68642),var(--caramel2,#E8A255));
+    box-shadow:0 10px 30px rgba(198,134,66,.5);font-size:1.6rem;padding-left:5px;
+  }
+  .ecd-video.ecd-loaded .ecd-play{display:none}
+
+  /* Buttons */
+  .ecd-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+  .ecd-btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    padding:14px 28px;border-radius:50px;font-family:inherit;font-size:.92rem;font-weight:700;
+    text-decoration:none;cursor:pointer;border:1.5px solid transparent;
+    transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s,background .3s,color .3s;
+  }
+  .ecd-btn:hover{transform:translateY(-3px)}
+  .ecd-btn:focus-visible{outline:3px solid var(--caramel2,#E8A255);outline-offset:3px}
+  .ecd-btn-primary{
+    background:linear-gradient(135deg,var(--caramel,#C68642),var(--caramel2,#E8A255));color:#fff;
+    box-shadow:0 8px 26px rgba(198,134,66,.4);
+  }
+  .ecd-btn-primary:hover{box-shadow:0 14px 36px rgba(198,134,66,.55)}
+  .ecd-btn-ghost{background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.28)}
+  .ecd-btn-ghost:hover,.ecd-btn-ghost[aria-expanded="true"]{background:#fff;color:var(--coffee,#3E2723)}
+
+  /* Demo panel */
+  .ecd-panel{
+    display:none;max-width:560px;margin:26px auto 0;text-align:left;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+    border-radius:20px;padding:22px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  }
+  .ecd-panel.ecd-open{display:block;animation:ecdIn .4s cubic-bezier(.16,1,.3,1)}
+  @keyframes ecdIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .ecd-panel-head{font-size:.74rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--caramel2,#E8A255);margin-bottom:14px}
+  .ecd-row{
+    display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.22);
+    border-radius:14px;padding:10px 10px 10px 16px;margin-bottom:10px;
+  }
+  .ecd-row-info{flex:1;min-width:0}
+  .ecd-row-label{font-size:.66rem;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:2px}
+  .ecd-row-value{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem;color:#fff;word-break:break-all}
+  .ecd-copy{
+    flex-shrink:0;padding:9px 14px;border-radius:10px;border:0;cursor:pointer;
+    background:var(--caramel,#C68642);color:#fff;font-family:inherit;font-size:.76rem;font-weight:700;
+    transition:background .25s,transform .2s;
+  }
+  .ecd-copy:hover{background:var(--caramel2,#E8A255)}
+  .ecd-copy:active{transform:scale(.95)}
+  .ecd-copy.ecd-done{background:#2E7D32}
+  .ecd-note{font-size:.76rem;line-height:1.6;color:rgba(255,255,255,.6);margin:12px 2px 16px}
+  .ecd-login{width:100%}
+
+  @media (max-width:560px){
+    .ecd-btn{width:100%}
+    .ecd-play span{width:58px;height:58px;font-size:1.3rem}
+    .ecd-panel{padding:16px}
+    .ecd-row{padding-left:12px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .ecd-btn,.ecd-panel.ecd-open{transition:none;animation:none}
+  }
+</style>
+
+<div class="ecd-inner">
+  <div class="ecd-tag">✦ Demo &amp; Tutorial</div>
+  <h2 class="ecd-title" id="ecd-title">EduCoffee <em>Introduction</em> &amp; Guide</h2>
+  <p class="ecd-sub">EduCoffee কী, কীভাবে ব্যবহার করবেন এবং ডেমো অ্যাকাউন্টে নিজে ঘুরে দেখুন।</p>
+
+  <!-- Video (loads & autoplays when scrolled into view) -->
+  <div class="ecd-video" id="ecdVideo">
+    <button class="ecd-play" id="ecdPlayBtn" type="button" aria-label="Play EduCoffee introduction video"><span>▶</span></button>
+  </div>
+  <noscript>
+    <p style="margin-top:14px"><a class="ecd-btn ecd-btn-primary" href="https://www.youtube.com/playlist?list=YOUR_PLAYLIST_ID" target="_blank" rel="noopener">▶ Watch on YouTube</a></p>
+  </noscript>
+
+  <div class="ecd-actions">
+    <a class="ecd-btn ecd-btn-primary" id="ecdPlaylistBtn" href="#" target="_blank" rel="noopener noreferrer">
+      ▶ Watch Full Playlist
+    </a>
+    <button class="ecd-btn ecd-btn-ghost" id="ecdDemoBtn" type="button" aria-expanded="false" aria-controls="ecdPanel">
+      🔑 Try Demo Teacher Account
+    </button>
+  </div>
+
+  <!-- Demo credentials -->
+  <div class="ecd-panel" id="ecdPanel" role="region" aria-label="Demo teacher credentials">
+    <div class="ecd-panel-head">Demo Teacher Login</div>
+    <div class="ecd-row">
+      <div class="ecd-row-info">
+        <div class="ecd-row-label">Email</div>
+        <div class="ecd-row-value" id="ecdEmail"></div>
+      </div>
+      <button class="ecd-copy" type="button" data-copy="email">Copy</button>
+    </div>
+    <div class="ecd-row">
+      <div class="ecd-row-info">
+        <div class="ecd-row-label">Password</div>
+        <div class="ecd-row-value" id="ecdPass"></div>
+      </div>
+      <button class="ecd-copy" type="button" data-copy="pass">Copy</button>
+    </div>
+    <p class="ecd-note">⚠️ এটি একটি <strong>ডেমো অ্যাকাউন্ট</strong> — শুধু সাইট ঘুরে দেখার জন্য। এখানে কোনো আসল তথ্য দেবেন না; ডেমো ডেটা যেকোনো সময় রিসেট হতে পারে।</p>
+    <a class="ecd-btn ecd-btn-primary ecd-login" href="auth.html?role=teacher">Login with Demo →</a>
+  </div>
+</div>
+
+<!-- SEO: VideoObject structured data (replace placeholders) -->
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"VideoObject",
+  "name":"EduCoffee Introduction & How to Use",
+  "description":"Learn what EduCoffee is and how teachers and students can manage batches, results and notices.",
+  "thumbnailUrl":"https://i.ytimg.com/vi/YOUR_VIDEO_ID/hqdefault.jpg",
+  "uploadDate":"2026-11-17",
+  "embedUrl":"https://www.youtube.com/embed/YOUR_VIDEO_ID",
+  "contentUrl":"https://www.youtube.com/watch?v=YOUR_VIDEO_ID"
+}
+</script>
+
+<script>
+(function(){
+  /* ===== EDIT ONLY THIS BLOCK ===== */
+  var ECD = {
+    videoId:     'YOUR_VIDEO_ID',                                       // YouTube video ID (watch?v= er por)
+    playlistUrl: 'https://www.youtube.com/playlist?list=YOUR_PLAYLIST_ID',
+    demoEmail:   'demo.teacher@example.com',
+    demoPass:    'Demo@12345'
+  };
+  /* ================================= */
+
+  var box = document.getElementById('ecdVideo');
+  var playBtn = document.getElementById('ecdPlayBtn');
+  var panel = document.getElementById('ecdPanel');
+  var demoBtn = document.getElementById('ecdDemoBtn');
+
+  document.getElementById('ecdPlaylistBtn').href = ECD.playlistUrl;
+  document.getElementById('ecdEmail').textContent = ECD.demoEmail;
+  document.getElementById('ecdPass').textContent = ECD.demoPass;
+  box.style.backgroundImage = 'url(https://i.ytimg.com/vi/' + ECD.videoId + '/hqdefault.jpg)';
+
+  /* Autoplay (muted — browsers only allow muted autoplay) */
+  function loadVideo(){
+    if (box.classList.contains('ecd-loaded')) return;
+    box.classList.add('ecd-loaded');
+    var f = document.createElement('iframe');
+    f.src = 'https://www.youtube-nocookie.com/embed/' + ECD.videoId +
+            '?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1&loop=1&playlist=' + ECD.videoId;
+    f.title = 'EduCoffee introduction and how to use';
+    f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+    f.allowFullscreen = true;
+    f.loading = 'lazy';
+    box.appendChild(f);
+  }
+  playBtn.addEventListener('click', loadVideo);
+  if ('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(en){
+      if (en[0].isIntersecting){ loadVideo(); io.disconnect(); }
+    }, {threshold:.45});
+    io.observe(box);
+  }
+
+  /* Demo panel toggle */
+  demoBtn.addEventListener('click', function(){
+    var open = panel.classList.toggle('ecd-open');
+    demoBtn.setAttribute('aria-expanded', open);
+    if (open) panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+  });
+
+  /* Copy buttons */
+  function copyText(text){
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+    return new Promise(function(res, rej){
+      var t = document.createElement('textarea');
+      t.value = text; t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select();
+      try { document.execCommand('copy') ? res() : rej(); } catch(e){ rej(e); }
+      document.body.removeChild(t);
+    });
+  }
+  panel.querySelectorAll('.ecd-copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var text = btn.dataset.copy === 'email' ? ECD.demoEmail : ECD.demoPass;
+      copyText(text).then(function(){
+        btn.textContent = 'Copied ✓'; btn.classList.add('ecd-done');
+        setTimeout(function(){ btn.textContent = 'Copy'; btn.classList.remove('ecd-done'); }, 1800);
+      });
+    });
+  });
+})();
+</script>
+</section>
+<!-- ============ /DEMO & VIDEO SECTION ============ -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 <!-- PORTAL SELECTION (formerly main.html) -->
 <section class="portal-section reveal" id="portal">
 <div class="portal-section-header">
@@ -514,6 +785,10 @@
         </div>
 </div>
 </section>
+
+
+
+    
     
 <!-- FEATURES -->
 <section class="section" id="features">
