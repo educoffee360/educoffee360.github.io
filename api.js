@@ -705,9 +705,10 @@ async function CreateUpgradeRequest(request = {}) {
     method: "POST",
     body: {
       requested_plan: request.requested_plan,
-      method: request.method || "nagad",
+      method: request.method || "bkash",
       trx_id: request.trx_id || null,
       payment_phone: request.payment_phone || null,
+      subscription_duration: request.subscription_duration || "monthly",
     },
   });
 }

@@ -400,7 +400,7 @@
 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24"><polyline points="17 11 12 6 7 11"></polyline><line x1="12" x2="12" y1="6" y2="18"></line></svg>
                         Upgrade My Plan
                     </button>
-<p class="upgrade-note">Pay with Nagad, then submit your TrxID for admin review.</p>
+<p class="upgrade-note">Pay with bKash, then submit your TrxID for admin review.</p>
 </div>
 </div>
 </div>
@@ -532,34 +532,11 @@
 </div>
 <!-- Payment Method Tabs -->
 <div class="pay-tabs">
-    <button class="pay-tab active" onclick="switchPayTab('nagad',this)">📲 Nagad</button>
-    <button class="pay-tab" onclick="switchPayTab('bkash',this)">💜 bKash</button>
+    <button class="pay-tab active" onclick="switchPayTab('bkash',this)">💜 bKash</button>
     <button class="pay-tab" onclick="switchPayTab('offline',this)" style="display:none">🏢 Office</button>
 </div>
 <!-- Online Tab -->
-<div class="pay-content active" id="payNagad">
-<div class="online-instruction">
-<div class="oi-title">Send Payment To</div>
-<div class="oi-numbers">
-<div class="oi-num-item">
-<div class="oi-num-label">🟠 Nagad</div>
-<div class="oi-num-val" id="nagadPaymentNumber" onclick="copyToClip(this.dataset.number || '')" data-number="">Set in Render <span style="opacity:.5;font-size:.7rem">📋</span></div>
-</div>
-</div>
-<div class="oi-note">Send money then fill in the Transaction ID below. Your account will be activated within 24 hours after verification.</div>
-</div>
-<div class="modal-fg">
-<label>Transaction ID (TrxID) *</label>
-<input class="mono" id="payTrxId" placeholder="e.g. 8K9J2XA1R5" type="text"/>
-<p class="modal-fg-hint">Enter the TrxID from your Nagad confirmation message.</p>
-</div>
-<div class="modal-fg">
-<label>Your Phone Number *</label>
-<input id="payPhone" placeholder="01XXXXXXXXX" type="tel"/>
-</div>
-<button class="btn-submit-pay" onclick="submitUpgrade('online', this)">Submit &amp; Request Upgrade</button>
-</div>
-<div class="pay-content" id="payBkash">
+<div class="pay-content active" id="payBkash">
     <div class="online-instruction">
         <div class="oi-title">Send Payment To</div>
 
@@ -640,7 +617,7 @@
 </div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="api.js?v=20260911c"></script><script src="shared_shell.js"></script><script>
+<script src="api.js?v=20261118a"></script><script src="shared_shell.js"></script><script>
 // ── PLANS CONFIG ──────────────────────────────────
 const PLANS = {
     Free: { icon: '☕', price: 'Free', detail: 'Free · Up to 10 students, 1 notice/day' },
@@ -703,8 +680,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderCurrentPlan(plan);
     markCurrentPlanCard(plan);
     billingConfig = await GetBillingConfig().catch(() => null);
-    const paymentNumber = billingConfig?.payment_number || '';
-    const paymentNumberEl = document.getElementById('nagadPaymentNumber');
     const bkashNumber = billingConfig?.bkash_number || '';
     const bkashNumberEl = document.getElementById('bkashPaymentNumber');
 
@@ -712,8 +687,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     bkashNumberEl.innerHTML = bkashNumber
         ? `${bkashNumber} <span style="opacity:.5;font-size:.7rem">📋</span>`
         : 'Payment number not configured';
-    paymentNumberEl.dataset.number = paymentNumber;
-    paymentNumberEl.innerHTML = paymentNumber ? `${paymentNumber} <span style="opacity:.5;font-size:.7rem">📋</span>` : 'Payment number not configured';
     const upgradeRequests = await GetMyUpgradeRequests().catch(() => []);
     const pendingRequest = upgradeRequests.find(request => request.status === 'pending');
     if (pendingRequest) {
@@ -779,7 +752,7 @@ function setSubscriptionDuration(duration) {
 }
 
 function openUpgradeModal(plan) {
-    if (!billingConfig?.payment_number && !billingConfig?.bkash_number) {
+    if (!billingConfig?.bkash_number) {
         showToast('No online payment method is configured yet. Please contact support.');
         return;
     }
@@ -804,13 +777,8 @@ function openUpgradeModal(plan) {
         t.classList.toggle('active', i === 0);
     });
 
-    document.getElementById('payNagad').classList.add('active');
-    document.getElementById('payBkash').classList.remove('active');
+    document.getElementById('payBkash').classList.add('active');
     document.getElementById('payOffline').classList.remove('active');
-
-    document.getElementById('payTrxId').value = '';
-    document.getElementById('payPhone').value =
-        currentTeacherUser?.phone || '';
 
     document.getElementById('bkashTrxId').value = '';
     document.getElementById('bkashPhone').value =
@@ -832,11 +800,6 @@ function switchPayTab(tab, btn) {
 
     btn.classList.add('active');
 
-    document.getElementById('payNagad').classList.toggle(
-        'active',
-        tab === 'nagad'
-    );
-
     document.getElementById('payBkash').classList.toggle(
         'active',
         tab === 'bkash'
@@ -849,12 +812,10 @@ function switchPayTab(tab, btn) {
 }
 
 async function submitUpgrade(method, button) {
-    if (method === 'nagad' || method === 'bkash') {
-        const trx   = document.getElementById('payTrxId').value.trim();
-        const phone = document.getElementById('payPhone').value.trim();
+    if (method === 'bkash') {
+        const trx = document.getElementById('bkashTrxId').value.trim();
+        const phone = document.getElementById('bkashPhone').value.trim();
         if (!trx || !phone) { showToast('Please fill in all required fields.'); return; }
-    } else {
-        // Offline: optional code
     }
     const originalText = button?.textContent;
     if (button) { button.disabled = true; button.textContent = 'Submitting...'; }
@@ -862,13 +823,13 @@ async function submitUpgrade(method, button) {
         await CreateUpgradeRequest({
             requested_plan: selectedUpgradePlan,
             subscription_duration: selectedSubscriptionDuration,
-            method: method === 'nagad' ? 'nagad' : 'bkash',
-            trx_id: method === 'nagad'
-                ? document.getElementById('payTrxId').value.trim()
-                : document.getElementById('bkashTrxId').value.trim(),
-            payment_phone: method === 'nagad'
-                ? document.getElementById('payPhone').value.trim()
-                : document.getElementById('bkashPhone').value.trim(),
+            method,
+            trx_id: method === 'bkash'
+                ? document.getElementById('bkashTrxId').value.trim()
+                : document.getElementById('offlineCode').value.trim() || null,
+            payment_phone: method === 'bkash'
+                ? document.getElementById('bkashPhone').value.trim()
+                : null,
         });
         closeUpgradeModal();
         document.getElementById('currentPlanStatus').textContent = `${selectedUpgradePlan} review pending`;

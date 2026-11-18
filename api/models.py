@@ -202,7 +202,7 @@ class PlanUpgradeRequest(Base):
         default='monthly'
     )
 
-    method = Column(String, nullable=False, default='nagad')
+    method = Column(String, nullable=False, default='bkash')
     trx_id = Column(String, nullable=True, unique=True, index=True)
     payment_phone = Column(String, nullable=True)
     status = Column(String, nullable=False, default='pending', index=True)
@@ -283,6 +283,7 @@ class PublicPaymentSubmission(Base):
     method = Column(String, nullable=False)
     trx_id = Column(String, nullable=False)
     center_name = Column(String, nullable=True)
+    subscription_duration = Column(String, nullable=False, default='monthly')
     status = Column(String, nullable=False, default='pending')
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 

@@ -295,7 +295,6 @@
     .pi-method { flex: 1; min-width: 160px; background: var(--card); border-radius: 12px; padding: 14px 16px; border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
     .pi-method-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
     .pm-bkash { background: rgba(220,0,90,.1); }
-    .pm-nagad { background: rgba(255,140,0,.1); }
     .pi-method-info { min-width: 0; }
     .pi-method-name { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; }
     .pi-method-num { font-size: .92rem; font-weight: 700; color: var(--coffee); font-family: monospace; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
@@ -399,7 +398,7 @@
     }
     </style>
 <script defer="True" src="/shared_head.js"></script>
-<script src="/api.js?v=20260911c"></script>
+<script src="/api.js?v=20261118a"></script>
 <script>
   const existingSession = getCurrentSession();
   if (existingSession?.role === 'teacher') {
@@ -676,7 +675,7 @@
 <button class="ph-back" onclick="showPricing()">← Back to Pricing</button>
 <div class="ph-selected-plan">📦 Selected: <strong id="selectedPlanDisplay">Pro</strong></div>
 <h2>Complete Your Payment</h2>
-<p>অনলাইনে (bKash/Nagad) অথবা আমাদের অফিসে সরাসরি পেমেন্ট করুন।</p>
+<p>অনলাইনে bKash অথবা আমাদের অফিসে সরাসরি পেমেন্ট করুন।</p>
 </div>
 <!-- Payment Method Tabs -->
 <div class="pay-method-tabs">
@@ -689,15 +688,15 @@
 <div class="pi-title">📲 Send Payment To</div>
 <div class="pi-methods">
 <div class="pi-method">
-<div class="pi-method-icon pm-nagad">🟠</div>
+<div class="pi-method-icon pm-bkash">💗</div>
 <div class="pi-method-info">
-<div class="pi-method-name">Nagad Personal</div>
-<div class="pi-method-num" id="publicNagadNumber">Loading…</div>
+<div class="pi-method-name">bKash Personal</div>
+<div class="pi-method-num" id="publicBkashNumber">Loading…</div>
 </div>
 </div>
 </div>
 <ol class="pi-steps">
-<li>উপরের নম্বরে "Send Money" করুন (bKash বা Nagad)।</li>
+<li>উপরের bKash নম্বরে "Send Money" করুন।</li>
 <li>পেমেন্ট সম্পন্ন হলে Transaction ID (TrxID) সংরক্ষণ করুন।</li>
 <li>নিচের ফর্মটি সঠিকভাবে পূরণ করুন এবং সাবমিট করুন।</li>
 <li>যাচাইয়ের পর ২৪ ঘন্টার মধ্যে আপনার অ্যাকাউন্ট সক্রিয় হবে।</li>
@@ -730,14 +729,14 @@
 <div class="select-wrap">
 <select class="form-select" id="payMethod">
 <option value="">পদ্ধতি বেছে নিন...</option>
-<option value="nagad">Nagad (Personal)</option>
+<option value="bkash">bKash (Personal)</option>
 </select>
 </div>
 </div>
 <div class="form-group">
 <label class="form-label">Transaction ID (TrxID) *</label>
 <input class="form-input" id="payTrxId" placeholder="e.g. 8K9J2XA1R5" required="" style="font-family:monospace;letter-spacing:1px;text-transform:uppercase" type="text"/>
-<div class="trx-hint">Nagad থেকে পাওয়া TrxID লিখুন।</div>
+<div class="trx-hint">bKash থেকে পাওয়া TrxID লিখুন।</div>
 </div>
 <div class="form-group full">
 <label class="form-label">Coaching Center Name (Optional)</label>
@@ -777,7 +776,7 @@
 <ol class="offline-steps">
 <li>আমাদের অফিসে সরাসরি আসুন অথবা আগে ফোনে যোগাযোগ করুন।</li>
 <li>আপনার পছন্দের প্যাকেজটি (Pro) জানান।</li>
-<li>ক্যাশ, bKash, Nagad বা অন্য যেকোনো মাধ্যমে সুবিধামতো পেমেন্ট করুন।</li>
+<li>ক্যাশ বা bKash-এর মাধ্যমে সুবিধামতো পেমেন্ট করুন।</li>
 <li>পেমেন্টের সাথে সাথেই আমরা আপনার অ্যাকাউন্ট সক্রিয় করে দেবো।</li>
 </ol>
 <div class="offline-note">
@@ -912,11 +911,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const numberEl = document.getElementById('publicNagadNumber');
+    const numberEl = document.getElementById('publicBkashNumber');
     if (!numberEl) return;
     try {
         const config = await GetPublicBillingConfig();
-        const number = config?.payment_number || '';
+        const number = config?.bkash_number || '';
         if (number) { numberEl.textContent = number; numberEl.onclick = () => copyNum(number); numberEl.title = 'Click to copy'; }
         else numberEl.textContent = 'Payment number not configured';
     } catch { numberEl.textContent = 'Payment number unavailable'; }

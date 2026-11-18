@@ -1678,8 +1678,7 @@ def staff_analytics(db: Session = Depends(get_db), current_user = Depends(requir
 @router.get("/billing/public-config", status_code=200)
 def public_billing_config():
     return {
-        "provider": "Nagad + bKash",
-        "payment_number": os.getenv("NAGAD_PAYMENT_NUMBER", "").strip(),
+        "provider": "bKash",
         "bkash_number": os.getenv("BKASH_PAYMENT_NUMBER", "").strip(),
         "plans": {
             "Pro": {
@@ -1699,8 +1698,7 @@ def public_billing_config():
 @router.get("/billing/config", status_code=200)
 def billing_config(current_user=Depends(require_role("teacher", "admin"))):
     return {
-        "provider": "Nagad + bKash",
-        "payment_number": os.getenv("NAGAD_PAYMENT_NUMBER", "").strip(),
+        "provider": "bKash",
         "bkash_number": os.getenv("BKASH_PAYMENT_NUMBER", "").strip(),
         "review_window": "within 24 hours",
         "plans": {
@@ -1743,7 +1741,8 @@ def create_public_payment_submission(payload: schemas.PublicPaymentCreate, db: S
         raise HTTPException(409, "This TrxID has already been submitted")
     submission = models.PublicPaymentSubmission(
         name=payload.name.strip(), email=str(payload.email).lower(), phone=payload.phone.strip(),
-        plan=payload.plan, method=payload.method, trx_id=trx_id, center_name=(payload.center_name or '').strip() or None
+        plan=payload.plan, method=payload.method, trx_id=trx_id, center_name=(payload.center_name or '').strip() or None,
+        subscription_duration=payload.subscription_duration
     )
     db.add(submission); db.commit(); db.refresh(submission)
     return {"id": submission.id, "status": submission.status, "created_at": submission.created_at, "message": "Payment submission received"}
@@ -1779,7 +1778,7 @@ def update_office_appointment_status(appointment_id: str, payload: schemas.Statu
 @router.get("/staff/public-payment-submissions", status_code=200)
 def staff_public_payment_submissions(db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
     rows = db.query(models.PublicPaymentSubmission).order_by(models.PublicPaymentSubmission.created_at.desc()).all()
-    return [{"id": r.id, "name": r.name, "email": r.email, "phone": r.phone, "plan": r.plan, "method": r.method, "trx_id": r.trx_id, "center_name": r.center_name, "status": r.status, "created_at": r.created_at} for r in rows]
+    return [{"id": r.id, "name": r.name, "email": r.email, "phone": r.phone, "plan": r.plan, "method": r.method, "trx_id": r.trx_id, "center_name": r.center_name, "subscription_duration": r.subscription_duration, "status": r.status, "created_at": r.created_at} for r in rows]
 
 @router.get("/staff/office-appointments", status_code=200)
 def staff_office_appointments(db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
@@ -1795,8 +1794,8 @@ def create_upgrade_request(payload: schemas.PlanUpgradeCreate, db: Session = Dep
         raise HTTPException(409, "You already have a pending upgrade request")
     trx_id = (payload.trx_id or "").strip().upper() or None
     payment_phone = (payload.payment_phone or "").strip() or None
-    if payload.method == "nagad" and (not trx_id or not payment_phone):
-        raise HTTPException(400, "Nagad TrxID and payment phone number are required")
+    if payload.method == "bkash" and (not trx_id or not payment_phone):
+        raise HTTPException(400, "bKash TrxID and payment phone number are required")
     if trx_id and db.query(models.PlanUpgradeRequest).filter(models.PlanUpgradeRequest.trx_id == trx_id).first():
         raise HTTPException(409, "This TrxID has already been submitted")
     request = models.PlanUpgradeRequest(
