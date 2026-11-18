@@ -708,13 +708,16 @@ async function GetStudentAttendance(student_id = getCurrentUserId()) {
 }
 
 async function CreateUpgradeRequest(request = {}) {
+  const method = request.method || "offline";
   return requestJson("/upgrade-requests", {
     method: "POST",
     body: {
       requested_plan: request.requested_plan,
-      method: request.method || "nagad",
+      method: method.toLowerCase() === "bkash" ? "bKash" : method,
       trx_id: request.trx_id || null,
       payment_phone: request.payment_phone || null,
+      notes: request.notes || null,
+      subscription_duration: request.subscription_duration || "monthly",
     },
   });
 }

@@ -430,7 +430,7 @@
 <div class="otp-error" id="recoveryError"></div>
 </div>
 </div>
-<script src="api.js?v=20260911c"></script>
+<script src="api.js?v=20261118b"></script>
 <script>
     let currentRole = 'teacher';
     let currentTab  = 'login';
@@ -843,7 +843,7 @@ async function handleLogin() {
         }
 
         await requestRegistrationOTP(
-            { name, email, phone: '+880' + phoneDigits, center_name: center, location: city, password, role: 'teacher', plan: 'Free' },
+            { name, email, phone: '+880' + phoneDigits, center_name: center, location: city, password, role: 'teacher' },
             document.getElementById('teacherRegisterBtn')
         );
     }

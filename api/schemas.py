@@ -169,8 +169,7 @@ class PlanUpgradeCreate(BaseModel):
     method: Literal['offline', 'bKash', 'other'] = 'offline'
     trx_id: Optional[str] = Field(default=None, min_length=5, max_length=80)
     payment_phone: Optional[str] = Field(default=None, min_length=8, max_length=30)
-    subscription_duration: str = "monthly"
-    amount: Optional[int] = Field(default=None, ge=0)
+    subscription_duration: Literal['monthly', 'six_month'] = 'monthly'
     notes: Optional[str] = Field(default=None, max_length=500)
 
 
@@ -259,9 +258,10 @@ class PublicPaymentCreate(BaseModel):
     email: EmailStr
     phone: str = Field(min_length=8, max_length=30)
     plan: Literal['Pro']
-    method: Literal['nagad', 'bkash']
+    method: Literal['bkash']
     trx_id: str = Field(min_length=5, max_length=80)
     center_name: Optional[str] = Field(default=None, max_length=160)
+    subscription_duration: Literal['monthly', 'six_month'] = 'monthly'
 
 class OfficeAppointmentCreate(BaseModel):
     name: str = Field(min_length=2, max_length=120)

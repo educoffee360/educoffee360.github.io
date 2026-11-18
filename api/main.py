@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 import logging
 import os
 
@@ -253,6 +253,16 @@ ensure_ad_campaign_table()
 def ensure_public_request_tables() -> None:
     PublicPaymentSubmission.__table__.create(bind=engine, checkfirst=True)
     OfficeAppointment.__table__.create(bind=engine, checkfirst=True)
+    columns = {
+        column["name"]
+        for column in inspect(engine).get_columns("public_payment_submissions")
+    }
+    if "subscription_duration" not in columns:
+        with engine.begin() as connection:
+            connection.execute(text(
+                "ALTER TABLE public_payment_submissions "
+                "ADD COLUMN subscription_duration VARCHAR NOT NULL DEFAULT 'monthly'"
+            ))
 
 ensure_public_request_tables()
 ensure_ad_impression_table()
