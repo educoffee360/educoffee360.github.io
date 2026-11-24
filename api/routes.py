@@ -252,6 +252,38 @@ def _send_push(subscription, payload):
         logger.exception("Web push delivery failed")
         return False
 
+
+def _send_push_to_users(db: Session, user_ids, payload):
+    recipient_ids = {str(user_id) for user_id in user_ids if user_id}
+    if not recipient_ids:
+        return
+    if not _push_configured():
+        logger.error("Push delivery skipped because VAPID credentials are not configured")
+        return
+
+    subscriptions = db.query(models.PushSubscription).filter(
+        models.PushSubscription.user_id.in_(recipient_ids)
+    ).all()
+    expired_subscriptions = []
+    for subscription in subscriptions:
+        if _send_push(subscription, payload) == "expired":
+            expired_subscriptions.append(subscription)
+
+    for subscription in expired_subscriptions:
+        db.delete(subscription)
+    if expired_subscriptions:
+        db.commit()
+
+
+def _send_push_to_role(db: Session, role: str, payload):
+    user_ids = [
+        row[0] for row in db.query(models.User.id).filter(
+            models.User.role == role
+        ).all()
+    ]
+    _send_push_to_users(db, user_ids, payload)
+
+
 @router.get("/user/{user_id}", response_model=schemas.UserResponse, status_code=200)
 def get_user_by_id(user_id, db: Session = Depends(get_db), current_user = Depends(require_self_or_admin)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -434,6 +466,25 @@ def register(user: schemas.User, db: Session = Depends(get_db)):
         db.add(models.UserDemographic(user_id=new_user.id, location=location, grade=grade))
     db.commit()
     db.refresh(new_user)
+    if new_user.role == "student" and student_batch_codes:
+        teacher_ids = {
+            row[0] for row in db.query(models.Batch.teacher_id).filter(
+                models.Batch.code.in_(student_batch_codes)
+            ).all()
+        }
+        _send_push_to_users(db, teacher_ids, {
+            "title": "New student joined",
+            "body": f"{new_user.name} joined your batch.",
+            "url": "/teacher-students.html",
+            "tag": f"student-joined-{new_user.id}",
+        })
+    elif new_user.role == "teacher":
+        _send_push_to_role(db, "admin", {
+            "title": "New teacher registered",
+            "body": f"{new_user.name} created a teacher account.",
+            "url": "/admin-dashboard.html",
+            "tag": f"teacher-registered-{new_user.id}",
+        })
     return new_user
 
 
@@ -760,6 +811,12 @@ def enroll_in_batch(batch_code, db: Session = Depends(get_db), current_user = De
     _get_or_create_current_payment(student.id, batch, db)
     db.commit()
     db.refresh(student)
+    _send_push_to_users(db, [batch.teacher_id], {
+        "title": "New student joined",
+        "body": f"{student.name} joined {batch.name}.",
+        "url": "/teacher-students.html",
+        "tag": f"student-joined-{student.id}-{batch.code}",
+    })
     return student
 
 @router.get('/students_in_batch/{batch_code}', response_model=List[schemas.UserResponse], status_code=200)
@@ -875,6 +932,17 @@ def submit_attendance(payload: schemas.AttendancePayload, db: Session = Depends(
 
     db.add_all(records_to_upsert)
     db.commit()
+    for status in ("present", "absent"):
+        recipient_ids = [
+            record.student_id for record in payload.records
+            if record.status == status
+        ]
+        _send_push_to_users(db, recipient_ids, {
+            "title": "Attendance updated",
+            "body": f"Your attendance for {payload.date} was marked {status}.",
+            "url": "/student-dashboard.html",
+            "tag": f"attendance-{payload.batch_code}-{payload.date}-{status}",
+        })
     return {
         'message': 'Attendance saved successfully',
         'batch_code': payload.batch_code,
@@ -952,6 +1020,12 @@ def create_result(result: schemas.Result, db: Session = Depends(get_db), current
         ))
 
     db.commit()
+    _send_push_to_users(db, score_ids, {
+        "title": "New result published",
+        "body": f"{new_result.title} is now available.",
+        "url": "/student-results.html",
+        "tag": f"result-{new_result.id}",
+    })
     return {'message': 'Results published successfully'}
 
 
@@ -1349,64 +1423,20 @@ def create_new_notice(
     db.commit()
     db.refresh(new_notice)
 
-    # ---------------- PUSH NOTIFICATION DEBUG ----------------
-
     students = db.query(models.User).filter(
         models.User.role == "student"
     ).all()
-
     target_batches = set(notice.batch_codes or [])
-    expired_subscriptions = []
-
-    logger.info("PUSH DEBUG: target_batches=%s", target_batches)
-    logger.info("PUSH DEBUG: total students=%d", len(students))
-
-    for student in students:
-        student_batches = set(student.batch_codes or [])
-
-        logger.info(
-            "PUSH DEBUG: student batches=%s",
-            student.batch_codes
-        )
-
-        if not target_batches.intersection(student_batches):
-            logger.info(
-                "PUSH DEBUG: batch mismatch, skipping student"
-            )
-            continue
-
-        logger.info("PUSH DEBUG: MATCHING STUDENT FOUND")
-
-        subscriptions = db.query(models.PushSubscription).filter(
-            models.PushSubscription.user_id == student.id
-        ).all()
-
-        logger.info(
-            "PUSH DEBUG: matching student has %d subscriptions",
-            len(subscriptions)
-        )
-
-        for subscription in subscriptions:
-            logger.info("PUSH: attempting delivery")
-
-            result = _send_push(
-                subscription,
-                {
-                    "title": "New notice from EduCoffee",
-                    "body": new_notice.text[:180],
-                    "url": "/student-notices.html",
-                    "tag": f"notice-{new_notice.id}",
-                },
-            )
-
-            if result == "expired":
-                expired_subscriptions.append(subscription)
-
-    # Remove expired subscriptions
-    for subscription in expired_subscriptions:
-        db.delete(subscription)
-
-    db.commit()
+    recipient_ids = [
+        student.id for student in students
+        if target_batches.intersection(student.batch_codes or [])
+    ]
+    _send_push_to_users(db, recipient_ids, {
+        "title": "New notice from EduCoffee",
+        "body": new_notice.text[:180],
+        "url": "/student-notices.html",
+        "tag": f"notice-{new_notice.id}",
+    })
 
     return new_notice
 
@@ -1426,6 +1456,19 @@ def update_notice(notice_id: str, notice: schemas.Notice, db: Session = Depends(
 
     db.commit()
     db.refresh(db_notice)
+    students = db.query(models.User).filter(
+        models.User.role == "student"
+    ).all()
+    target_batches = set(db_notice.batch_codes or [])
+    _send_push_to_users(db, [
+        student.id for student in students
+        if target_batches.intersection(student.batch_codes or [])
+    ], {
+        "title": "Notice updated",
+        "body": db_notice.text[:180],
+        "url": "/student-notices.html",
+        "tag": f"notice-{db_notice.id}",
+    })
     return db_notice
 
 @router.delete("/notice/{notice_id}", status_code=204)
@@ -1453,14 +1496,14 @@ def get_my_notices(teacher_id, db: Session = Depends(get_db), current_user = Dep
 
 @router.get("/push/public-key")
 def get_push_public_key(
-    current_user = Depends(require_student),
+    current_user = Depends(get_current_user),
 ):
     public_key = os.getenv("VAPID_PUBLIC_KEY")
 
-    if not public_key:
+    if not public_key or not _push_configured():
         raise HTTPException(
             503,
-            "Push notifications are not configured yet."
+            "Push notifications are not configured. Set VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, and VAPID_SUBJECT."
         )
 
     return {"public_key": public_key}
@@ -1470,7 +1513,7 @@ def get_push_public_key(
 def subscribe_to_push(
     payload: PushSubscriptionPayload,
     db: Session = Depends(get_db),
-    current_user = Depends(require_student),
+    current_user = Depends(get_current_user),
 ):
     endpoint = payload.endpoint.strip()
     keys = payload.keys or {}
@@ -1506,7 +1549,7 @@ def subscribe_to_push(
 def unsubscribe_from_push(
     payload: PushSubscriptionPayload,
     db: Session = Depends(get_db),
-    current_user = Depends(require_student),
+    current_user = Depends(get_current_user),
 ):
     subscription = db.query(models.PushSubscription).filter(
         models.PushSubscription.user_id == current_user["user_id"],
@@ -1566,6 +1609,12 @@ def send_parent_message(payload: schemas.ParentMessageCreate, db: Session = Depe
     db.add(message)
     db.commit()
     db.refresh(message)
+    _send_push_to_users(db, [student.id], {
+        "title": "Message from your teacher",
+        "body": subject,
+        "url": "/student-dashboard.html",
+        "tag": f"message-{message.id}",
+    })
     return _parent_message_response(message, teacher.name)
 
 
@@ -1606,6 +1655,12 @@ def broadcast_parent_message(payload: schemas.ParentBroadcastCreate, db: Session
             batch_codes=matching_codes,
         ))
     db.commit()
+    _send_push_to_users(db, [student.id for student, _ in recipients], {
+        "title": "New message from your teacher",
+        "body": subject,
+        "url": "/student-dashboard.html",
+        "tag": f"message-broadcast-{teacher.id}",
+    })
     return {"message": "Broadcast sent", "recipient_count": len(recipients)}
 
 
@@ -1683,11 +1738,11 @@ def public_billing_config():
         "plans": {
             "Pro": {
                 "monthly": {
-                    "amount": 200,
+                    "amount": 800,
                     "period": "1 month"
                 },
                 "six_month": {
-                    "amount": 1000,
+                    "amount": 4000,
                     "period": "6 months"
                 }
             }
@@ -1704,11 +1759,11 @@ def billing_config(current_user=Depends(require_role("teacher", "admin"))):
         "plans": {
             "Pro": {
                 "monthly": {
-                    "amount": 200,
+                    "amount": 800,
                     "period": "1 month"
                 },
                 "six_month": {
-                    "amount": 1000,
+                    "amount": 4000,
                     "period": "6 months"
                 }
             }
@@ -1741,10 +1796,17 @@ def create_public_payment_submission(payload: schemas.PublicPaymentCreate, db: S
         raise HTTPException(409, "This TrxID has already been submitted")
     submission = models.PublicPaymentSubmission(
         name=payload.name.strip(), email=str(payload.email).lower(), phone=payload.phone.strip(),
-        plan=payload.plan, method=payload.method, trx_id=trx_id, center_name=(payload.center_name or '').strip() or None,
+        plan=payload.plan, method=payload.method, trx_id=trx_id,
+        center_name=(payload.center_name or '').strip() or None,
         subscription_duration=payload.subscription_duration
     )
     db.add(submission); db.commit(); db.refresh(submission)
+    _send_push_to_role(db, "admin", {
+        "title": "New payment submission",
+        "body": f"{submission.name} submitted a {submission.plan} payment.",
+        "url": "/admin-dashboard.html",
+        "tag": f"public-payment-{submission.id}",
+    })
     return {"id": submission.id, "status": submission.status, "created_at": submission.created_at, "message": "Payment submission received"}
 
 @router.post("/public-office-appointments", status_code=201)
@@ -1759,6 +1821,12 @@ def create_public_office_appointment(payload: schemas.OfficeAppointmentCreate, d
         name=payload.name.strip(), phone=payload.phone.strip(), plan=payload.plan, visit_date=parsed_date
     )
     db.add(appointment); db.commit(); db.refresh(appointment)
+    _send_push_to_role(db, "admin", {
+        "title": "New office appointment",
+        "body": f"{appointment.name} requested an office appointment.",
+        "url": "/admin-dashboard.html",
+        "tag": f"office-appointment-{appointment.id}",
+    })
     return {"id": appointment.id, "status": appointment.status, "created_at": appointment.created_at, "message": "Appointment request received"}
 
 @router.put("/staff/public-payment-submissions/{submission_id}/status", status_code=200)
@@ -1807,6 +1875,12 @@ def create_upgrade_request(payload: schemas.PlanUpgradeCreate, db: Session = Dep
         payment_phone=payment_phone
     )
     db.add(request); db.commit(); db.refresh(request)
+    _send_push_to_role(db, "admin", {
+        "title": "New upgrade request",
+        "body": f"{teacher.name} requested the Pro plan.",
+        "url": "/admin-dashboard.html",
+        "tag": f"upgrade-request-{request.id}",
+    })
     return _upgrade_response(request, db)
 
 
@@ -1840,6 +1914,16 @@ def decide_upgrade_request(request_id: str, payload: schemas.StaffDecision, db: 
             else:
                 teacher.pro_expires_at = datetime.utcnow() + relativedelta(months=1)
     db.commit(); db.refresh(request)
+    _send_push_to_users(db, [teacher.id], {
+        "title": "Upgrade request reviewed",
+        "body": (
+            f"Your request was approved. {teacher.plan} is now active."
+            if payload.approved
+            else "Your upgrade request was not approved."
+        ),
+        "url": "/teacher-profile.html",
+        "tag": f"upgrade-decision-{request.id}",
+    })
     return _upgrade_response(request, db)
 
 
@@ -1848,6 +1932,12 @@ def set_teacher_plan(teacher_id: str, payload: schemas.PlanSet, db: Session = De
     teacher = db.query(models.User).filter(models.User.id == teacher_id, models.User.role == "teacher").first()
     if not teacher: raise HTTPException(404, "Teacher not found")
     teacher.plan = payload.plan; db.commit()
+    _send_push_to_users(db, [teacher.id], {
+        "title": "Subscription plan updated",
+        "body": f"Your plan is now {teacher.plan}.",
+        "url": "/teacher-profile.html",
+        "tag": f"teacher-plan-{teacher.id}",
+    })
     return {"message": "Teacher plan updated", "teacher_id": teacher.id, "plan": teacher.plan}
 
 
@@ -1861,6 +1951,12 @@ def ban_teacher(teacher_id: str, payload: schemas.BanAction, db: Session = Depen
     restriction.banned = True; restriction.reason = payload.reason.strip()
     restriction.banned_by = current_user["user_id"]; restriction.banned_at = datetime.utcnow()
     db.commit()
+    _send_push_to_users(db, [teacher.id], {
+        "title": "Account status updated",
+        "body": "Your teacher account has been suspended.",
+        "url": "/auth.html",
+        "tag": f"teacher-ban-{teacher.id}",
+    })
     return {"message": "Teacher suspended"}
 
 
@@ -1870,6 +1966,12 @@ def unban_teacher(teacher_id: str, db: Session = Depends(get_db), current_user =
     if not restriction or not restriction.banned: raise HTTPException(404, "Teacher is not suspended")
     restriction.banned = False; restriction.reason = None; restriction.banned_by = None; restriction.banned_at = None
     db.commit()
+    _send_push_to_users(db, [teacher_id], {
+        "title": "Account restored",
+        "body": "Your teacher account has been restored.",
+        "url": "/teacher-dashboard.html",
+        "tag": f"teacher-unban-{teacher_id}",
+    })
     return {"message": "Teacher restored"}
 
 
@@ -1885,6 +1987,12 @@ def request_teacher_ban(teacher_id: str, payload: schemas.BanAction, db: Session
     if db.query(models.BanRequest).filter(models.BanRequest.target_user_id == teacher_id, models.BanRequest.status == "pending").first(): raise HTTPException(409, "A ban request is already pending for this teacher")
     request = models.BanRequest(target_user_id=teacher_id, requested_by=current_user["user_id"], reason=payload.reason.strip())
     db.add(request); db.commit(); db.refresh(request)
+    _send_push_to_role(db, "admin", {
+        "title": "Teacher review requested",
+        "body": f"A moderator requested a review for {request.reason[:140]}",
+        "url": "/admin-dashboard.html",
+        "tag": f"ban-request-{request.id}",
+    })
     return _ban_request_response(request, db)
 
 
@@ -1908,6 +2016,19 @@ def decide_ban_request(request_id: str, payload: schemas.StaffDecision, db: Sess
         restriction.banned = True; restriction.reason = request.reason
         restriction.banned_by = current_user["user_id"]; restriction.banned_at = datetime.utcnow()
     db.commit()
+    _send_push_to_users(db, [request.requested_by], {
+        "title": "Teacher review completed",
+        "body": f"Your request was {request.status}.",
+        "url": "/admin-dashboard.html",
+        "tag": f"ban-review-{request.id}",
+    })
+    if payload.approved:
+        _send_push_to_users(db, [request.target_user_id], {
+            "title": "Account status updated",
+            "body": "Your teacher account has been suspended.",
+            "url": "/auth.html",
+            "tag": f"teacher-ban-{request.target_user_id}",
+        })
     return _ban_request_response(request, db)
 
 
@@ -2011,10 +2132,18 @@ def update_payment(
     if payment is None:
         raise HTTPException(400, "This custom payment period has expired. Set a new period on the batch first")
 
+    previous_status = payment.status
     payment.status = payload.status
     payment.paid_at = datetime.utcnow() if payload.status == "paid" else None
 
     db.commit()
     db.refresh(payment)
+    if previous_status != payment.status:
+        _send_push_to_users(db, [student.id], {
+            "title": "Payment status updated",
+            "body": f"Your {batch.name} payment is now {payment.status}.",
+            "url": "/student-dashboard.html",
+            "tag": f"payment-{payment.id}",
+        })
     return payment
 

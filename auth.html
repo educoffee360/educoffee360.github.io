@@ -110,70 +110,6 @@
         .section-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin: 20px 0 14px; display: flex; align-items: center; gap: 8px; }
         .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-light); }
 
-        /* ── SUBSCRIPTION PLAN SELECTION ── */
-        .plan-selection { margin-bottom: 18px; }
-        .plan-options { display: flex; flex-direction: column; gap: 10px; }
-        .plan-option {
-            display: flex; align-items: flex-start; gap: 12px;
-            padding: 14px 16px;
-            border-radius: 14px;
-            border: 1.5px solid var(--border-light);
-            background: var(--bg-color);
-            cursor: pointer;
-            transition: var(--transition);
-            position: relative;
-        }
-        .plan-option:hover { border-color: var(--accent-caramel); background: #fff; }
-        .plan-option.selected { border-color: var(--primary-coffee); background: #fff; box-shadow: 0 0 0 3px rgba(62,39,35,.06); }
-        .plan-option.selected-elite { border-color: var(--accent-caramel); background: rgba(198,134,66,.04); box-shadow: 0 0 0 3px rgba(198,134,66,.1); }
-        .plan-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-light); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
-        .plan-option.selected .plan-radio, .plan-option.selected-elite .plan-radio { border-color: var(--primary-coffee); background: var(--primary-coffee); }
-        .plan-option.selected-elite .plan-radio { border-color: var(--accent-caramel); background: var(--accent-caramel); }
-        .plan-radio-dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; display: none; }
-        .plan-option.selected .plan-radio-dot, .plan-option.selected-elite .plan-radio-dot { display: block; }
-        .plan-info { flex: 1; min-width: 0; }
-        .plan-info-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 3px; }
-        .plan-info-name { font-size: 0.92rem; font-weight: 700; color: var(--text-main); }
-        .plan-info-price { font-size: 0.82rem; font-weight: 700; color: var(--accent-caramel); }
-        .plan-info-badge { font-size: 0.63rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; padding: 2px 7px; border-radius: 20px; }
-        .badge-free { background: rgba(46,125,50,.1); color: #2E7D32; }
-        .badge-pop { background: rgba(62,39,35,.08); color: var(--primary-coffee); }
-        .badge-best { background: rgba(198,134,66,.15); color: var(--accent-caramel); }
-        .plan-info-desc { font-size: 0.76rem; color: var(--text-muted); line-height: 1.4; }
-
-        /* Payment section inside teacher form */
-        .payment-method-section { margin-top: 4px; }
-        .pay-tabs { display: flex; background: #EDE8E4; border-radius: 10px; padding: 4px; gap: 4px; margin-bottom: 16px; }
-        .pay-tab-btn { flex: 1; padding: 9px 8px; border: none; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: var(--transition); background: transparent; color: var(--text-muted); }
-        .pay-tab-btn.active { background: var(--primary-coffee); color: #fff; }
-
-        .pay-content { display: none; animation: fadeIn .25s ease both; }
-        .pay-content.active { display: block; }
-
-        /* Online payment instructions */
-        .online-instruction { background: rgba(198,134,66,.06); border: 1px solid rgba(198,134,66,.2); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
-        .oi-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--accent-caramel); margin-bottom: 10px; }
-        .oi-numbers { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-        .oi-num-item { flex: 1; min-width: 130px; background: var(--card-bg); border-radius: 10px; padding: 10px 12px; border: 1px solid var(--border-light); }
-        .oi-num-label { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 3px; }
-        .oi-num-val { font-size: 0.85rem; font-weight: 700; font-family: monospace; color: var(--primary-coffee); cursor: pointer; display: flex; align-items: center; gap: 4px; }
-        .oi-num-val:hover { color: var(--accent-caramel); }
-        .oi-note { font-size: 0.72rem; color: var(--text-muted); line-height: 1.5; }
-
-        /* Offline instruction */
-        .offline-instruction { background: linear-gradient(135deg, rgba(62,39,35,.03), rgba(198,134,66,.05)); border: 1px solid rgba(198,134,66,.2); border-radius: 12px; padding: 16px; }
-        .oi-office-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
-        .oi-office-item { background: var(--card-bg); border-radius: 10px; padding: 10px 12px; border: 1px solid var(--border-light); }
-        .oi-office-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted); margin-bottom: 3px; }
-        .oi-office-value { font-size: 0.82rem; font-weight: 600; color: var(--primary-coffee); }
-        .offline-note { font-size: 0.72rem; color: var(--accent-caramel); font-weight: 600; text-align: center; padding: 8px; background: rgba(198,134,66,.08); border-radius: 8px; margin-top: 10px; }
-
-        /* Free plan note */
-        .free-plan-note { background: rgba(46,125,50,.06); border: 1px solid rgba(46,125,50,.2); border-radius: 12px; padding: 14px 16px; font-size: 0.82rem; color: #2E7D32; font-weight: 500; text-align: center; }
-
-        /* Payment code field */
-        .paycode-field { font-family: monospace; letter-spacing: 1px; text-transform: uppercase; }
-
         .auth-footer { text-align: center; padding: 16px 20px 24px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border-light); }
         .auth-footer a { color: var(--accent-caramel); text-decoration: none; font-weight: 600; cursor: pointer; }
         .auth-footer a:hover { text-decoration: underline; }
@@ -211,8 +147,6 @@
         @media (max-width: 480px) {
             .form-wrap { padding: 24px 20px 20px; }
             .form-row { grid-template-columns: 1fr; gap: 0; }
-            .oi-office-grid { grid-template-columns: 1fr; }
-            .oi-numbers { flex-direction: column; }
         }
     </style>
 <script defer="True" src="/shared_head.js"></script></head>
@@ -294,58 +228,6 @@
 <input id="tCity" placeholder="e.g. Naogaon" type="text"/>
 </div>
 </div>
-<!-- Online -->
-<div class="pay-content active" id="authPayOnline">
-<div class="online-instruction">
-<div class="oi-title">Send Money To</div>
-<div class="oi-numbers">
-<div class="oi-num-item">
-<div class="oi-num-label">🟣 bKash</div>
-<div class="oi-num-val">Available after signup</div>
-</div>
-</div>
-<div class="oi-note">পেমেন্টের পর Transaction ID (TrxID) নিচে লিখুন। যাচাইয়ের পর ২৪ ঘন্টায় অ্যাকাউন্ট সক্রিয় হবে।</div>
-</div>
-<div class="form-group">
-<label>Transaction ID (TrxID) *</label>
-<input class="paycode-field" id="tTrxId" placeholder="e.g. 8K9J2XA1R5" type="text"/>
-<p class="field-info">Nagad-এর TrxID লিখুন।</p>
-</div>
-</div>
-<!-- Offline -->
-<div class="pay-content" id="authPayOffline">
-<div class="offline-instruction">
-<div class="oi-title">🏢 আমাদের অফিসে আসুন</div>
-<div class="oi-office-grid">
-<div class="oi-office-item">
-<div class="oi-office-label">📍 Address</div>
-<div class="oi-office-value">EduCoffee Office<br/>Naogaon, Bangladesh</div>
-</div>
-<div class="oi-office-item">
-<div class="oi-office-label">🕐 Hours</div>
-<div class="oi-office-value">Sat–Thu<br/>9 AM – 6 PM</div>
-</div>
-<div class="oi-office-item">
-<div class="oi-office-label">📞 Phone</div>
-<div class="oi-office-value">+880 1700-000000</div>
-</div>
-<div class="oi-office-item">
-<div class="oi-office-label">💬 WhatsApp</div>
-<div class="oi-office-value">+880 1700-000000</div>
-</div>
-</div>
-<div class="offline-note">⚡ অফিসে এলে তাৎক্ষণিক অ্যাকাউন্ট অ্যাক্টিভেশন!</div>
-</div>
-<div class="form-group" style="margin-top:14px">
-<label>Payment Code (Optional)</label>
-<input class="paycode-field" id="tOfflineCode" placeholder="অফিসে পেমেন্টের পর দেওয়া কোড" type="text"/>
-<p class="field-info">অফিসে পেমেন্টের পর আমরা আপনাকে একটি কোড দেবো।</p>
-</div>
-</div>
-<!-- Free plan note -->
-<div class="free-plan-note" id="freePlanNote" style="display:none;margin-bottom:16px">
-                    ✓ Free plan সম্পূর্ণ বিনামূল্যে। কোনো পেমেন্ট লাগবে না — শুধু অ্যাকাউন্ট তৈরি করুন!
-                </div>
 <div class="section-label">Security</div>
 <div class="form-row">
 <div class="form-group">
@@ -482,12 +364,10 @@
 <div class="otp-error" id="recoveryError"></div>
 </div>
 </div>
-<script src="api.js?v=20260911c"></script>
+<script src="api.js?v=20261118b"></script>
 <script>
     let currentRole = 'teacher';
     let currentTab  = 'login';
-    let selectedPlan = 'Free';
-    let authPayTab = 'online';
 
     // INIT
     (async function init() {
@@ -558,32 +438,6 @@
         footer.innerHTML = currentTab === 'login'
             ? `Don't have an account? <a onclick="switchTab('register')">Create one</a>`
             : `Already have an account? <a onclick="switchTab('login')">Login</a>`;
-    }
-
-    // PLAN SELECTION
-    function selectPlan(plan) {
-        // Registration always creates a Free account; Pro is requested after signup.
-        if (plan !== 'Free') {
-            alert('Create your free account first. You can upgrade to Pro from your teacher profile.');
-            plan = 'Free';
-        }
-        selectedPlan = 'Free';
-        ['Free','Pro'].forEach(p => {
-            const el = document.getElementById('planOpt' + p);
-            if (el) el.classList.toggle('selected', p === 'Free');
-        });
-        const paySection = document.getElementById('paymentSection');
-        const freeNote = document.getElementById('freePlanNote');
-        if (paySection) paySection.style.display = 'none';
-        if (freeNote) freeNote.style.display = 'block';
-    }
-
-    // AUTH PAYMENT TAB
-    function switchAuthPayTab(tab) {
-        authPayTab = tab;
-        document.querySelectorAll('.pay-tab-btn').forEach((b, i) => b.classList.toggle('active', (tab === 'online' && i === 0) || (tab === 'offline' && i === 1)));
-        document.getElementById('authPayOnline').classList.toggle('active', tab === 'online');
-        document.getElementById('authPayOffline').classList.toggle('active', tab === 'offline');
     }
 
     // PASSWORD TOGGLE
@@ -898,12 +752,11 @@ async function handleLogin() {
         pwErr.style.display = 'none';
 
         if (!name || !email || !phone || !password) { alert('অনুগ্রহ করে সমস্ত প্রয়োজনীয় তথ্য পূরণ করুন।'); return; }
-        if (!selectedPlan) { alert('অনুগ্রহ করে একটি প্ল্যান বেছে নিন।'); return; }
         if (password !== confirm) { pwErr.style.display = 'block'; return; }
         if (password.length < 6) { pwErr.textContent = 'Password must be at least 6 characters.'; pwErr.style.display = 'block'; return; }
 
         await requestRegistrationOTP(
-            { name, email, phone: '+880' + phone, center_name: center, location: city, password, role: 'teacher', plan: 'Free' },
+            { name, email, phone: '+880' + phone, center_name: center, location: city, password, role: 'teacher' },
             document.getElementById('teacherRegisterBtn')
         );
     }

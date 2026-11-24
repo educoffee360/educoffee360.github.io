@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import schemas
 
 
-def test_public_payment_accepts_bkash_and_rejects_nagad():
+def test_public_payment_requires_bkash():
     payment = {
         "name": "Test Teacher",
         "email": "teacher@example.com",
@@ -19,7 +19,7 @@ def test_public_payment_accepts_bkash_and_rejects_nagad():
     }
 
     accepted = schemas.PublicPaymentCreate(
-        **payment, method="bkash", subscription_duration="six_month"
+        **payment, method="bkash", subscription_duration="six_month",
     )
     assert accepted.method == "bkash"
     assert accepted.subscription_duration == "six_month"
@@ -27,16 +27,24 @@ def test_public_payment_accepts_bkash_and_rejects_nagad():
         schemas.PublicPaymentCreate(**payment, method="nagad")
 
 
-def test_upgrade_defaults_to_bkash_and_validates_duration():
-    request = schemas.PlanUpgradeCreate(
-        requested_plan="Pro",
-        trx_id="ABC123456",
+def test_upgrade_accepts_bkash_and_offline_but_rejects_nagad():
+    assert schemas.PlanUpgradeCreate(requested_plan="Pro").method == "bkash"
+    assert schemas.PlanUpgradeCreate(
+        requested_plan="Pro", method="bkash", trx_id="ABC123456",
         payment_phone="01700000000",
-        subscription_duration="six_month",
-    )
-
-    assert request.method == "bkash"
-    assert request.subscription_duration == "six_month"
-
+    ).method == "bkash"
+    assert schemas.PlanUpgradeCreate(
+        requested_plan="Pro", method="offline",
+    ).method == "offline"
     with pytest.raises(ValidationError):
         schemas.PlanUpgradeCreate(requested_plan="Pro", method="nagad")
+
+
+def test_upgrade_validates_subscription_duration():
+    assert schemas.PlanUpgradeCreate(
+        requested_plan="Pro", subscription_duration="six_month",
+    ).subscription_duration == "six_month"
+    with pytest.raises(ValidationError):
+        schemas.PlanUpgradeCreate(
+            requested_plan="Pro", subscription_duration="yearly",
+        )

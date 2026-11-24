@@ -89,7 +89,7 @@ def migrate_user_plans() -> None:
         with engine.begin() as connection:
             connection.execute(text("""
             UPDATE users
-            SET plan = 'Free'
+            SET plan = 'Free'::user_plan
             WHERE plan IS NULL
             """))
 
@@ -131,18 +131,6 @@ def migrate_user_plans() -> None:
         raise
 
 migrate_user_plans()
-
-def ensure_user_subscription_expiry_column() -> None:
-    columns = {column["name"] for column in inspect(engine).get_columns("users")}
-    if "pro_expires_at" not in columns:
-        column_type = "TIMESTAMP" if engine.dialect.name == "postgresql" else "DATETIME"
-        with engine.begin() as connection:
-            connection.execute(text(
-                f"ALTER TABLE users ADD COLUMN pro_expires_at {column_type}"
-            ))
-
-
-ensure_user_subscription_expiry_column()
 
 def migrate_legacy_plaintext_passwords() -> None:
     db = SessionLocal()
@@ -215,7 +203,10 @@ ensure_ad_campaign_table()
 def ensure_public_request_tables() -> None:
     PublicPaymentSubmission.__table__.create(bind=engine, checkfirst=True)
     OfficeAppointment.__table__.create(bind=engine, checkfirst=True)
-    columns = {column["name"] for column in inspect(engine).get_columns("public_payment_submissions")}
+    columns = {
+        column["name"]
+        for column in inspect(engine).get_columns("public_payment_submissions")
+    }
     if "subscription_duration" not in columns:
         with engine.begin() as connection:
             connection.execute(text(

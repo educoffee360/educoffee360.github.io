@@ -216,7 +216,7 @@
 
     <div class="sec-card-body">
         <p style="color:var(--muted);font-size:.85rem;margin-bottom:14px">
-            Receive EduCoffee notices directly on this device, even when EduCoffee isn't open.
+            Get notices, results, attendance updates, and teacher messages on this device, even when EduCoffee isn't open.
         </p>
 
         <button
@@ -225,6 +225,14 @@
             onclick="enableStudentNotifications()"
         >
             Enable Notifications
+        </button>
+        <button
+            class="save-btn"
+            id="disableNotificationsBtn"
+            onclick="disableStudentNotifications()"
+            style="display:none;margin-left:8px"
+        >
+            Disable Notifications
         </button>
 
         <p
@@ -361,12 +369,47 @@ async function enableStudentNotifications() {
         await EnablePushNotifications();
 
         btn.textContent = 'Notifications Enabled ✓';
-        status.textContent = 'You will now receive EduCoffee notices on this device.';
+        document.getElementById('disableNotificationsBtn').style.display = 'inline-block';
+        status.textContent = 'Push updates are enabled on this device.';
         status.style.color = '#2E7D32';
     } catch (error) {
         btn.disabled = false;
         btn.textContent = 'Enable Notifications';
         status.textContent = error?.message || 'Could not enable notifications.';
+        status.style.color = '#C62828';
+    }
+}
+
+async function disableStudentNotifications() {
+    const btn = document.getElementById('disableNotificationsBtn');
+    const status = document.getElementById('notificationStatus');
+    btn.disabled = true;
+    try {
+        await DisablePushNotifications();
+        document.getElementById('enableNotificationsBtn').textContent = 'Enable Notifications';
+        btn.style.display = 'none';
+        status.textContent = 'Notifications are disabled on this device.';
+        status.style.color = '#2E7D32';
+    } catch (error) {
+        status.textContent = error?.message || 'Could not disable notifications.';
+        status.style.color = '#C62828';
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function syncStudentNotificationControls() {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+            document.getElementById('enableNotificationsBtn').textContent = 'Notifications Enabled ✓';
+            document.getElementById('disableNotificationsBtn').style.display = 'inline-block';
+        }
+    } catch (error) {
+        const status = document.getElementById('notificationStatus');
+        status.textContent = error?.message || 'Could not check notification status.';
         status.style.color = '#C62828';
     }
 }
@@ -426,6 +469,7 @@ function closeSidebar() {
 
 showPageLoading('Loading your profile…');
 init().finally(hidePageLoading);
+syncStudentNotificationControls();
 </script>
 </body>
 </html>

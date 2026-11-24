@@ -398,7 +398,7 @@
     }
     </style>
 <script defer="True" src="/shared_head.js"></script>
-<script src="/api.js?v=20261118a"></script>
+<script src="/api.js?v=20261118b"></script>
 <script>
   const existingSession = getCurrentSession();
   if (existingSession?.role === 'teacher') {
@@ -574,7 +574,7 @@
 <div class="step-num">01</div>
 <div class="step-icon">🖊️</div>
 <div class="step-title">Teacher Signs Up</div>
-<div class="step-desc">Register with email, choose a subscription plan, and set up your coaching center profile.</div>
+<div class="step-desc">Create a free account with email and set up your coaching center profile. Upgrade later if you need more capacity.</div>
 </div>
 <div class="step">
 <div class="step-num">02</div>
@@ -638,13 +638,13 @@
 
         <div class="plan-price">
             <span class="plan-currency">৳</span>
-            <span class="plan-amount" id="proPrice">200</span>
+            <span class="plan-amount" id="proPrice">800</span>
         </div>
 
         <div class="plan-period" id="proPeriod">per month</div>
 
         <div class="plan-original" id="proOriginal" style="display:none">
-            ৳1,200 for 6 months
+            ৳4,800 for 6 months
         </div>
 
         <div class="plan-divider"></div>
@@ -728,7 +728,6 @@
 <label class="form-label">Payment Method *</label>
 <div class="select-wrap">
 <select class="form-select" id="payMethod">
-<option value="">পদ্ধতি বেছে নিন...</option>
 <option value="bkash">bKash (Personal)</option>
 </select>
 </div>
@@ -937,11 +936,11 @@ function setBilling(duration) {
     sixMonth.classList.toggle('active', duration === 'six_month');
 
     if (duration === 'six_month') {
-        price.textContent = '1,000';
+        price.textContent = '4,000';
         period.textContent = 'for 6 months';
         original.style.display = 'block';
     } else {
-        price.textContent = '200';
+        price.textContent = '800';
         period.textContent = 'per month';
         original.style.display = 'none';
     }
