@@ -820,11 +820,18 @@ function switchPayTab(tab, btn) {
 }
 
 async function submitUpgrade(method, button) {
-    if (method === 'bkash') {
-        const trx   = document.getElementById('bkashTrxId').value.trim();
-        const phone = document.getElementById('bkashPhone').value.trim();
-        if (!trx || !phone) { showToast('Please fill in all required fields.'); return; }
+    const isBkash = method === 'bkash';
+    const trx = isBkash ? document.getElementById('bkashTrxId').value.trim() : '';
+    const phone = isBkash ? document.getElementById('bkashPhone').value.trim() : '';
+    const notes = method === 'offline'
+        ? document.getElementById('offlineCode').value.trim()
+        : '';
+
+    if (isBkash && (!trx || !phone)) {
+        showToast('Please fill in all required fields.');
+        return;
     }
+
     const originalText = button?.textContent;
     if (button) { button.disabled = true; button.textContent = 'Submitting...'; }
     try {
@@ -832,12 +839,9 @@ async function submitUpgrade(method, button) {
             requested_plan: selectedUpgradePlan,
             subscription_duration: selectedSubscriptionDuration,
             method,
-            trx_id: method === 'bkash'
-                ? document.getElementById('bkashTrxId').value.trim()
-                : null,
-            payment_phone: method === 'bkash'
-                ? document.getElementById('bkashPhone').value.trim()
-                : null,
+            trx_id: trx || null,
+            payment_phone: phone || null,
+            notes: notes ? `Office payment code: ${notes}` : null,
         });
         closeUpgradeModal();
         document.getElementById('currentPlanStatus').textContent = `${selectedUpgradePlan} review pending`;

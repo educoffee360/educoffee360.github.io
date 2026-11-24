@@ -692,6 +692,13 @@ async function UpdateStaffPublicPaymentStatus(id, status) { return requestJson(`
 async function UpdateStaffOfficeAppointmentStatus(id, status) { return requestJson(`/staff/office-appointments/${requireId(id, "appointment id", null)}/status`, { method: "PUT", body: { status } }); }
 async function GetStaffPublicPaymentSubmissions() { return requestJson("/staff/public-payment-submissions"); }
 async function GetStaffOfficeAppointments() { return requestJson("/staff/office-appointments"); }
+async function CreateAdminPayment(payload = {}) {
+  return requestJson("/staff/payments", { method: "POST", body: payload });
+}
+async function GetAdminPayments() { return requestJson("/staff/payments"); }
+async function GetUserPayments(userId) { return requestJson(`/staff/users/${requireId(userId, "user id", null)}/payments`); }
+async function VerifyPayment(paymentId, note = "") { return requestJson(`/staff/payments/${requireId(paymentId, "payment id", null)}/verify`, { method: "POST", body: { note } }); }
+async function RejectPayment(paymentId, note = "") { return requestJson(`/staff/payments/${requireId(paymentId, "payment id", null)}/reject`, { method: "POST", body: { note } }); }
 
 async function GetStudentPayments(student_id = getCurrentUserId()) {
   return requestJson(`/payments/student/${requireId(student_id, "student id")}`);
@@ -701,13 +708,15 @@ async function GetStudentAttendance(student_id = getCurrentUserId()) {
 }
 
 async function CreateUpgradeRequest(request = {}) {
+  const method = request.method || "offline";
   return requestJson("/upgrade-requests", {
     method: "POST",
     body: {
       requested_plan: request.requested_plan,
-      method: request.method || "bkash",
+      method: method.toLowerCase() === "bkash" ? "bKash" : method,
       trx_id: request.trx_id || null,
       payment_phone: request.payment_phone || null,
+      notes: request.notes || null,
       subscription_duration: request.subscription_duration || "monthly",
     },
   });
